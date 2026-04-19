@@ -1,6 +1,7 @@
+"use client";
+
 // @ts-nocheck -- vendored React Bits component
 /* eslint-disable @typescript-eslint/no-explicit-any -- vendored React Bits component */
-"use client";
 
 import React, { useEffect, useRef, useState, useMemo } from 'react';
 import type { CSSProperties, PropsWithChildren } from 'react';

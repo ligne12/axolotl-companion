@@ -1,9 +1,7 @@
 import type { Metadata, Viewport } from "next";
-import { Inter, Pixelify_Sans } from "next/font/google";
+import { Inter } from "next/font/google";
 import { Toaster } from "sonner";
 
-import { AppBackground } from "@/components/layout/app-background";
-import { GlobalClickSpark } from "@/components/layout/global-click-spark";
 import { QueryProvider } from "@/components/providers/query-provider";
 import { SessionProvider } from "@/components/providers/session-provider";
 import { ThemeProvider } from "@/components/providers/theme-provider";
@@ -14,13 +12,6 @@ const inter = Inter({
   subsets: ["latin"],
   display: "swap",
   variable: "--font-sans",
-});
-
-const pixelify = Pixelify_Sans({
-  subsets: ["latin"],
-  display: "swap",
-  weight: ["500", "700"],
-  variable: "--font-pixel",
 });
 
 export const metadata: Metadata = {
@@ -43,7 +34,7 @@ export default function RootLayout({
   readonly children: React.ReactNode;
 }) {
   return (
-    <html lang="en" suppressHydrationWarning className={`${inter.variable} ${pixelify.variable}`}>
+    <html lang="en" suppressHydrationWarning className={inter.variable}>
       <head>
         <link rel="preconnect" href="https://api.fontshare.com" crossOrigin="" />
         <link rel="preconnect" href="https://cdn.fontshare.com" crossOrigin="" />
@@ -59,12 +50,9 @@ export default function RootLayout({
           enableSystem
           disableTransitionOnChange
         >
-          <AppBackground />
           <SessionProvider>
             <QueryProvider>
-              <GlobalClickSpark>
-                {children}
-              </GlobalClickSpark>
+              {children}
               <Toaster richColors position="top-right" />
             </QueryProvider>
           </SessionProvider>

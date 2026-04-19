@@ -12,6 +12,7 @@ import CircularText from "@/components/reactbits/circular-text";
 import ClickSpark from "@/components/reactbits/click-spark";
 import Magnet from "@/components/reactbits/magnet";
 import PixelSnow from "@/components/reactbits/pixel-snow";
+import Shuffle from "@/components/reactbits/shuffle";
 import TextType from "@/components/reactbits/text-type";
 import { useApi } from "@/hooks/use-api";
 import { cn } from "@/lib/utils";
@@ -66,7 +67,7 @@ export function HomeHero({
 
   return (
     <section className="relative isolate overflow-hidden rounded-[28px] border-2 border-border bg-card p-6 shadow-[3px_3px_0_0_var(--border)] md:p-10">
-      {/* Hero-local snow layer — drifts on top of the global PixelBlast wash */}
+      {/* Faint pixel snow in the background — low density, lime flakes */}
       <div className="pointer-events-none absolute inset-0 opacity-30">
         <PixelSnow
           color="#baff39"
@@ -78,9 +79,17 @@ export function HomeHero({
         />
       </div>
 
-      <div className="relative z-10 flex flex-col items-start gap-8 md:flex-row md:items-center md:gap-12">
-        {/* Axolotl wrapped in a circular ring of text (ring sits above the card) */}
+      <div className="relative z-10 flex flex-col items-center gap-8 md:flex-row md:items-center md:gap-12">
+        {/* Axolotl wrapped in a circular ring of text */}
         <div className="relative shrink-0">
+          <div className="absolute inset-0 -m-4 flex items-center justify-center text-[color:var(--muted-foreground)]">
+            <CircularText
+              text="AXOLOTL · COMPANION · LOCAL · FIRST · "
+              spinDuration={28}
+              onHover="speedUp"
+              className="!h-[240px] !w-[240px] !text-[10px] !font-mono !uppercase !tracking-[0.2em]"
+            />
+          </div>
           <ClickSpark sparkColor="#baff39" sparkCount={14} sparkRadius={26} duration={500}>
             <button
               type="button"
@@ -91,38 +100,37 @@ export function HomeHero({
               <AxolotlSprite mood={mood} size={150} />
             </button>
           </ClickSpark>
-          <div className="pointer-events-none absolute inset-0 -m-6 z-20 flex items-center justify-center">
-            <CircularText
-              text="AXOLOTL · COMPANION · LOCAL · FIRST · "
-              spinDuration={28}
-              onHover="speedUp"
-              className="!h-[220px] !w-[220px] !text-[11px] !text-foreground font-pixel !uppercase !tracking-[0.18em]"
-            />
-          </div>
         </div>
 
-        <div className="flex min-w-0 flex-1 max-w-xl flex-col gap-4 text-left">
-          <span className="inline-flex w-fit items-center gap-2 border-2 border-border bg-card px-2.5 py-1 font-pixel text-[12px] uppercase tracking-[0.14em]">
-            <span className="size-2 bg-[color:var(--lime)]" />
+        <div className="flex max-w-xl flex-col gap-4 text-center md:text-left">
+          <span className="inline-flex w-fit self-center items-center gap-2 border-2 border-border bg-card px-3 py-1 font-mono text-[10px] uppercase tracking-[0.22em] md:self-start">
+            <span className="size-1.5 bg-[color:var(--lime)]" />
             Hi {name}
           </span>
 
-          <h1 className="font-display text-4xl font-bold uppercase leading-[1.05] md:text-5xl">
-            Your <span className="italic">axolotl</span> is listening.
-          </h1>
+          <Shuffle
+            tag="h1"
+            text="Your axolotl is listening."
+            className="font-display text-balance text-4xl font-bold leading-[1.05] md:text-5xl"
+            shuffleTimes={2}
+            duration={0.5}
+            stagger={0.03}
+            triggerOnce
+            animationMode="evenodd"
+          />
 
           <TextType
             as="p"
-            className="min-h-[3rem] max-w-md text-balance leading-snug text-muted-foreground"
+            className="min-h-[1.5rem] max-w-md text-balance text-muted-foreground"
             text={GREETINGS}
             typingSpeed={38}
             deletingSpeed={18}
             pauseDuration={2600}
             cursorCharacter="▍"
-            cursorClassName="text-foreground"
+            cursorClassName="text-[color:var(--lime-foreground)]"
           />
 
-          <div className="mt-2 flex flex-wrap items-center gap-3">
+          <div className="mt-2 flex flex-wrap items-center justify-center gap-3 md:justify-start">
             <Magnet padding={80} magnetStrength={3}>
               <button
                 type="button"

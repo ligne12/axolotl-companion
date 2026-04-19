@@ -69,8 +69,8 @@ export default function ToolsPage() {
     <div className="h-full overflow-auto p-6">
       <div className="mx-auto max-w-3xl space-y-6">
         <header className="space-y-2">
-          <div className="inline-flex items-center gap-2 border-2 border-border bg-card px-2.5 py-1 font-pixel text-[12px] uppercase tracking-[0.14em]">
-            <span className="size-2 bg-[color:var(--lime)]" />
+          <div className="inline-flex items-center gap-2 border-2 border-border bg-card px-2 py-0.5 font-mono text-[10px] uppercase tracking-[0.22em]">
+            <span className="size-1.5 bg-[color:var(--lime)]" />
             Tools
           </div>
           <h1 className="font-display text-3xl font-bold leading-tight">
@@ -94,7 +94,7 @@ export default function ToolsPage() {
               <div className="min-w-0 space-y-1">
                 <div className="flex items-center gap-2">
                   <h2 className="font-display text-base font-semibold">{tool.title}</h2>
-                  <span className="border-2 border-border bg-background px-1.5 py-0.5 font-pixel text-[11px] uppercase tracking-wider text-muted-foreground">
+                  <span className="border-2 border-border bg-background px-1.5 py-0 font-mono text-[9px] uppercase tracking-widest text-muted-foreground">
                     {tool.category}
                   </span>
                 </div>

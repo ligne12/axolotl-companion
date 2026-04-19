@@ -68,8 +68,8 @@ export default function RegisterPage() {
       />
       <div className="relative w-full max-w-sm border-2 border-border bg-card p-6 shadow-[4px_4px_0_0_var(--border)]">
         <div className="mb-6 space-y-1">
-          <div className="inline-flex items-center gap-2 border-2 border-border bg-background px-2.5 py-1 font-pixel text-[12px] uppercase tracking-[0.14em]">
-            <span className="size-2 bg-[color:var(--lime)]" />
+          <div className="inline-flex items-center gap-2 border-2 border-border bg-background px-2 py-0.5 font-mono text-[10px] uppercase tracking-[0.22em]">
+            <span className="size-1.5 bg-[color:var(--lime)]" />
             Registration
           </div>
           <h1 className="font-display text-3xl font-bold leading-tight">
