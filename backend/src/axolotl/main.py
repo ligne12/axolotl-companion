@@ -48,11 +48,9 @@ def create_app() -> FastAPI:
         """Liveness probe."""
         return {"status": "ok", "version": __version__}
 
-    # Routers will be registered here in Phase 1:
-    # from axolotl.api.v1 import auth, chat, sessions
-    # app.include_router(auth.router, prefix="/auth", tags=["auth"])
-    # app.include_router(sessions.router, prefix="/v1/sessions", tags=["sessions"])
-    # app.include_router(chat.router, prefix="/v1/chat", tags=["chat"])
+    from axolotl.api.v1 import auth as auth_router
+
+    app.include_router(auth_router.router, prefix="/auth", tags=["auth"])
 
     return app
 
