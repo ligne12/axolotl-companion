@@ -18,10 +18,10 @@ export function RecentSessions({ sessions }: { sessions: SessionPublic[] }) {
   if (sessions.length === 0) {
     return (
       <section>
-        <h2 className="mb-3 text-sm font-semibold uppercase tracking-wider text-muted-foreground">
+        <h2 className="mb-3 font-display text-sm font-semibold uppercase tracking-[0.2em] text-muted-foreground">
           Recent
         </h2>
-        <div className="rounded-2xl border-2 border-dashed border-border p-8 text-center text-sm text-muted-foreground">
+        <div className="rounded-xl border-2 border-dashed border-border p-8 text-center text-sm text-muted-foreground">
           No conversations yet — start one from the hero above.
         </div>
       </section>
@@ -30,7 +30,7 @@ export function RecentSessions({ sessions }: { sessions: SessionPublic[] }) {
 
   return (
     <section>
-      <h2 className="mb-3 text-sm font-semibold uppercase tracking-wider text-muted-foreground">
+      <h2 className="mb-3 font-display text-sm font-semibold uppercase tracking-[0.2em] text-muted-foreground">
         Recent
       </h2>
       <ul className="grid gap-3 sm:grid-cols-2">
@@ -38,19 +38,17 @@ export function RecentSessions({ sessions }: { sessions: SessionPublic[] }) {
           <li key={s.id}>
             <Link
               href={`/chat/${s.id}`}
-              className="group flex h-full flex-col justify-between gap-3 rounded-xl border-2 border-border bg-card p-4 shadow-[3px_3px_0_theme(colors.border)] transition-all hover:translate-y-[-1px] hover:shadow-[4px_4px_0_theme(colors.border)] focus:outline-none focus-visible:ring-2 focus-visible:ring-primary"
+              className="group flex h-full flex-col justify-between gap-3 rounded-xl border-2 border-border bg-card p-4 shadow-[3px_3px_0_0_var(--border)] transition-[transform,box-shadow] duration-100 hover:-translate-x-[1px] hover:-translate-y-[1px] hover:shadow-[5px_5px_0_0_var(--lime)] focus:outline-none focus-visible:-translate-x-[1px] focus-visible:-translate-y-[1px] focus-visible:shadow-[5px_5px_0_0_var(--lime)]"
             >
               <div>
-                <p className="line-clamp-2 font-medium leading-snug group-hover:text-primary">
-                  {s.title}
-                </p>
+                <p className="line-clamp-2 font-medium leading-snug">{s.title}</p>
               </div>
               <div className="flex items-center justify-between text-xs text-muted-foreground">
                 <span className="inline-flex items-center gap-1">
                   <Clock className="size-3" />
                   {formatRelative(s.updated_at)}
                 </span>
-                <ArrowRight className="size-3.5 opacity-0 transition-opacity group-hover:opacity-100" />
+                <ArrowRight className="size-3.5 translate-x-[-4px] opacity-0 transition-all group-hover:translate-x-0 group-hover:opacity-100" />
               </div>
             </Link>
           </li>

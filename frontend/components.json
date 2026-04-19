@@ -18,6 +18,6 @@
   },
   "iconLibrary": "lucide",
   "registries": {
-    "@react-bits": "https://reactbits.dev/r/{name}.json"
+    "@react-bits": "https://reactbits.dev/r/{name}-TS-TW.json"
   }
 }
