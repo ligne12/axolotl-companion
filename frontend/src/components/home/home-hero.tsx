@@ -15,9 +15,8 @@ import PixelSnow from "@/components/reactbits/pixel-snow";
 import TextType from "@/components/reactbits/text-type";
 import { useApi } from "@/hooks/use-api";
 import { cn } from "@/lib/utils";
+import { useChatStatus } from "@/stores/chat-status";
 import type { SessionPublic } from "@/types/api";
-
-const MOODS: AxolotlMood[] = ["idle", "happy", "curious", "sleepy"];
 
 const GREETINGS = [
   "Ready when you are.",
@@ -40,16 +39,50 @@ export function HomeHero({
   const api = useApi();
   const qc = useQueryClient();
   const [mood, setMood] = useState<AxolotlMood>("idle");
+  const [pokedUntil, setPokedUntil] = useState<number>(0);
+  const isSending = useChatStatus((s) => s.isSending);
+
+  // Reactive mood: mirrors the chat-status store + an idle timer.
+  //  - streaming → curious
+  //  - just finished streaming → happy for 3s
+  //  - idle for >60s → sleepy
+  //  - else gentle idle/curious cycle every 6.5s
+  useEffect(() => {
+    const wasSending = mood === "curious";
+    if (isSending) {
+      setMood("curious");
+      return;
+    }
+    if (wasSending) {
+      setMood("happy");
+      const t = setTimeout(() => setMood("idle"), 3000);
+      return () => clearTimeout(t);
+    }
+  }, [isSending]); // eslint-disable-line react-hooks/exhaustive-deps
 
   useEffect(() => {
-    const id = setInterval(() => {
+    if (isSending) return;
+    const cycle = setInterval(() => {
+      const now = Date.now();
+      if (now < pokedUntil) return;
       setMood((m) => {
-        const others = MOODS.filter((x) => x !== m);
+        if (m === "happy") return m;
+        const pool: AxolotlMood[] = ["idle", "curious"];
+        const others = pool.filter((x) => x !== m);
         return others[Math.floor(Math.random() * others.length)]!;
       });
     }, 6500);
-    return () => clearInterval(id);
-  }, []);
+
+    // Long-idle → sleepy after 60s without streaming or poke
+    const sleepTimer = setTimeout(() => {
+      if (!isSending && Date.now() >= pokedUntil) setMood("sleepy");
+    }, 60_000);
+
+    return () => {
+      clearInterval(cycle);
+      clearTimeout(sleepTimer);
+    };
+  }, [isSending, pokedUntil]);
 
   const createSession = useMutation({
     mutationFn: () =>
@@ -84,7 +117,10 @@ export function HomeHero({
           <ClickSpark sparkColor="#baff39" sparkCount={14} sparkRadius={26} duration={500}>
             <button
               type="button"
-              onClick={() => setMood("happy")}
+              onClick={() => {
+                setMood("happy");
+                setPokedUntil(Date.now() + 3000);
+              }}
               aria-label="Poke the axolotl"
               className="relative z-10 rounded-2xl border-2 border-border bg-card p-3 shadow-[3px_3px_0_0_var(--border)] transition-[transform,box-shadow] duration-100 active:translate-x-[2px] active:translate-y-[2px] active:shadow-[1px_1px_0_0_var(--border)]"
             >
@@ -93,7 +129,7 @@ export function HomeHero({
           </ClickSpark>
           <div className="pointer-events-none absolute inset-0 -m-6 z-20 flex items-center justify-center">
             <CircularText
-              text="AXOLOTL · COMPANION · LOCAL · FIRST · "
+              text="AXOLOTL ✦ COMPANION ✦ LOCAL ✦ FIRST ✦ "
               spinDuration={28}
               onHover="speedUp"
               className="!h-[220px] !w-[220px] !text-[11px] !text-foreground font-pixel !uppercase !tracking-[0.18em]"
