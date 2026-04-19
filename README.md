@@ -145,7 +145,7 @@ The axolotl reacts in real-time to the LLM's internal state:
 
 See [plan.md](plan.md) for the full phased roadmap.
 
-Current status: **Phase 0 — Project setup** ⬅️
+Current status: **Phase 2 — Frontend MVP** ⬅️ (Phase 0 + Phase 1 done)
 
 ## 🤝 Contributing
 

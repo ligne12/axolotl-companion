@@ -124,19 +124,20 @@ id, user_id FK, token_hash, expires_at, revoked_at
 
 ## 6. Development phases
 
-### Phase 0 — Repo setup ⬅️ current
+### Phase 0 — Repo setup ✅ done
 - Directory structure, base Compose, Dockerfiles, CI skeleton, README, license
 - Dockerised vLLM (model configurable via env vars)
 
-### Phase 1 — Backend MVP
+### Phase 1 — Backend MVP ✅ done
 - FastAPI + Pydantic Settings config
-- Postgres + Alembic + SQLModel
+- Postgres + Alembic + SQLModel (initial migration committed)
 - Auth: JWT + bcrypt + rotating refresh tokens
-- Endpoints: sessions, messages (SSE)
-- Port the existing chat logic (web_search, streaming, tool calling)
-- Unit + integration tests (pytest)
+- Sessions CRUD + authz
+- Chat SSE endpoint wrapping vLLM with tool calling
+- Extensible tool registry + per-user enable/disable via `/v1/tools`
+- Unit + integration tests (pytest, NullPool for asyncio stability)
 
-### Phase 2 — Frontend MVP
+### Phase 2 — Frontend MVP ⬅️ current
 - Next.js 15 + Tailwind v4 + shadcn/ui
 - Auth.js v5 credentials provider
 - Login / register pages

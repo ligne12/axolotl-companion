@@ -180,7 +180,7 @@ class RefreshToken(SQLModel, table=True):
         sa_column=Column(BigInteger, primary_key=True, autoincrement=True),
     )
     user_id: int = Field(foreign_key="users.id", nullable=False, index=True)
-    token_hash: str = Field(max_length=255, unique=True)
+    token_hash: str = Field(max_length=255)
     expires_at: datetime = Field(sa_column=Column(DateTime(timezone=True), nullable=False))
     revoked_at: datetime | None = Field(
         default=None,
