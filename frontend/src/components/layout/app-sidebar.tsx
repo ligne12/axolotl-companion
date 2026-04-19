@@ -9,6 +9,7 @@ import { signOut, useSession } from "next-auth/react";
 import { useEffect, useRef, useState } from "react";
 import { toast } from "sonner";
 
+import { ThemeToggle } from "@/components/layout/theme-toggle";
 import { useApi } from "@/hooks/use-api";
 import { cn } from "@/lib/utils";
 import type { SessionPublic } from "@/types/api";
@@ -275,6 +276,9 @@ export function AppSidebar() {
         >
           <Settings2 className="size-4" /> Tools
         </Link>
+        <div className="flex items-center justify-between px-2 py-1.5 text-sm">
+          <ThemeToggle />
+        </div>
         <div className="flex items-center justify-between px-2 py-1.5 text-sm">
           <span className="truncate text-muted-foreground">{user?.user?.name}</span>
           <button

@@ -1,6 +1,6 @@
+// @ts-nocheck -- vendored React Bits component
 'use client';
 
-// @ts-nocheck -- vendored React Bits component
 import { useEffect, useRef, useState, createElement, useMemo, useCallback } from 'react';
 import type { ElementType } from 'react';
 import { gsap } from 'gsap';

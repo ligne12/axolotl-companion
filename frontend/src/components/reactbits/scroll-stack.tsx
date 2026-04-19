@@ -1,5 +1,6 @@
-"use client";
 // @ts-nocheck -- vendored React Bits component
+"use client";
+
 import React, { useLayoutEffect, useRef, useCallback } from 'react';
 import type { ReactNode } from 'react';
 import Lenis from 'lenis';

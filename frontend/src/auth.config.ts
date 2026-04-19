@@ -15,7 +15,11 @@ export const authConfig = {
   providers: [],
   callbacks: {
     authorized({ auth, request }) {
-      const isLoggedIn = Boolean(auth?.user);
+      // Treat a session whose refresh failed as logged-out, otherwise the
+      // middleware lets it through while the RSC layout redirects it to
+      // /login, and /login gets bounced back by the redirect below — loop.
+      const hasError = auth?.error === "RefreshAccessTokenError";
+      const isLoggedIn = Boolean(auth?.user) && !hasError;
       const { pathname } = request.nextUrl;
 
       const isAuthPage = pathname.startsWith("/login") || pathname.startsWith("/register");
@@ -23,7 +27,7 @@ export const authConfig = {
 
       if (isAuthPage) {
         if (isLoggedIn) {
-          return Response.redirect(new URL("/chat", request.nextUrl));
+          return Response.redirect(new URL("/home", request.nextUrl));
         }
         return true;
       }

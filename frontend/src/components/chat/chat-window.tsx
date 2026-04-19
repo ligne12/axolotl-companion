@@ -4,7 +4,6 @@ import { useEffect, useMemo, useRef } from "react";
 
 import { ChatInput } from "@/components/chat/chat-input";
 import { MessageBubble, StreamingBubble } from "@/components/chat/message-bubble";
-import GradualBlur from "@/components/reactbits/gradual-blur";
 import { useChat } from "@/hooks/use-chat";
 import type { MessagePublic } from "@/types/api";
 
@@ -46,8 +45,10 @@ export function ChatWindow({
 
   return (
     <div className="flex h-full flex-col">
-      <div ref={scrollRef} className="relative flex-1 overflow-y-auto">
-        <GradualBlur target="parent" position="top" height="3rem" strength={1.2} divCount={4} zIndex={5} />
+      <div
+        ref={scrollRef}
+        className="relative flex-1 overflow-y-auto [mask-image:linear-gradient(to_bottom,transparent_0,black_32px,black_calc(100%-32px),transparent_100%)]"
+      >
         <div className="mx-auto max-w-3xl space-y-4 p-4">
           {visible.length === 0 && !chat.streaming && (
             <div className="mx-auto flex h-[40vh] max-w-sm flex-col items-center justify-center gap-2 text-center">
@@ -81,7 +82,6 @@ export function ChatWindow({
             </div>
           )}
         </div>
-        <GradualBlur target="parent" position="bottom" height="3rem" strength={1.2} divCount={4} zIndex={5} />
       </div>
       <ChatInput
         onSend={(c) => void chat.send(c)}

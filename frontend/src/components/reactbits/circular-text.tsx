@@ -1,5 +1,6 @@
-"use client";
 // @ts-nocheck -- vendored React Bits component
+"use client";
+
 import React, { useEffect } from 'react';
 import { motion, useAnimation, useMotionValue, MotionValue, Transition } from 'motion/react';
 interface CircularTextProps {
