@@ -9,6 +9,7 @@ import { toast } from "sonner";
 
 import { AxolotlSprite, type AxolotlMood } from "@/components/axolotl/axolotl-sprite";
 import ClickSpark from "@/components/reactbits/click-spark";
+import Magnet from "@/components/reactbits/magnet";
 import PixelSnow from "@/components/reactbits/pixel-snow";
 import TextType from "@/components/reactbits/text-type";
 import { useApi } from "@/hooks/use-api";
@@ -126,35 +127,39 @@ export function HomeHero({
           />
 
           <div className="mt-3 flex flex-wrap items-center justify-center gap-3 md:justify-start">
-            <button
-              type="button"
-              onClick={() => createSession.mutate()}
-              disabled={createSession.isPending}
-              className={cn(
-                "group inline-flex items-center gap-2 border-2 border-border bg-primary px-5 py-2.5 text-sm font-semibold text-primary-foreground",
-                "shadow-[4px_4px_0_0_var(--lime)] transition-[transform,box-shadow] duration-100",
-                "hover:-translate-x-[1px] hover:-translate-y-[1px] hover:shadow-[6px_6px_0_0_var(--lime)]",
-                "active:translate-x-[2px] active:translate-y-[2px] active:shadow-[1px_1px_0_0_var(--lime)]",
-                "disabled:cursor-not-allowed disabled:opacity-60",
-              )}
-            >
-              <MessageSquarePlus className="size-4" />
-              New conversation
-            </button>
-
-            {hasSessions && lastSessionId !== undefined && (
-              <Link
-                href={`/chat/${lastSessionId}`}
+            <Magnet padding={80} magnetStrength={3}>
+              <button
+                type="button"
+                onClick={() => createSession.mutate()}
+                disabled={createSession.isPending}
                 className={cn(
-                  "inline-flex items-center gap-2 border-2 border-border bg-card px-5 py-2.5 text-sm font-semibold",
-                  "shadow-[4px_4px_0_0_var(--border)] transition-[transform,box-shadow] duration-100",
-                  "hover:-translate-x-[1px] hover:-translate-y-[1px] hover:shadow-[6px_6px_0_0_var(--border)]",
-                  "active:translate-x-[2px] active:translate-y-[2px] active:shadow-[1px_1px_0_0_var(--border)]",
+                  "group inline-flex items-center gap-2 border-2 border-border bg-primary px-5 py-2.5 text-sm font-semibold text-primary-foreground",
+                  "shadow-[4px_4px_0_0_var(--lime)] transition-[transform,box-shadow] duration-100",
+                  "hover:-translate-x-[1px] hover:-translate-y-[1px] hover:shadow-[6px_6px_0_0_var(--lime)]",
+                  "active:translate-x-[2px] active:translate-y-[2px] active:shadow-[1px_1px_0_0_var(--lime)]",
+                  "disabled:cursor-not-allowed disabled:opacity-60",
                 )}
               >
-                <Sparkles className="size-4" />
-                Resume last
-              </Link>
+                <MessageSquarePlus className="size-4" />
+                New conversation
+              </button>
+            </Magnet>
+
+            {hasSessions && lastSessionId !== undefined && (
+              <Magnet padding={80} magnetStrength={4}>
+                <Link
+                  href={`/chat/${lastSessionId}`}
+                  className={cn(
+                    "inline-flex items-center gap-2 border-2 border-border bg-card px-5 py-2.5 text-sm font-semibold",
+                    "shadow-[4px_4px_0_0_var(--border)] transition-[transform,box-shadow] duration-100",
+                    "hover:-translate-x-[1px] hover:-translate-y-[1px] hover:shadow-[6px_6px_0_0_var(--border)]",
+                    "active:translate-x-[2px] active:translate-y-[2px] active:shadow-[1px_1px_0_0_var(--border)]",
+                  )}
+                >
+                  <Sparkles className="size-4" />
+                  Resume last
+                </Link>
+              </Magnet>
             )}
           </div>
         </div>
