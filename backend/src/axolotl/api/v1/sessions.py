@@ -36,14 +36,18 @@ def _merge_tool_results(messages: list[Message]) -> list[MessagePublic]:
     """Attach each tool message's content as 'result' on the corresponding
     tool_call entry of the preceding assistant message, and drop the tool
     messages from the returned list."""
-    # Index tool results by tool_call_id
+    # Index tool results + durations by tool_call_id
     results_by_id: dict[str, Any] = {}
+    durations_by_id: dict[str, int] = {}
     for m in messages:
         if m.role == "tool" and m.tool_call_id and m.content is not None:
             try:
                 results_by_id[m.tool_call_id] = json.loads(m.content)
             except json.JSONDecodeError:
                 results_by_id[m.tool_call_id] = m.content
+            dur = (m.message_metadata or {}).get("timings", {}).get("duration_ms")
+            if isinstance(dur, int):
+                durations_by_id[m.tool_call_id] = dur
 
     out: list[MessagePublic] = []
     for m in messages:
@@ -57,6 +61,8 @@ def _merge_tool_results(messages: list[Message]) -> list[MessagePublic]:
                 tc_id = tc_copy.get("id")
                 if tc_id and tc_id in results_by_id:
                     tc_copy["result"] = results_by_id[tc_id]
+                if tc_id and tc_id in durations_by_id:
+                    tc_copy["duration_ms"] = durations_by_id[tc_id]
                 enriched_tool_calls.append(tc_copy)
         out.append(
             MessagePublic(
@@ -67,6 +73,7 @@ def _merge_tool_results(messages: list[Message]) -> list[MessagePublic]:
                 tool_calls=enriched_tool_calls,
                 tool_call_id=m.tool_call_id,
                 created_at=m.created_at,
+                metadata=m.message_metadata or None,
             )
         )
     return out

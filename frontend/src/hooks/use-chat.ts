@@ -6,6 +6,7 @@ import { API_BASE } from "@/lib/utils";
 import type {
   MessageDoneData,
   MessagePublic,
+  MessageTimings,
   SSEEventType,
   ToolCall,
   ToolCallEventData,
@@ -16,6 +17,7 @@ export type StreamingToolCall = {
   name: string;
   arguments: unknown;
   result?: unknown;
+  duration_ms?: number;
 };
 
 type StreamingAssistant = {
@@ -23,6 +25,10 @@ type StreamingAssistant = {
   content: string;
   toolCalls: Record<string, StreamingToolCall>;
   done: boolean;
+  startedAt: number;
+  elapsedMs: number;
+  reasoningStartedAt: number | null;
+  reasoningElapsedMs: number;
 };
 
 export interface UseChatResult {
@@ -51,10 +57,15 @@ export function useChat(
   const [error, setError] = useState<string | null>(null);
   const controllerRef = useRef<AbortController | null>(null);
   const lastUserMessageRef = useRef<string | null>(null);
+  const tickRef = useRef<ReturnType<typeof setInterval> | null>(null);
 
   const stop = useCallback(() => {
     controllerRef.current?.abort();
     controllerRef.current = null;
+    if (tickRef.current) {
+      clearInterval(tickRef.current);
+      tickRef.current = null;
+    }
     setIsSending(false);
   }, []);
 
@@ -77,9 +88,32 @@ export function useChat(
       };
       setMessages((prev) => [...prev, userMsg]);
 
-      setStreaming({ reasoning: "", content: "", toolCalls: {}, done: false });
+      const startedAt = Date.now();
+      setStreaming({
+        reasoning: "",
+        content: "",
+        toolCalls: {},
+        done: false,
+        startedAt,
+        elapsedMs: 0,
+        reasoningStartedAt: null,
+        reasoningElapsedMs: 0,
+      });
       setError(null);
       setIsSending(true);
+
+      // Tick the elapsed counter every 100ms while streaming
+      tickRef.current = setInterval(() => {
+        setStreaming((prev) => {
+          if (!prev) return prev;
+          const now = Date.now();
+          const reasoningElapsedMs =
+            prev.reasoningStartedAt !== null
+              ? now - prev.reasoningStartedAt
+              : prev.reasoningElapsedMs;
+          return { ...prev, elapsedMs: now - prev.startedAt, reasoningElapsedMs };
+        });
+      }, 100);
 
       const ctrl = new AbortController();
       controllerRef.current = ctrl;
@@ -130,13 +164,37 @@ export function useChat(
           if (ev === "reasoning.delta") {
             const d = data as { text: string };
             acc.reasoning += d.text;
-            setStreaming((prev) => (prev ? { ...prev, reasoning: acc.reasoning } : prev));
+            setStreaming((prev) => {
+              if (!prev) return prev;
+              const reasoningStartedAt =
+                prev.reasoningStartedAt ?? Date.now();
+              return {
+                ...prev,
+                reasoning: acc.reasoning,
+                reasoningStartedAt,
+                reasoningElapsedMs: Date.now() - reasoningStartedAt,
+              };
+            });
             return;
           }
           if (ev === "message.delta") {
             const d = data as { text: string };
             acc.content += d.text;
-            setStreaming((prev) => (prev ? { ...prev, content: acc.content } : prev));
+            setStreaming((prev) => {
+              if (!prev) return prev;
+              // Reasoning is now frozen once content starts flowing
+              const reasoningStartedAt = null;
+              const reasoningElapsedMs =
+                prev.reasoningStartedAt !== null
+                  ? Date.now() - prev.reasoningStartedAt
+                  : prev.reasoningElapsedMs;
+              return {
+                ...prev,
+                content: acc.content,
+                reasoningStartedAt,
+                reasoningElapsedMs,
+              };
+            });
             return;
           }
           if (ev === "tool.call") {
@@ -150,7 +208,11 @@ export function useChat(
           if (ev === "tool.result") {
             const d = data as ToolResultEventData;
             const existing = acc.toolCalls[d.id] ?? { name: "", arguments: null };
-            acc.toolCalls[d.id] = { ...existing, result: d.result };
+            acc.toolCalls[d.id] = {
+              ...existing,
+              result: d.result,
+              duration_ms: d.duration_ms,
+            };
             setStreaming((prev) =>
               prev ? { ...prev, toolCalls: { ...acc.toolCalls } } : prev,
             );
@@ -168,8 +230,13 @@ export function useChat(
                       arguments: JSON.stringify(tc.arguments),
                     },
                     result: tc.result,
+                    duration_ms: tc.duration_ms,
                   }))
                 : null;
+
+            const metadata: MessagePublic["metadata"] = d.timings
+              ? { timings: d.timings as MessageTimings }
+              : null;
 
             const finalAssistant: MessagePublic = {
               id: d.message_id,
@@ -179,11 +246,16 @@ export function useChat(
               tool_calls: toolCallsList,
               tool_call_id: null,
               created_at: new Date().toISOString(),
+              metadata,
             };
             setMessages((m) => {
               if (m.some((x) => x.id === finalAssistant.id)) return m;
               return [...m, finalAssistant];
             });
+            if (tickRef.current) {
+              clearInterval(tickRef.current);
+              tickRef.current = null;
+            }
             setStreaming(null);
             return;
           }
@@ -222,6 +294,10 @@ export function useChat(
           setError((err as Error).message);
         }
       } finally {
+        if (tickRef.current) {
+          clearInterval(tickRef.current);
+          tickRef.current = null;
+        }
         setIsSending(false);
         setStreaming(null);
         controllerRef.current = null;

@@ -4,6 +4,7 @@ from __future__ import annotations
 
 import asyncio
 import json
+import time
 from collections.abc import AsyncIterator
 from typing import Any
 
@@ -80,6 +81,9 @@ async def stream_chat(
     history = await _load_history(db, session.id)
     tool_specs = registry.specs_for(enabled_tools)
 
+    overall_start = time.monotonic()
+    tool_durations_ms: dict[str, int] = {}
+
     for round_n in range(settings.max_tool_rounds + 1):
         is_last_round = round_n == settings.max_tool_rounds
         tools = None if (is_last_round or not tool_specs) else tool_specs
@@ -91,6 +95,10 @@ async def stream_chat(
         tool_calls_acc: dict[int, dict[str, str]] = {}
         usage: dict[str, Any] | None = None
         finish_reason: str | None = None
+        round_start = time.monotonic()
+        reasoning_start: float | None = None
+        reasoning_end: float | None = None
+        content_start: float | None = None
 
         stream = client.stream_chat(
             messages=history,
@@ -120,10 +128,15 @@ async def stream_chat(
                 delta = choice.get("delta", {})
 
                 if rsn := (delta.get("reasoning") or delta.get("reasoning_content")):
+                    if reasoning_start is None:
+                        reasoning_start = time.monotonic()
+                    reasoning_end = time.monotonic()
                     reasoning_parts.append(rsn)
                     yield ChatEvent(event="reasoning.delta", data={"text": rsn})
 
                 if content := delta.get("content"):
+                    if content_start is None:
+                        content_start = time.monotonic()
                     content_parts.append(content)
                     yield ChatEvent(event="message.delta", data={"text": content})
 
@@ -144,9 +157,28 @@ async def stream_chat(
             logger.info("chat.cancelled", reason="client_disconnect")
             raise
 
+        round_end = time.monotonic()
         content_str = "".join(content_parts)
         reasoning_str = "".join(reasoning_parts) or None
         tool_calls = _finalize_tool_calls(tool_calls_acc)
+
+        round_ms = int((round_end - round_start) * 1000)
+        reasoning_ms = (
+            int((reasoning_end - reasoning_start) * 1000)
+            if reasoning_start is not None and reasoning_end is not None
+            else None
+        )
+        content_ms = int((round_end - content_start) * 1000) if content_start is not None else None
+
+        metadata: dict[str, Any] = {
+            "timings": {
+                "round_ms": round_ms,
+                "reasoning_ms": reasoning_ms,
+                "content_ms": content_ms,
+            }
+        }
+        if usage:
+            metadata["usage"] = usage
 
         assistant_msg = Message(
             session_id=session.id,
@@ -154,7 +186,7 @@ async def stream_chat(
             content=content_str or None,
             reasoning=reasoning_str,
             tool_calls=tool_calls or None,
-            message_metadata={"usage": usage} if usage else {},
+            message_metadata=metadata,
         )
         db.add(assistant_msg)
         await db.commit()
@@ -169,12 +201,20 @@ async def stream_chat(
         )
 
         if not tool_calls:
+            total_ms = int((time.monotonic() - overall_start) * 1000)
             yield ChatEvent(
                 event="message.done",
                 data={
                     "message_id": str(assistant_msg.id),
                     "finish_reason": finish_reason or "stop",
                     "usage": usage,
+                    "timings": {
+                        "total_ms": total_ms,
+                        "round_ms": round_ms,
+                        "reasoning_ms": reasoning_ms,
+                        "content_ms": content_ms,
+                        "tools_ms": tool_durations_ms or None,
+                    },
                 },
             )
             return
@@ -190,7 +230,10 @@ async def stream_chat(
                 data={"id": tc["id"], "name": tc["function"]["name"], "arguments": args},
             )
 
+            tool_start = time.monotonic()
             result = await execute_tool(tc["function"]["name"], args)
+            duration_ms = int((time.monotonic() - tool_start) * 1000)
+            tool_durations_ms[tc["id"]] = duration_ms
             result_json = json.dumps(result, ensure_ascii=False)
 
             tool_msg = Message(
@@ -198,6 +241,7 @@ async def stream_chat(
                 role="tool",
                 tool_call_id=tc["id"],
                 content=result_json,
+                message_metadata={"timings": {"duration_ms": duration_ms}},
             )
             db.add(tool_msg)
             await db.commit()
@@ -205,7 +249,7 @@ async def stream_chat(
             history.append({"role": "tool", "tool_call_id": tc["id"], "content": result_json})
             yield ChatEvent(
                 event="tool.result",
-                data={"id": tc["id"], "result": result},
+                data={"id": tc["id"], "result": result, "duration_ms": duration_ms},
             )
 
     yield ChatEvent(

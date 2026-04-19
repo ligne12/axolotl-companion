@@ -65,6 +65,8 @@ export function ChatWindow({
               reasoning={chat.streaming.reasoning}
               content={chat.streaming.content}
               toolCalls={chat.streaming.toolCalls}
+              elapsedMs={chat.streaming.elapsedMs}
+              reasoningElapsedMs={chat.streaming.reasoningElapsedMs}
             />
           )}
           {chat.error && (

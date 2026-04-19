@@ -34,6 +34,22 @@ export interface ToolCall {
   function: { name: string; arguments: string };
   /** Result merged client-side from the accompanying tool.result events. */
   result?: unknown;
+  /** Execution duration in milliseconds (from the backend tool runner). */
+  duration_ms?: number;
+}
+
+export interface MessageTimings {
+  total_ms?: number;
+  round_ms?: number;
+  reasoning_ms?: number | null;
+  content_ms?: number | null;
+  tools_ms?: Record<string, number> | null;
+}
+
+export interface MessageMetadata {
+  timings?: MessageTimings;
+  usage?: { prompt_tokens: number; completion_tokens: number; total_tokens: number };
+  [key: string]: unknown;
 }
 
 export interface MessagePublic {
@@ -44,6 +60,7 @@ export interface MessagePublic {
   tool_calls: ToolCall[] | null;
   tool_call_id: string | null;
   created_at: string;
+  metadata?: MessageMetadata | null;
 }
 
 export interface SessionDetail extends SessionPublic {
@@ -83,10 +100,12 @@ export interface ToolCallEventData {
 export interface ToolResultEventData {
   id: string;
   result: unknown;
+  duration_ms?: number;
 }
 
 export interface MessageDoneData {
   message_id: string; // UUID
   finish_reason: string;
   usage: { prompt_tokens: number; completion_tokens: number; total_tokens: number } | null;
+  timings?: MessageTimings;
 }

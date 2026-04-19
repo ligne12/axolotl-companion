@@ -20,3 +20,14 @@ export const API_BASE =
       process.env.NEXT_PUBLIC_API_URL ??
       "http://backend:8001")
     : (process.env.NEXT_PUBLIC_API_URL ?? "http://localhost:8001");
+
+/** Format a millisecond duration like "340ms", "2.4s", or "1m 12s". */
+export function formatDuration(ms: number): string {
+  if (!Number.isFinite(ms) || ms < 0) return "—";
+  if (ms < 1000) return `${Math.round(ms)}ms`;
+  const seconds = ms / 1000;
+  if (seconds < 60) return `${seconds.toFixed(seconds < 10 ? 1 : 0)}s`;
+  const m = Math.floor(seconds / 60);
+  const s = Math.round(seconds - m * 60);
+  return `${m}m ${s}s`;
+}

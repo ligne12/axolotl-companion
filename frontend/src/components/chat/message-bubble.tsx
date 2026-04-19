@@ -7,7 +7,7 @@ import remarkGfm from "remark-gfm";
 
 import { Button } from "@/components/ui/button";
 import type { StreamingToolCall } from "@/hooks/use-chat";
-import { cn } from "@/lib/utils";
+import { cn, formatDuration } from "@/lib/utils";
 import type { MessagePublic, ToolCall } from "@/types/api";
 
 type SearchResult = {
@@ -21,16 +21,23 @@ type SearchResult = {
 function WebSearchResults({
   query,
   results,
+  durationMs,
 }: {
   query: string;
   results: SearchResult[];
+  durationMs?: number;
 }) {
   return (
     <div className="space-y-1.5">
-      <div className="text-xs text-muted-foreground">
+      <div className="flex items-center gap-1.5 text-xs text-muted-foreground">
         <span className="font-medium">🔍 Web search</span>
-        <span className="ml-1.5">“{query}”</span>
-        <span className="ml-1.5">· {results.length} result{results.length > 1 ? "s" : ""}</span>
+        <span>“{query}”</span>
+        <span>· {results.length} result{results.length > 1 ? "s" : ""}</span>
+        {typeof durationMs === "number" && (
+          <span className="ml-auto font-mono tabular-nums text-[10px]">
+            {formatDuration(durationMs)}
+          </span>
+        )}
       </div>
       <ul className="space-y-1.5">
         {results.map((r, i) => (
@@ -94,10 +101,12 @@ function ToolCallCard({
   name,
   args,
   result,
+  durationMs,
 }: {
   name: string;
   args: unknown;
   result?: unknown;
+  durationMs?: number;
 }) {
   const isWebSearch = name === "web_search" && result !== undefined && isWebSearchResult(result);
 
@@ -107,10 +116,18 @@ function ToolCallCard({
         <WebSearchResults
           query={(result as { query: string }).query ?? ""}
           results={(result as { results: SearchResult[] }).results}
+          durationMs={durationMs}
         />
       ) : (
         <>
-          <div className="font-medium">🔧 {name}</div>
+          <div className="flex items-center gap-1.5">
+            <span className="font-medium">🔧 {name}</span>
+            {typeof durationMs === "number" && (
+              <span className="ml-auto font-mono tabular-nums text-[10px] text-muted-foreground">
+                {formatDuration(durationMs)}
+              </span>
+            )}
+          </div>
           <pre className="mt-1 whitespace-pre-wrap break-words text-muted-foreground">
             {typeof args === "string" ? args : JSON.stringify(args, null, 2)}
           </pre>
@@ -149,6 +166,9 @@ export function MessageBubble({
   const hasReasoning = Boolean(message.reasoning);
   const hasToolCalls = Boolean(message.tool_calls?.length);
   const [copied, setCopied] = useState(false);
+  const timings = message.metadata?.timings;
+  const reasoningMs = timings?.reasoning_ms ?? undefined;
+  const totalMs = timings?.total_ms ?? timings?.round_ms ?? undefined;
 
   // Don't render stand-alone tool messages — they're aggregated into assistant
   if (message.role === "tool") return null;
@@ -174,7 +194,14 @@ export function MessageBubble({
       >
         {hasReasoning && (
           <details className="rounded-md bg-background/40 p-2 text-xs text-muted-foreground">
-            <summary className="cursor-pointer select-none font-medium">Reasoning</summary>
+            <summary className="flex cursor-pointer select-none items-center gap-1.5 font-medium">
+              <span>Reasoning</span>
+              {typeof reasoningMs === "number" && (
+                <span className="ml-auto font-mono tabular-nums text-[10px]">
+                  {formatDuration(reasoningMs)}
+                </span>
+              )}
+            </summary>
             <pre className="mt-1 whitespace-pre-wrap font-sans text-xs">
               {message.reasoning}
             </pre>
@@ -193,6 +220,7 @@ export function MessageBubble({
                 }
               })()}
               result={tc.result}
+              durationMs={tc.duration_ms}
             />
           ))}
         {message.content && (
@@ -206,17 +234,31 @@ export function MessageBubble({
         )}
       </div>
 
-      {message.content && (
-        <div className="mt-1 flex gap-1 opacity-0 transition-opacity group-hover:opacity-100">
-          <Button variant="ghost" size="sm" className="h-7 px-2" onClick={copy}>
-            {copied ? <Check className="size-3" /> : <Copy className="size-3" />}
-            <span className="ml-1 text-xs">{copied ? "Copied" : "Copy"}</span>
-          </Button>
-          {isLast && onRegenerate && (
-            <Button variant="ghost" size="sm" className="h-7 px-2" onClick={onRegenerate}>
-              <RotateCw className="size-3" />
-              <span className="ml-1 text-xs">Regenerate</span>
-            </Button>
+      {(message.content || typeof totalMs === "number") && (
+        <div
+          className={cn(
+            "mt-1 flex w-full items-center gap-1",
+            isUser ? "justify-end" : "justify-start",
+          )}
+        >
+          {message.content && (
+            <div className="flex gap-1 opacity-0 transition-opacity group-hover:opacity-100">
+              <Button variant="ghost" size="sm" className="h-7 px-2" onClick={copy}>
+                {copied ? <Check className="size-3" /> : <Copy className="size-3" />}
+                <span className="ml-1 text-xs">{copied ? "Copied" : "Copy"}</span>
+              </Button>
+              {isLast && onRegenerate && !isUser && (
+                <Button variant="ghost" size="sm" className="h-7 px-2" onClick={onRegenerate}>
+                  <RotateCw className="size-3" />
+                  <span className="ml-1 text-xs">Regenerate</span>
+                </Button>
+              )}
+            </div>
+          )}
+          {!isUser && typeof totalMs === "number" && (
+            <span className="ml-auto font-mono tabular-nums text-[10px] text-muted-foreground">
+              {formatDuration(totalMs)}
+            </span>
           )}
         </div>
       )}
@@ -228,27 +270,49 @@ export function StreamingBubble({
   reasoning,
   content,
   toolCalls,
+  elapsedMs,
+  reasoningElapsedMs,
 }: {
   reasoning: string;
   content: string;
   toolCalls: Record<string, StreamingToolCall>;
+  elapsedMs: number;
+  reasoningElapsedMs: number;
 }) {
   const toolList = Object.entries(toolCalls);
 
   return (
-    <div className="flex justify-start">
+    <div className="group flex flex-col items-start">
       <div className="max-w-[80%] space-y-2 rounded-2xl bg-muted px-4 py-2 text-sm shadow-sm">
         {reasoning.length > 0 && (
           <details open className="rounded-md bg-background/40 p-2 text-xs text-muted-foreground">
-            <summary className="cursor-pointer select-none font-medium">Thinking...</summary>
+            <summary className="flex cursor-pointer select-none items-center gap-1.5 font-medium">
+              <span>Thinking...</span>
+              {reasoningElapsedMs > 0 && (
+                <span className="ml-auto font-mono tabular-nums text-[10px]">
+                  {formatDuration(reasoningElapsedMs)}
+                </span>
+              )}
+            </summary>
             <pre className="mt-1 whitespace-pre-wrap font-sans text-xs">{reasoning}</pre>
           </details>
         )}
         {toolList.map(([id, tc]) => (
-          <ToolCallCard key={id} name={tc.name} args={tc.arguments} result={tc.result} />
+          <ToolCallCard
+            key={id}
+            name={tc.name}
+            args={tc.arguments}
+            result={tc.result}
+            durationMs={tc.duration_ms}
+          />
         ))}
         {content && <Markdown text={content} />}
         <span className="inline-block animate-pulse text-xs text-muted-foreground">●</span>
+      </div>
+      <div className="mt-1 w-full">
+        <span className="ml-auto block w-fit font-mono tabular-nums text-[10px] text-muted-foreground">
+          {formatDuration(elapsedMs)}
+        </span>
       </div>
     </div>
   );

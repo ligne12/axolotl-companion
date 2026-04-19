@@ -56,6 +56,7 @@ class MessagePublic(BaseModel):
     tool_calls: list[dict[str, Any]] | None
     tool_call_id: str | None
     created_at: datetime
+    metadata: dict[str, Any] | None = None
 
 
 # Finish forward ref
