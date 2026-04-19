@@ -47,7 +47,7 @@ export interface UseChatResult {
  * parses the chat event stream into React state.
  */
 export function useChat(
-  sessionId: number,
+  sessionId: string,
   token: string | null,
   initialMessages: MessagePublic[] = [],
 ): UseChatResult {

@@ -7,6 +7,7 @@ import json
 import time
 from collections.abc import AsyncIterator
 from typing import Any
+from uuid import UUID
 
 import structlog
 from sqlalchemy.ext.asyncio import AsyncSession
@@ -21,7 +22,7 @@ from axolotl.llm.tools import execute_tool, registry
 logger = structlog.get_logger(__name__)
 
 
-async def _load_history(db: AsyncSession, session_id: int) -> list[dict[str, Any]]:
+async def _load_history(db: AsyncSession, session_id: UUID) -> list[dict[str, Any]]:
     """Load the full message history for a session in OpenAI format."""
     result = await db.execute(
         select(Message).where(Message.session_id == session_id).order_by(col(Message.created_at))

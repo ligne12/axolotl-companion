@@ -2,6 +2,12 @@
 
 @custom-variant dark (&:is(.dark *));
 
+/* Design tokens — pixel-modern aesthetic: warm cream, strict black border,
+ * electric-lime accents, pastel section tints, offset "pixel-neubru" shadow
+ * signature. Kept the existing OKLCH palette slots so shadcn components pick
+ * up the new values without further changes.
+ */
+
 @theme inline {
   --color-background: var(--background);
   --color-foreground: var(--foreground);
@@ -22,57 +28,245 @@
   --color-border: var(--border);
   --color-input: var(--input);
   --color-ring: var(--ring);
+  --color-lime: var(--lime);
+  --color-lime-foreground: var(--lime-foreground);
+  --color-pastel-pink: var(--pastel-pink);
+  --color-pastel-mint: var(--pastel-mint);
+  --color-pastel-violet: var(--pastel-violet);
+  --color-pastel-butter: var(--pastel-butter);
   --radius-lg: var(--radius);
   --radius-md: calc(var(--radius) - 2px);
   --radius-sm: calc(var(--radius) - 4px);
+  --font-sans: var(--font-sans), ui-sans-serif, system-ui, sans-serif;
+  --font-display: "Clash Display", var(--font-sans), system-ui, sans-serif;
+  --font-pixel: var(--font-pixel), "Pixelify Sans", ui-monospace, monospace;
+  --font-mono: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
+  --shadow-pixel: 4px 4px 0 0 var(--border);
+  --shadow-pixel-sm: 2px 2px 0 0 var(--border);
+  --shadow-pixel-lg: 6px 6px 0 0 var(--border);
+  --shadow-pixel-lime: 4px 4px 0 0 var(--lime);
 }
 
 :root {
-  --radius: 0.65rem;
-  --background: oklch(1 0 0);
-  --foreground: oklch(0.145 0 0);
-  --card: oklch(1 0 0);
-  --card-foreground: oklch(0.145 0 0);
-  --popover: oklch(1 0 0);
-  --popover-foreground: oklch(0.145 0 0);
-  --primary: oklch(0.55 0.22 320);
-  --primary-foreground: oklch(0.985 0 0);
-  --secondary: oklch(0.97 0 0);
-  --secondary-foreground: oklch(0.205 0 0);
-  --muted: oklch(0.97 0 0);
-  --muted-foreground: oklch(0.556 0 0);
-  --accent: oklch(0.97 0 0);
-  --accent-foreground: oklch(0.205 0 0);
-  --destructive: oklch(0.577 0.245 27.325);
-  --destructive-foreground: oklch(0.985 0 0);
-  --border: oklch(0.922 0 0);
-  --input: oklch(0.922 0 0);
-  --ring: oklch(0.708 0 0);
+  --radius: 0.5rem;
+
+  /* Warm cream paper */
+  --background: oklch(0.972 0.012 85);
+  --foreground: oklch(0.17 0.01 80);
+
+  --card: oklch(0.995 0.004 85);
+  --card-foreground: oklch(0.17 0.01 80);
+  --popover: oklch(0.995 0.004 85);
+  --popover-foreground: oklch(0.17 0.01 80);
+
+  /* Primary = near-black, same as border — it's the "strict ink" color. */
+  --primary: oklch(0.17 0.01 80);
+  --primary-foreground: oklch(0.995 0.004 85);
+
+  --secondary: oklch(0.93 0.012 85);
+  --secondary-foreground: oklch(0.17 0.01 80);
+  --muted: oklch(0.93 0.012 85);
+  --muted-foreground: oklch(0.45 0.01 80);
+  --accent: oklch(0.92 0.05 340);
+  --accent-foreground: oklch(0.17 0.01 80);
+
+  --destructive: oklch(0.63 0.22 27);
+  --destructive-foreground: oklch(0.995 0.004 85);
+
+  --border: oklch(0.17 0.01 80);
+  --input: oklch(0.85 0.01 80);
+  --ring: oklch(0.85 0.18 125);
+
+  /* Signature accents */
+  --lime: oklch(0.88 0.19 125);
+  --lime-foreground: oklch(0.17 0.01 80);
+
+  /* Pastel section tints (hero, onboarding, empty states…) */
+  --pastel-pink: oklch(0.93 0.05 10);
+  --pastel-mint: oklch(0.93 0.06 155);
+  --pastel-violet: oklch(0.9 0.07 305);
+  --pastel-butter: oklch(0.95 0.08 95);
 }
 
 .dark {
-  --background: oklch(0.145 0 0);
-  --foreground: oklch(0.985 0 0);
-  --card: oklch(0.205 0 0);
-  --card-foreground: oklch(0.985 0 0);
-  --popover: oklch(0.205 0 0);
-  --popover-foreground: oklch(0.985 0 0);
-  --primary: oklch(0.7 0.2 320);
-  --primary-foreground: oklch(0.145 0 0);
-  --secondary: oklch(0.269 0 0);
-  --secondary-foreground: oklch(0.985 0 0);
-  --muted: oklch(0.269 0 0);
-  --muted-foreground: oklch(0.708 0 0);
-  --accent: oklch(0.269 0 0);
-  --accent-foreground: oklch(0.985 0 0);
-  --destructive: oklch(0.704 0.191 22.216);
-  --destructive-foreground: oklch(0.985 0 0);
-  --border: oklch(1 0 0 / 10%);
-  --input: oklch(1 0 0 / 15%);
-  --ring: oklch(0.556 0 0);
+  /* Dim sepia / midnight paper variant, keeps lime electric */
+  --background: oklch(0.18 0.01 60);
+  --foreground: oklch(0.96 0.01 85);
+
+  --card: oklch(0.22 0.01 60);
+  --card-foreground: oklch(0.96 0.01 85);
+  --popover: oklch(0.22 0.01 60);
+  --popover-foreground: oklch(0.96 0.01 85);
+
+  --primary: oklch(0.96 0.01 85);
+  --primary-foreground: oklch(0.18 0.01 60);
+
+  --secondary: oklch(0.26 0.01 60);
+  --secondary-foreground: oklch(0.96 0.01 85);
+  --muted: oklch(0.26 0.01 60);
+  --muted-foreground: oklch(0.72 0.01 80);
+  --accent: oklch(0.38 0.05 340);
+  --accent-foreground: oklch(0.96 0.01 85);
+
+  --destructive: oklch(0.7 0.2 22);
+  --destructive-foreground: oklch(0.18 0.01 60);
+
+  --border: oklch(0.96 0.01 85);
+  --input: oklch(0.32 0.01 60);
+  --ring: oklch(0.85 0.18 125);
+
+  --lime: oklch(0.86 0.2 125);
+  --lime-foreground: oklch(0.18 0.01 60);
+
+  --pastel-pink: oklch(0.35 0.08 10);
+  --pastel-mint: oklch(0.35 0.08 155);
+  --pastel-violet: oklch(0.35 0.08 305);
+  --pastel-butter: oklch(0.35 0.08 95);
 }
 
 body {
   background-color: var(--background);
   color: var(--foreground);
+  font-family: var(--font-sans);
+}
+
+/* Display font for hero/section headings. We opt-in via ``.font-display``
+ * or via the ``display`` utility in Tailwind (see theme mapping above). */
+.font-display {
+  font-family: var(--font-display);
+  letter-spacing: -0.01em;
+}
+
+.font-pixel {
+  font-family: var(--font-pixel);
+  letter-spacing: 0.05em;
+}
+
+/* Chat markdown body — inline prose + GFM tables in the pixel-neubru DA */
+.markdown-body {
+  font-size: 0.875rem;
+  line-height: 1.55;
+}
+.markdown-body > * + * {
+  margin-top: 0.5rem;
+}
+.markdown-body p {
+  white-space: pre-wrap;
+}
+.markdown-body a {
+  text-decoration: underline;
+  text-underline-offset: 2px;
+}
+.markdown-body strong {
+  font-weight: 600;
+}
+.markdown-body h1,
+.markdown-body h2,
+.markdown-body h3 {
+  font-family: var(--font-display);
+  letter-spacing: -0.01em;
+  margin-top: 0.75rem;
+  font-weight: 700;
+}
+.markdown-body h1 { font-size: 1.125rem; }
+.markdown-body h2 { font-size: 1rem; }
+.markdown-body h3 { font-size: 0.9375rem; }
+.markdown-body ul {
+  list-style: disc;
+  padding-left: 1.1rem;
+}
+.markdown-body ol {
+  list-style: decimal;
+  padding-left: 1.1rem;
+}
+.markdown-body li + li {
+  margin-top: 0.125rem;
+}
+.markdown-body code {
+  font-family: var(--font-mono);
+  font-size: 0.8125rem;
+  background: color-mix(in oklch, var(--background), transparent 30%);
+  padding: 0.125rem 0.3125rem;
+  border: 1px solid color-mix(in oklch, var(--border), transparent 70%);
+  border-radius: 3px;
+}
+.markdown-body pre {
+  font-family: var(--font-mono);
+  background: color-mix(in oklch, var(--background), transparent 30%);
+  border: 2px solid var(--border);
+  padding: 0.625rem 0.75rem;
+  overflow-x: auto;
+  box-shadow: 2px 2px 0 0 var(--border);
+}
+.markdown-body pre code {
+  background: transparent;
+  border: none;
+  padding: 0;
+  font-size: 0.8125rem;
+}
+.markdown-body blockquote {
+  border-left: 3px solid var(--lime);
+  padding: 0.125rem 0 0.125rem 0.75rem;
+  color: var(--muted-foreground);
+  font-style: italic;
+}
+.markdown-body hr {
+  border: 0;
+  border-top: 2px dashed color-mix(in oklch, var(--border), transparent 60%);
+  margin: 0.75rem 0;
+}
+
+/* GFM tables — rendered as strict 2px-border pixel-neubru tables */
+.markdown-body table {
+  width: 100%;
+  border-collapse: collapse;
+  border: 2px solid var(--border);
+  font-size: 0.8125rem;
+  box-shadow: 2px 2px 0 0 var(--border);
+  margin-top: 0.5rem;
+}
+.markdown-body thead {
+  background: color-mix(in oklch, var(--lime), var(--card) 85%);
+}
+.markdown-body th {
+  font-family: var(--font-pixel);
+  text-transform: uppercase;
+  letter-spacing: 0.12em;
+  font-size: 0.6875rem;
+  text-align: left;
+  padding: 0.5rem 0.75rem;
+  border-bottom: 2px solid var(--border);
+  border-right: 1px solid color-mix(in oklch, var(--border), transparent 70%);
+}
+.markdown-body th:last-child {
+  border-right: none;
+}
+.markdown-body td {
+  padding: 0.5rem 0.75rem;
+  border-bottom: 1px solid color-mix(in oklch, var(--border), transparent 80%);
+  border-right: 1px solid color-mix(in oklch, var(--border), transparent 80%);
+  vertical-align: top;
+}
+.markdown-body td:last-child {
+  border-right: none;
+}
+.markdown-body tr:last-child td {
+  border-bottom: none;
+}
+
+/* Pixel-neubru button/card: strict 2px border + offset shadow that settles
+ * to the baseline on press. Usable as a utility anywhere. */
+.pixel-shadow {
+  box-shadow: var(--shadow-pixel);
+  transition:
+    transform 120ms ease,
+    box-shadow 120ms ease;
+}
+.pixel-shadow:hover {
+  transform: translate(-1px, -1px);
+  box-shadow: var(--shadow-pixel-lg);
+}
+.pixel-shadow:active {
+  transform: translate(2px, 2px);
+  box-shadow: var(--shadow-pixel-sm);
 }

@@ -17,7 +17,7 @@ export interface TokenPair {
 }
 
 export interface SessionPublic {
-  id: number;
+  id: string; // UUID
   title: string;
   persona_id: number | null;
   model: string | null;

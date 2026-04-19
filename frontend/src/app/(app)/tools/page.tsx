@@ -3,16 +3,37 @@
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { toast } from "sonner";
 
-import {
-  Card,
-  CardContent,
-  CardDescription,
-  CardHeader,
-  CardTitle,
-} from "@/components/ui/card";
-import { Switch } from "@/components/ui/switch";
 import { useApi } from "@/hooks/use-api";
+import { cn } from "@/lib/utils";
 import type { ToolInfo } from "@/types/api";
+
+function ToolToggle({
+  enabled,
+  onChange,
+}: {
+  enabled: boolean;
+  onChange: (next: boolean) => void;
+}) {
+  return (
+    <button
+      type="button"
+      role="switch"
+      aria-checked={enabled}
+      onClick={() => onChange(!enabled)}
+      className={cn(
+        "relative inline-flex h-7 w-12 shrink-0 items-center border-2 border-border transition-colors",
+        enabled ? "bg-[color:var(--lime)]" : "bg-card",
+      )}
+    >
+      <span
+        className={cn(
+          "inline-block size-4 border-2 border-border bg-background transition-transform",
+          enabled ? "translate-x-[20px]" : "translate-x-[2px]",
+        )}
+      />
+    </button>
+  );
+}
 
 export default function ToolsPage() {
   const api = useApi();
@@ -46,33 +67,46 @@ export default function ToolsPage() {
 
   return (
     <div className="h-full overflow-auto p-6">
-      <div className="mx-auto max-w-3xl space-y-4">
-        <header className="space-y-1">
-          <h1 className="text-2xl font-semibold">Tools</h1>
+      <div className="mx-auto max-w-3xl space-y-6">
+        <header className="space-y-2">
+          <div className="inline-flex items-center gap-2 border-2 border-border bg-card px-2.5 py-1 font-pixel text-[12px] uppercase tracking-[0.14em]">
+            <span className="size-2 bg-[color:var(--lime)]" />
+            Tools
+          </div>
+          <h1 className="font-display text-3xl font-bold leading-tight">
+            Pick what the axolotl can <span className="italic">reach for</span>.
+          </h1>
           <p className="text-sm text-muted-foreground">
-            Enable or disable the tools the assistant can call.
+            Each tool is local-first. Toggle any off and the model will stop calling it.
           </p>
         </header>
-        {tools.isPending && <p className="text-sm text-muted-foreground">Loading...</p>}
-        {tools.data?.map((tool) => (
-          <Card key={tool.name}>
-            <CardHeader className="flex flex-row items-start justify-between gap-4 space-y-0">
-              <div className="space-y-1">
-                <CardTitle className="text-base">{tool.title}</CardTitle>
-                <CardDescription>{tool.description}</CardDescription>
+
+        {tools.isPending && (
+          <p className="text-sm text-muted-foreground">Loading...</p>
+        )}
+
+        <ul className="space-y-3">
+          {tools.data?.map((tool) => (
+            <li
+              key={tool.name}
+              className="flex items-start justify-between gap-4 border-2 border-border bg-card p-4 shadow-[3px_3px_0_0_var(--border)]"
+            >
+              <div className="min-w-0 space-y-1">
+                <div className="flex items-center gap-2">
+                  <h2 className="font-display text-base font-semibold">{tool.title}</h2>
+                  <span className="border-2 border-border bg-background px-1.5 py-0.5 font-pixel text-[11px] uppercase tracking-wider text-muted-foreground">
+                    {tool.category}
+                  </span>
+                </div>
+                <p className="text-sm text-muted-foreground">{tool.description}</p>
               </div>
-              <Switch
-                checked={tool.enabled}
-                onCheckedChange={(checked: boolean) =>
-                  toggle.mutate({ name: tool.name, enabled: checked })
-                }
+              <ToolToggle
+                enabled={tool.enabled}
+                onChange={(checked) => toggle.mutate({ name: tool.name, enabled: checked })}
               />
-            </CardHeader>
-            <CardContent className="pt-0 text-xs text-muted-foreground">
-              category: <span className="font-mono">{tool.category}</span>
-            </CardContent>
-          </Card>
-        ))}
+            </li>
+          ))}
+        </ul>
       </div>
     </div>
   );

@@ -26,7 +26,7 @@ class SessionUpdate(BaseModel):
 class SessionPublic(BaseModel):
     model_config = ConfigDict(from_attributes=True)
 
-    id: int
+    id: UUID
     title: str
     persona_id: int | None
     model: str | None

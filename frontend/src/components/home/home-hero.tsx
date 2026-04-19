@@ -8,8 +8,13 @@ import { useEffect, useState } from "react";
 import { toast } from "sonner";
 
 import { AxolotlSprite, type AxolotlMood } from "@/components/axolotl/axolotl-sprite";
-import { Button } from "@/components/ui/button";
+import CircularText from "@/components/reactbits/circular-text";
+import ClickSpark from "@/components/reactbits/click-spark";
+import Magnet from "@/components/reactbits/magnet";
+import PixelSnow from "@/components/reactbits/pixel-snow";
+import TextType from "@/components/reactbits/text-type";
 import { useApi } from "@/hooks/use-api";
+import { cn } from "@/lib/utils";
 import type { SessionPublic } from "@/types/api";
 
 const MOODS: AxolotlMood[] = ["idle", "happy", "curious", "sleepy"];
@@ -18,8 +23,8 @@ const GREETINGS = [
   "Ready when you are.",
   "What's on your mind today?",
   "Let's figure something out together.",
-  "I've been practising my reasoning while you were away.",
   "Bubbles are up. What shall we explore?",
+  "I've been practising my reasoning while you were away.",
 ];
 
 export function HomeHero({
@@ -29,17 +34,13 @@ export function HomeHero({
 }: {
   name: string;
   hasSessions: boolean;
-  lastSessionId?: number;
+  lastSessionId?: string;
 }) {
   const router = useRouter();
   const api = useApi();
   const qc = useQueryClient();
   const [mood, setMood] = useState<AxolotlMood>("idle");
-  const [greeting] = useState(
-    () => GREETINGS[Math.floor(Math.random() * GREETINGS.length)]!,
-  );
 
-  // Cycle moods gently in the background
   useEffect(() => {
     const id = setInterval(() => {
       setMood((m) => {
@@ -64,58 +65,97 @@ export function HomeHero({
   });
 
   return (
-    <section className="relative overflow-hidden rounded-3xl border-2 border-border bg-gradient-to-br from-pink-50 via-background to-sky-50 p-8 shadow-[4px_4px_0_theme(colors.border)] dark:from-pink-950/30 dark:via-background dark:to-sky-950/30 md:p-12">
-      {/* Pixel grid decoration */}
-      <div
-        aria-hidden
-        className="pointer-events-none absolute inset-0 opacity-[0.05]"
-        style={{
-          backgroundImage:
-            "linear-gradient(to right, currentColor 1px, transparent 1px), linear-gradient(to bottom, currentColor 1px, transparent 1px)",
-          backgroundSize: "16px 16px",
-        }}
-      />
+    <section className="relative isolate overflow-hidden rounded-[28px] border-2 border-border bg-card p-6 shadow-[3px_3px_0_0_var(--border)] md:p-10">
+      {/* Hero-local snow layer — drifts on top of the global PixelBlast wash */}
+      <div className="pointer-events-none absolute inset-0 opacity-30">
+        <PixelSnow
+          color="#baff39"
+          density={0.12}
+          speed={0.45}
+          brightness={0.55}
+          pixelResolution={280}
+          variant="square"
+        />
+      </div>
 
-      <div className="relative flex flex-col items-center gap-6 text-center md:flex-row md:gap-10 md:text-left">
-        <button
-          type="button"
-          onClick={() => setMood("happy")}
-          aria-label="Poke the axolotl"
-          className="shrink-0 rounded-2xl p-2 transition-transform hover:scale-105 active:scale-95"
-        >
-          <AxolotlSprite mood={mood} size={180} />
-        </button>
-
-        <div className="flex flex-col gap-3">
-          <p className="font-mono text-xs uppercase tracking-widest text-muted-foreground">
-            hi {name}
-          </p>
-          <h1 className="text-balance text-3xl font-bold leading-tight md:text-4xl">
-            Your axolotl companion is{" "}
-            <span className="inline-block bg-primary/15 px-2 py-0.5 text-primary">
-              listening
-            </span>
-            .
-          </h1>
-          <p className="max-w-md text-balance text-muted-foreground">{greeting}</p>
-
-          <div className="mt-2 flex flex-wrap items-center justify-center gap-2 md:justify-start">
-            <Button
-              size="lg"
-              onClick={() => createSession.mutate()}
-              disabled={createSession.isPending}
-              className="border-2 border-primary-foreground/10 shadow-[3px_3px_0_theme(colors.primary/40)] transition-all hover:translate-y-[1px] hover:shadow-[2px_2px_0_theme(colors.primary/40)]"
+      <div className="relative z-10 flex flex-col items-start gap-8 md:flex-row md:items-center md:gap-12">
+        {/* Axolotl wrapped in a circular ring of text (ring sits above the card) */}
+        <div className="relative shrink-0">
+          <ClickSpark sparkColor="#baff39" sparkCount={14} sparkRadius={26} duration={500}>
+            <button
+              type="button"
+              onClick={() => setMood("happy")}
+              aria-label="Poke the axolotl"
+              className="relative z-10 rounded-2xl border-2 border-border bg-card p-3 shadow-[3px_3px_0_0_var(--border)] transition-[transform,box-shadow] duration-100 active:translate-x-[2px] active:translate-y-[2px] active:shadow-[1px_1px_0_0_var(--border)]"
             >
-              <MessageSquarePlus className="size-4" />
-              New conversation
-            </Button>
+              <AxolotlSprite mood={mood} size={150} />
+            </button>
+          </ClickSpark>
+          <div className="pointer-events-none absolute inset-0 -m-6 z-20 flex items-center justify-center">
+            <CircularText
+              text="AXOLOTL · COMPANION · LOCAL · FIRST · "
+              spinDuration={28}
+              onHover="speedUp"
+              className="!h-[220px] !w-[220px] !text-[11px] !text-foreground font-pixel !uppercase !tracking-[0.18em]"
+            />
+          </div>
+        </div>
+
+        <div className="flex min-w-0 flex-1 max-w-xl flex-col gap-4 text-left">
+          <span className="inline-flex w-fit items-center gap-2 border-2 border-border bg-card px-2.5 py-1 font-pixel text-[12px] uppercase tracking-[0.14em]">
+            <span className="size-2 bg-[color:var(--lime)]" />
+            Hi {name}
+          </span>
+
+          <h1 className="font-display text-4xl font-bold uppercase leading-[1.05] md:text-5xl">
+            Your <span className="italic">axolotl</span> is listening.
+          </h1>
+
+          <TextType
+            as="p"
+            className="min-h-[3rem] max-w-md text-balance leading-snug text-muted-foreground"
+            text={GREETINGS}
+            typingSpeed={38}
+            deletingSpeed={18}
+            pauseDuration={2600}
+            cursorCharacter="▍"
+            cursorClassName="text-foreground"
+          />
+
+          <div className="mt-2 flex flex-wrap items-center gap-3">
+            <Magnet padding={80} magnetStrength={3}>
+              <button
+                type="button"
+                onClick={() => createSession.mutate()}
+                disabled={createSession.isPending}
+                className={cn(
+                  "group inline-flex items-center gap-2 border-2 border-border bg-primary px-5 py-2.5 text-sm font-semibold text-primary-foreground",
+                  "shadow-[3px_3px_0_0_var(--lime)] transition-[transform,box-shadow] duration-100",
+                  "hover:shadow-[4px_4px_0_0_var(--lime)]",
+                  "active:translate-x-[2px] active:translate-y-[2px] active:shadow-[1px_1px_0_0_var(--lime)]",
+                  "disabled:cursor-not-allowed disabled:opacity-60",
+                )}
+              >
+                <MessageSquarePlus className="size-4" />
+                New conversation
+              </button>
+            </Magnet>
+
             {hasSessions && lastSessionId !== undefined && (
-              <Button asChild variant="outline" size="lg" className="border-2">
-                <Link href={`/chat/${lastSessionId}`}>
+              <Magnet padding={80} magnetStrength={4}>
+                <Link
+                  href={`/chat/${lastSessionId}`}
+                  className={cn(
+                    "inline-flex items-center gap-2 border-2 border-border bg-card px-5 py-2.5 text-sm font-semibold",
+                    "shadow-[3px_3px_0_0_var(--border)] transition-[transform,box-shadow] duration-100",
+                    "hover:shadow-[4px_4px_0_0_var(--border)]",
+                    "active:translate-x-[2px] active:translate-y-[2px] active:shadow-[1px_1px_0_0_var(--border)]",
+                  )}
+                >
                   <Sparkles className="size-4" />
                   Resume last
                 </Link>
-              </Button>
+              </Magnet>
             )}
           </div>
         </div>

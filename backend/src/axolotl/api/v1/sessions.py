@@ -6,6 +6,7 @@ import json
 from collections.abc import AsyncIterator
 from datetime import UTC, datetime
 from typing import Annotated, Any
+from uuid import UUID
 
 import structlog
 from fastapi import APIRouter, Depends, HTTPException, Query, status
@@ -32,11 +33,55 @@ logger = structlog.get_logger(__name__)
 router = APIRouter()
 
 
+def _join_nullable(a: str | None, b: str | None, sep: str) -> str | None:
+    """Concatenate two optional strings with ``sep`` between non-empty parts."""
+    if a and b:
+        return a + sep + b
+    return a or b
+
+
+def _merge_timings(
+    a: dict[str, Any] | None, b: dict[str, Any] | None
+) -> dict[str, Any] | None:
+    """Sum the per-round timings of two assistant metadata dicts. Produces a
+    ``total_ms`` that the UI can show on the merged bubble."""
+    if not a and not b:
+        return None
+    a_t = (a or {}).get("timings", {}) or {}
+    b_t = (b or {}).get("timings", {}) or {}
+
+    def _sum(key: str) -> int | None:
+        va, vb = a_t.get(key), b_t.get(key)
+        if isinstance(va, int) and isinstance(vb, int):
+            return va + vb
+        if isinstance(va, int):
+            return va
+        if isinstance(vb, int):
+            return vb
+        return None
+
+    timings: dict[str, Any] = {}
+    round_ms = _sum("round_ms")
+    if round_ms is not None:
+        timings["round_ms"] = round_ms
+        timings["total_ms"] = round_ms
+    for key in ("reasoning_ms", "content_ms"):
+        value = _sum(key)
+        if value is not None:
+            timings[key] = value
+
+    merged: dict[str, Any] = {**(a or {}), **(b or {})}
+    if timings:
+        merged["timings"] = timings
+    return merged or None
+
+
 def _merge_tool_results(messages: list[Message]) -> list[MessagePublic]:
-    """Attach each tool message's content as 'result' on the corresponding
-    tool_call entry of the preceding assistant message, and drop the tool
-    messages from the returned list."""
-    # Index tool results + durations by tool_call_id
+    """Attach tool results onto the assistant's ``tool_calls`` entries, drop
+    standalone tool messages, and coalesce consecutive assistant messages
+    from the same turn (multi-round tool-calling) into a single public
+    message so the UI renders one bubble per turn."""
+    # Index tool results + per-call duration by tool_call_id
     results_by_id: dict[str, Any] = {}
     durations_by_id: dict[str, int] = {}
     for m in messages:
@@ -49,10 +94,11 @@ def _merge_tool_results(messages: list[Message]) -> list[MessagePublic]:
             if isinstance(dur, int):
                 durations_by_id[m.tool_call_id] = dur
 
-    out: list[MessagePublic] = []
+    # First pass: fold tool results into their assistant, drop tool messages
+    enriched: list[MessagePublic] = []
     for m in messages:
         if m.role == "tool":
-            continue  # fold into assistant
+            continue
         enriched_tool_calls: list[dict[str, Any]] | None = None
         if m.role == "assistant" and m.tool_calls:
             enriched_tool_calls = []
@@ -64,7 +110,7 @@ def _merge_tool_results(messages: list[Message]) -> list[MessagePublic]:
                 if tc_id and tc_id in durations_by_id:
                     tc_copy["duration_ms"] = durations_by_id[tc_id]
                 enriched_tool_calls.append(tc_copy)
-        out.append(
+        enriched.append(
             MessagePublic(
                 id=m.id,
                 role=m.role,
@@ -76,10 +122,33 @@ def _merge_tool_results(messages: list[Message]) -> list[MessagePublic]:
                 metadata=m.message_metadata or None,
             )
         )
+
+    # Second pass: coalesce consecutive assistants (one turn = one bubble)
+    out: list[MessagePublic] = []
+    for pub in enriched:
+        if pub.role == "assistant" and out and out[-1].role == "assistant":
+            prev = out[-1]
+            merged_tool_calls: list[dict[str, Any]] | None
+            if prev.tool_calls or pub.tool_calls:
+                merged_tool_calls = [*(prev.tool_calls or []), *(pub.tool_calls or [])]
+            else:
+                merged_tool_calls = None
+            out[-1] = MessagePublic(
+                id=pub.id,
+                role="assistant",
+                content=_join_nullable(prev.content, pub.content, "\n\n"),
+                reasoning=_join_nullable(prev.reasoning, pub.reasoning, "\n\n---\n\n"),
+                tool_calls=merged_tool_calls,
+                tool_call_id=None,
+                created_at=prev.created_at,
+                metadata=_merge_timings(prev.metadata, pub.metadata),
+            )
+        else:
+            out.append(pub)
     return out
 
 
-async def _get_user_session(db: DbSession, session_id: int, user_id: int) -> Session:
+async def _get_user_session(db: DbSession, session_id: UUID, user_id: int) -> Session:
     """Fetch a session owned by ``user_id`` or raise 404."""
     result = await db.execute(
         select(Session).where(Session.id == session_id, Session.user_id == user_id)
@@ -132,7 +201,7 @@ async def create_session(
 
 @router.get("/{session_id}", response_model=SessionDetail)
 async def get_session(
-    session_id: int,
+    session_id: UUID,
     current_user: CurrentUser,
     db: DbSession,
 ) -> SessionDetail:
@@ -161,7 +230,7 @@ async def get_session(
 
 @router.patch("/{session_id}", response_model=SessionPublic)
 async def update_session(
-    session_id: int,
+    session_id: UUID,
     payload: SessionUpdate,
     current_user: CurrentUser,
     db: DbSession,
@@ -182,7 +251,7 @@ async def update_session(
 
 @router.delete("/{session_id}", status_code=status.HTTP_204_NO_CONTENT)
 async def delete_session(
-    session_id: int,
+    session_id: UUID,
     current_user: CurrentUser,
     db: DbSession,
 ) -> None:
@@ -198,7 +267,7 @@ async def delete_session(
 # -----------------------------------------------------------------------------
 @router.get("/{session_id}/messages", response_model=list[MessagePublic])
 async def list_messages(
-    session_id: int,
+    session_id: UUID,
     current_user: CurrentUser,
     db: DbSession,
 ) -> list[MessagePublic]:
@@ -213,7 +282,7 @@ async def list_messages(
 
 @router.post("/{session_id}/messages")
 async def post_message(
-    session_id: int,
+    session_id: UUID,
     payload: MessageCreate,
     current_user: CurrentUser,
     db: DbSession,

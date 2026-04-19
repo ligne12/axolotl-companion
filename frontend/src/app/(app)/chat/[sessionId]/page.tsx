@@ -10,9 +10,9 @@ export default async function ChatSessionPage({
 }: {
   params: Promise<{ sessionId: string }>;
 }) {
-  const { sessionId: sid } = await params;
-  const sessionId = Number(sid);
-  if (!Number.isFinite(sessionId)) notFound();
+  const { sessionId } = await params;
+  // Rough UUID sanity check — FastAPI will 422 on malformed path params anyway
+  if (!/^[0-9a-f-]{32,36}$/i.test(sessionId)) notFound();
 
   const session = await auth();
   if (!session?.accessToken || session.error === "RefreshAccessTokenError") {

@@ -4,7 +4,7 @@ from datetime import UTC, datetime
 from typing import Any
 from uuid import UUID, uuid4
 
-from sqlalchemy import JSON, BigInteger, Column, DateTime, Index, UniqueConstraint
+from sqlalchemy import JSON, BigInteger, Column, DateTime, ForeignKey, Index, UniqueConstraint
 from sqlalchemy import String as SAString
 from sqlalchemy.dialects.postgresql import CITEXT
 from sqlalchemy.dialects.postgresql import UUID as PG_UUID
@@ -93,9 +93,9 @@ class Persona(SQLModel, table=True):
 class Session(SQLModel, table=True):
     __tablename__ = "sessions"
 
-    id: int | None = Field(
-        default=None,
-        sa_column=Column(BigInteger, primary_key=True, autoincrement=True),
+    id: UUID = Field(
+        default_factory=uuid4,
+        sa_column=Column(PG_UUID(as_uuid=True), primary_key=True),
     )
     user_id: int = Field(foreign_key="users.id", nullable=False)
     persona_id: int | None = Field(default=None, foreign_key="personas.id")
@@ -134,7 +134,14 @@ class Message(SQLModel, table=True):
         default_factory=uuid4,
         sa_column=Column(PG_UUID(as_uuid=True), primary_key=True),
     )
-    session_id: int = Field(foreign_key="sessions.id", nullable=False, index=True)
+    session_id: UUID = Field(
+        sa_column=Column(
+            PG_UUID(as_uuid=True),
+            ForeignKey("sessions.id", ondelete="CASCADE"),
+            nullable=False,
+            index=True,
+        ),
+    )
     role: str = Field(max_length=20)  # user | assistant | tool | system
     content: str | None = None
     reasoning: str | None = None

@@ -1,12 +1,13 @@
 "use client";
 
-import { Check, Copy, RotateCw } from "lucide-react";
+import { Check, Copy, RotateCw, Search, Wrench } from "lucide-react";
 import { useState } from "react";
 import ReactMarkdown from "react-markdown";
 import remarkGfm from "remark-gfm";
 
 import { Button } from "@/components/ui/button";
 import type { StreamingToolCall } from "@/hooks/use-chat";
+import DecryptedText from "@/components/reactbits/decrypted-text";
 import { cn, formatDuration } from "@/lib/utils";
 import type { MessagePublic, ToolCall } from "@/types/api";
 
@@ -28,13 +29,16 @@ function WebSearchResults({
   durationMs?: number;
 }) {
   return (
-    <div className="space-y-1.5">
-      <div className="flex items-center gap-1.5 text-xs text-muted-foreground">
-        <span className="font-medium">🔍 Web search</span>
-        <span>“{query}”</span>
-        <span>· {results.length} result{results.length > 1 ? "s" : ""}</span>
+    <div className="space-y-2">
+      <div className="flex items-center gap-2 text-xs">
+        <span className="inline-flex items-center gap-1.5 font-pixel uppercase tracking-[0.14em]">
+          <Search className="size-3.5" aria-hidden />
+          Web search
+        </span>
+        <span className="truncate text-muted-foreground">“{query}”</span>
+        <span className="text-muted-foreground">· {results.length} result{results.length > 1 ? "s" : ""}</span>
         {typeof durationMs === "number" && (
-          <span className="ml-auto font-mono tabular-nums text-[10px]">
+          <span className="ml-auto font-mono tabular-nums text-[10px] text-muted-foreground">
             {formatDuration(durationMs)}
           </span>
         )}
@@ -43,7 +47,7 @@ function WebSearchResults({
         {results.map((r, i) => (
           <li
             key={r.url + i}
-            className="rounded-md border border-border/50 bg-background/60 p-2"
+            className="rounded-md border-2 border-border bg-card p-2 shadow-[2px_2px_0_0_var(--border)] transition-[transform,box-shadow] duration-100 hover:-translate-x-[1px] hover:-translate-y-[1px] hover:shadow-[3px_3px_0_0_var(--lime)]"
           >
             <div className="flex items-start gap-2">
               {r.icon ? (
@@ -64,7 +68,7 @@ function WebSearchResults({
                   href={r.url}
                   target="_blank"
                   rel="noopener noreferrer"
-                  className="block truncate text-xs font-medium text-primary hover:underline"
+                  className="block truncate text-xs font-semibold hover:underline"
                   title={r.title}
                 >
                   {r.title}
@@ -111,7 +115,7 @@ function ToolCallCard({
   const isWebSearch = name === "web_search" && result !== undefined && isWebSearchResult(result);
 
   return (
-    <div className="rounded-md border border-primary/30 bg-primary/5 p-2.5 text-xs">
+    <div className="rounded-md border-2 border-border bg-card p-2.5 text-xs shadow-[2px_2px_0_0_var(--border)]">
       {isWebSearch ? (
         <WebSearchResults
           query={(result as { query: string }).query ?? ""}
@@ -121,7 +125,10 @@ function ToolCallCard({
       ) : (
         <>
           <div className="flex items-center gap-1.5">
-            <span className="font-medium">🔧 {name}</span>
+            <span className="inline-flex items-center gap-1.5 font-pixel uppercase tracking-[0.14em]">
+              <Wrench className="size-3.5" aria-hidden />
+              {name}
+            </span>
             {typeof durationMs === "number" && (
               <span className="ml-auto font-mono tabular-nums text-[10px] text-muted-foreground">
                 {formatDuration(durationMs)}
@@ -132,7 +139,7 @@ function ToolCallCard({
             {typeof args === "string" ? args : JSON.stringify(args, null, 2)}
           </pre>
           {result !== undefined && (
-            <details className="mt-1 border-t pt-1">
+            <details className="mt-1 border-t border-border/60 pt-1">
               <summary className="cursor-pointer text-muted-foreground">Result</summary>
               <pre className="mt-1 whitespace-pre-wrap break-words text-muted-foreground">
                 {JSON.stringify(result, null, 2).slice(0, 1500)}
@@ -147,11 +154,16 @@ function ToolCallCard({
 
 function Markdown({ text }: { text: string }) {
   return (
-    <div className="markdown-body space-y-2 text-sm leading-relaxed [&_a]:underline [&_a]:underline-offset-2 [&_code]:rounded [&_code]:bg-background/60 [&_code]:px-1 [&_code]:py-0.5 [&_code]:text-xs [&_h1]:mt-2 [&_h1]:text-lg [&_h1]:font-semibold [&_h2]:mt-2 [&_h2]:text-base [&_h2]:font-semibold [&_h3]:mt-2 [&_h3]:text-sm [&_h3]:font-semibold [&_li]:ml-4 [&_ol]:list-decimal [&_ol]:pl-4 [&_p]:whitespace-pre-wrap [&_pre]:overflow-x-auto [&_pre]:rounded-md [&_pre]:bg-background/60 [&_pre]:p-2 [&_pre_code]:bg-transparent [&_pre_code]:p-0 [&_strong]:font-semibold [&_ul]:list-disc [&_ul]:pl-4">
+    <div className="markdown-body">
       <ReactMarkdown remarkPlugins={[remarkGfm]}>{text}</ReactMarkdown>
     </div>
   );
 }
+
+const USER_BUBBLE =
+  "space-y-2 rounded-2xl border-2 border-border bg-primary px-4 py-2.5 text-sm text-primary-foreground shadow-[3px_3px_0_0_var(--lime)]";
+const ASSIST_BUBBLE =
+  "space-y-2 rounded-2xl border-2 border-border bg-card px-4 py-2.5 text-sm text-foreground shadow-[3px_3px_0_0_var(--border)]";
 
 export function MessageBubble({
   message,
@@ -170,7 +182,6 @@ export function MessageBubble({
   const reasoningMs = timings?.reasoning_ms ?? undefined;
   const totalMs = timings?.total_ms ?? timings?.round_ms ?? undefined;
 
-  // Don't render stand-alone tool messages — they're aggregated into assistant
   if (message.role === "tool") return null;
 
   async function copy() {
@@ -186,16 +197,21 @@ export function MessageBubble({
 
   return (
     <div className={cn("group flex flex-col", isUser ? "items-end" : "items-start")}>
-      <div
-        className={cn(
-          "max-w-[80%] space-y-2 rounded-2xl px-4 py-2 text-sm shadow-sm",
-          isUser ? "bg-primary text-primary-foreground" : "bg-muted text-foreground",
-        )}
-      >
+     <div className="flex max-w-[80%] min-w-0 flex-col">
+      <div className={isUser ? USER_BUBBLE : ASSIST_BUBBLE}>
         {hasReasoning && (
-          <details className="rounded-md bg-background/40 p-2 text-xs text-muted-foreground">
-            <summary className="flex cursor-pointer select-none items-center gap-1.5 font-medium">
-              <span>Reasoning</span>
+          <details className="rounded-md border-2 border-border/30 bg-background/40 p-2 text-xs text-muted-foreground">
+            <summary className="flex cursor-pointer select-none items-center gap-2 font-display font-semibold uppercase tracking-wider">
+              <DecryptedText
+                text="Reasoned"
+                animateOn="view"
+                speed={22}
+                maxIterations={8}
+                sequential
+                revealDirection="start"
+                className="text-foreground"
+                encryptedClassName="text-muted-foreground/60"
+              />
               {typeof reasoningMs === "number" && (
                 <span className="ml-auto font-mono tabular-nums text-[10px]">
                   {formatDuration(reasoningMs)}
@@ -235,12 +251,7 @@ export function MessageBubble({
       </div>
 
       {(message.content || typeof totalMs === "number") && (
-        <div
-          className={cn(
-            "mt-1 flex w-full items-center gap-1",
-            isUser ? "justify-end" : "justify-start",
-          )}
-        >
+        <div className="mt-1 flex w-full items-center gap-1">
           {message.content && (
             <div className="flex gap-1 opacity-0 transition-opacity group-hover:opacity-100">
               <Button variant="ghost" size="sm" className="h-7 px-2" onClick={copy}>
@@ -262,6 +273,7 @@ export function MessageBubble({
           )}
         </div>
       )}
+     </div>
     </div>
   );
 }
@@ -283,11 +295,28 @@ export function StreamingBubble({
 
   return (
     <div className="group flex flex-col items-start">
-      <div className="max-w-[80%] space-y-2 rounded-2xl bg-muted px-4 py-2 text-sm shadow-sm">
+     <div className="flex max-w-[80%] min-w-0 flex-col">
+      <div className={ASSIST_BUBBLE}>
         {reasoning.length > 0 && (
-          <details open className="rounded-md bg-background/40 p-2 text-xs text-muted-foreground">
-            <summary className="flex cursor-pointer select-none items-center gap-1.5 font-medium">
-              <span>Thinking...</span>
+          <details open className="rounded-md border-2 border-border/30 bg-background/40 p-2 text-xs text-muted-foreground">
+            <summary className="flex cursor-pointer select-none items-center gap-2 font-display font-semibold uppercase tracking-wider">
+              <DecryptedText
+                text="Thinking"
+                animateOn="view"
+                speed={28}
+                maxIterations={14}
+                sequential={false}
+                className="text-foreground"
+                encryptedClassName="text-[color:var(--lime-foreground)]/70"
+              />
+              <span
+                aria-hidden
+                className="inline-flex items-center gap-0.5"
+              >
+                <span className="h-1 w-1 animate-pulse rounded-full bg-[color:var(--lime)]" />
+                <span className="h-1 w-1 animate-pulse rounded-full bg-[color:var(--lime)] [animation-delay:150ms]" />
+                <span className="h-1 w-1 animate-pulse rounded-full bg-[color:var(--lime)] [animation-delay:300ms]" />
+              </span>
               {reasoningElapsedMs > 0 && (
                 <span className="ml-auto font-mono tabular-nums text-[10px]">
                   {formatDuration(reasoningElapsedMs)}
@@ -314,6 +343,7 @@ export function StreamingBubble({
           {formatDuration(elapsedMs)}
         </span>
       </div>
+     </div>
     </div>
   );
 }

@@ -1,11 +1,27 @@
 import type { Metadata, Viewport } from "next";
+import { Inter, Pixelify_Sans } from "next/font/google";
 import { Toaster } from "sonner";
 
+import { AppBackground } from "@/components/layout/app-background";
+import { GlobalClickSpark } from "@/components/layout/global-click-spark";
 import { QueryProvider } from "@/components/providers/query-provider";
 import { SessionProvider } from "@/components/providers/session-provider";
 import { ThemeProvider } from "@/components/providers/theme-provider";
 
 import "./globals.css";
+
+const inter = Inter({
+  subsets: ["latin"],
+  display: "swap",
+  variable: "--font-sans",
+});
+
+const pixelify = Pixelify_Sans({
+  subsets: ["latin"],
+  display: "swap",
+  weight: ["500", "700"],
+  variable: "--font-pixel",
+});
 
 export const metadata: Metadata = {
   title: "Axolotl Companion",
@@ -16,8 +32,8 @@ export const metadata: Metadata = {
 
 export const viewport: Viewport = {
   themeColor: [
-    { media: "(prefers-color-scheme: light)", color: "#ffffff" },
-    { media: "(prefers-color-scheme: dark)", color: "#0a0a0a" },
+    { media: "(prefers-color-scheme: light)", color: "#f6f2e6" },
+    { media: "(prefers-color-scheme: dark)", color: "#1a1610" },
   ],
 };
 
@@ -27,7 +43,15 @@ export default function RootLayout({
   readonly children: React.ReactNode;
 }) {
   return (
-    <html lang="en" suppressHydrationWarning>
+    <html lang="en" suppressHydrationWarning className={`${inter.variable} ${pixelify.variable}`}>
+      <head>
+        <link rel="preconnect" href="https://api.fontshare.com" crossOrigin="" />
+        <link rel="preconnect" href="https://cdn.fontshare.com" crossOrigin="" />
+        <link
+          rel="stylesheet"
+          href="https://api.fontshare.com/v2/css?f[]=clash-display@500,600,700&display=swap"
+        />
+      </head>
       <body className="min-h-screen bg-background text-foreground antialiased">
         <ThemeProvider
           attribute="class"
@@ -35,9 +59,12 @@ export default function RootLayout({
           enableSystem
           disableTransitionOnChange
         >
+          <AppBackground />
           <SessionProvider>
             <QueryProvider>
-              {children}
+              <GlobalClickSpark>
+                {children}
+              </GlobalClickSpark>
               <Toaster richColors position="top-right" />
             </QueryProvider>
           </SessionProvider>
