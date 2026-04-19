@@ -1,0 +1,58 @@
+# =============================================================================
+# Caddy config — Axolotl Companion reverse proxy
+# Auto TLS via *.localhost (self-signed) in dev, Let's Encrypt in prod
+# =============================================================================
+
+{
+	# Global options
+	email admin@axolotl.local
+	# Uncomment for prod:
+	# acme_ca https://acme-v02.api.letsencrypt.org/directory
+}
+
+# -----------------------------------------------------------------------------
+# Frontend : chat.localhost
+# -----------------------------------------------------------------------------
+chat.localhost {
+	tls internal
+
+	encode gzip zstd
+
+	# CSP and security headers
+	header {
+		X-Content-Type-Options nosniff
+		X-Frame-Options DENY
+		Referrer-Policy strict-origin-when-cross-origin
+		Permissions-Policy "camera=(), microphone=(), geolocation=()"
+	}
+
+	reverse_proxy frontend:3000 {
+		header_up X-Real-IP {remote_host}
+		header_up X-Forwarded-For {remote_host}
+		header_up X-Forwarded-Proto {scheme}
+	}
+}
+
+# -----------------------------------------------------------------------------
+# API : api.localhost
+# -----------------------------------------------------------------------------
+api.localhost {
+	tls internal
+
+	encode gzip zstd
+
+	# CORS handled by FastAPI
+	header {
+		X-Content-Type-Options nosniff
+		Referrer-Policy strict-origin-when-cross-origin
+	}
+
+	reverse_proxy backend:8001 {
+		header_up X-Real-IP {remote_host}
+		header_up X-Forwarded-For {remote_host}
+		header_up X-Forwarded-Proto {scheme}
+
+		# SSE support: disable buffering
+		flush_interval -1
+	}
+}

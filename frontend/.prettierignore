@@ -1,0 +1,9 @@
+.next/
+out/
+node_modules/
+coverage/
+playwright-report/
+test-results/
+*.min.*
+pnpm-lock.yaml
+public/

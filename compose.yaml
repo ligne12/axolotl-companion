@@ -1,0 +1,244 @@
+# =============================================================================
+# Axolotl Companion — Docker Compose (base, dev-friendly)
+#
+# Usage:
+#   docker compose up -d               # Lance tout en dev
+#   docker compose --profile obs up -d # + Prometheus / Grafana / Langfuse
+#   docker compose -f compose.yaml -f compose.prod.yaml up -d  # prod
+# =============================================================================
+
+name: axolotl-companion
+
+services:
+  # ---------------------------------------------------------------------------
+  # vLLM — LLM inference server on GPU
+  # ---------------------------------------------------------------------------
+  vllm:
+    build:
+      context: .
+      dockerfile: docker/vllm.Dockerfile
+    image: axolotl/vllm:latest
+    container_name: axolotl-vllm
+    restart: unless-stopped
+    runtime: nvidia
+    shm_size: 16gb
+    ipc: host
+    ports:
+      - "${VLLM_PORT:-8000}:8000"
+    environment:
+      - HF_TOKEN=${HF_TOKEN}
+      - VLLM_MODEL=${VLLM_MODEL}
+      - VLLM_SERVED_MODEL_NAME=${VLLM_SERVED_MODEL_NAME:-}
+      - VLLM_MAX_MODEL_LEN=${VLLM_MAX_MODEL_LEN:-8192}
+      - VLLM_MAX_NUM_SEQS=${VLLM_MAX_NUM_SEQS:-2}
+      - VLLM_GPU_MEMORY_UTILIZATION=${VLLM_GPU_MEMORY_UTILIZATION:-0.9}
+      - VLLM_MAX_NUM_BATCHED_TOKENS=${VLLM_MAX_NUM_BATCHED_TOKENS:-4096}
+      - VLLM_BLOCK_SIZE=${VLLM_BLOCK_SIZE:-16}
+      - VLLM_KV_CACHE_DTYPE=${VLLM_KV_CACHE_DTYPE:-auto}
+      - VLLM_QUANTIZATION=${VLLM_QUANTIZATION:-}
+      - VLLM_EXTRA_FLAGS=${VLLM_EXTRA_FLAGS:-}
+      - PYTORCH_CUDA_ALLOC_CONF=expandable_segments:True,max_split_size_mb:128
+      - VLLM_MEMORY_PROFILER_ESTIMATE_CUDAGRAPHS=1
+    volumes:
+      - models:/root/.cache/huggingface
+    deploy:
+      resources:
+        reservations:
+          devices:
+            - driver: nvidia
+              count: all
+              capabilities: [gpu]
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:8000/v1/models"]
+      interval: 30s
+      timeout: 5s
+      retries: 3
+      start_period: 5m
+    networks:
+      - axolotl
+
+  # ---------------------------------------------------------------------------
+  # Postgres — Main database
+  # ---------------------------------------------------------------------------
+  postgres:
+    image: postgres:16-alpine
+    container_name: axolotl-postgres
+    restart: unless-stopped
+    environment:
+      POSTGRES_USER: ${POSTGRES_USER:-axolotl}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-changeme}
+      POSTGRES_DB: ${POSTGRES_DB:-axolotl}
+    ports:
+      - "${POSTGRES_PORT:-5432}:5432"
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+      - ./docker/postgres/init.sql:/docker-entrypoint-initdb.d/init.sql:ro
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U ${POSTGRES_USER:-axolotl}"]
+      interval: 10s
+      timeout: 3s
+      retries: 5
+    networks:
+      - axolotl
+
+  # ---------------------------------------------------------------------------
+  # Redis — Cache + rate limiting + TaskIQ broker
+  # ---------------------------------------------------------------------------
+  redis:
+    image: redis:7-alpine
+    container_name: axolotl-redis
+    restart: unless-stopped
+    command: redis-server --appendonly yes --maxmemory 512mb --maxmemory-policy allkeys-lru
+    ports:
+      - "${REDIS_PORT:-6379}:6379"
+    volumes:
+      - redis_data:/data
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 10s
+      timeout: 3s
+      retries: 5
+    networks:
+      - axolotl
+
+  # ---------------------------------------------------------------------------
+  # Backend — FastAPI
+  # ---------------------------------------------------------------------------
+  backend:
+    build:
+      context: ./backend
+      dockerfile: Dockerfile
+      target: development
+    image: axolotl/backend:latest
+    container_name: axolotl-backend
+    restart: unless-stopped
+    depends_on:
+      postgres:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+    environment:
+      - ENV=${ENV:-development}
+      - DATABASE_URL=${DATABASE_URL}
+      - REDIS_URL=${REDIS_URL}
+      - JWT_SECRET=${JWT_SECRET}
+      - JWT_ALGORITHM=${JWT_ALGORITHM:-HS256}
+      - JWT_ACCESS_EXPIRE_MINUTES=${JWT_ACCESS_EXPIRE_MINUTES:-15}
+      - JWT_REFRESH_EXPIRE_DAYS=${JWT_REFRESH_EXPIRE_DAYS:-30}
+      - FERNET_KEY=${FERNET_KEY}
+      - CORS_ORIGINS=${CORS_ORIGINS}
+      - VLLM_API_URL=${VLLM_API_URL:-http://vllm:8000/v1}
+      - VLLM_SERVED_MODEL_NAME=${VLLM_SERVED_MODEL_NAME:-qwen3.5-9b-awq}
+      - LOG_LEVEL=${LOG_LEVEL:-info}
+    ports:
+      - "${BACKEND_PORT:-8001}:8001"
+    volumes:
+      - ./backend/src:/app/src
+      - ./backend/alembic.ini:/app/alembic.ini
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:8001/health"]
+      interval: 15s
+      timeout: 3s
+      retries: 5
+      start_period: 30s
+    networks:
+      - axolotl
+
+  # ---------------------------------------------------------------------------
+  # Frontend — Next.js
+  # ---------------------------------------------------------------------------
+  frontend:
+    build:
+      context: ./frontend
+      dockerfile: Dockerfile
+      target: development
+    image: axolotl/frontend:latest
+    container_name: axolotl-frontend
+    restart: unless-stopped
+    depends_on:
+      - backend
+    environment:
+      - NODE_ENV=${NODE_ENV:-development}
+      - NEXT_PUBLIC_API_URL=${NEXT_PUBLIC_API_URL:-http://localhost:8001}
+      - NEXT_PUBLIC_APP_NAME=${NEXT_PUBLIC_APP_NAME:-Axolotl Companion}
+      - AUTH_SECRET=${AUTH_SECRET}
+      - AUTH_URL=${AUTH_URL:-http://localhost:3000}
+      - NEXTAUTH_URL=${NEXTAUTH_URL:-http://localhost:3000}
+    ports:
+      - "3000:3000"
+    volumes:
+      - ./frontend/src:/app/src
+      - ./frontend/public:/app/public
+    networks:
+      - axolotl
+
+  # ---------------------------------------------------------------------------
+  # Caddy — Reverse proxy with auto TLS
+  # ---------------------------------------------------------------------------
+  proxy:
+    image: caddy:2-alpine
+    container_name: axolotl-proxy
+    restart: unless-stopped
+    ports:
+      - "80:80"
+      - "443:443"
+    volumes:
+      - ./docker/proxy/Caddyfile:/etc/caddy/Caddyfile:ro
+      - caddy_data:/data
+      - caddy_config:/config
+    depends_on:
+      - backend
+      - frontend
+    networks:
+      - axolotl
+
+  # ---------------------------------------------------------------------------
+  # Prometheus (profile: obs)
+  # ---------------------------------------------------------------------------
+  prometheus:
+    image: prom/prometheus:latest
+    container_name: axolotl-prometheus
+    restart: unless-stopped
+    profiles: [obs]
+    ports:
+      - "${PROMETHEUS_PORT:-9090}:9090"
+    volumes:
+      - ./docker/prometheus/prometheus.yml:/etc/prometheus/prometheus.yml:ro
+      - prometheus_data:/prometheus
+    networks:
+      - axolotl
+
+  # ---------------------------------------------------------------------------
+  # Grafana (profile: obs)
+  # ---------------------------------------------------------------------------
+  grafana:
+    image: grafana/grafana:latest
+    container_name: axolotl-grafana
+    restart: unless-stopped
+    profiles: [obs]
+    environment:
+      - GF_SECURITY_ADMIN_USER=${GRAFANA_ADMIN_USER:-admin}
+      - GF_SECURITY_ADMIN_PASSWORD=${GRAFANA_ADMIN_PASSWORD:-admin}
+    ports:
+      - "${GRAFANA_PORT:-3001}:3000"
+    volumes:
+      - grafana_data:/var/lib/grafana
+      - ./docker/grafana/provisioning:/etc/grafana/provisioning:ro
+    depends_on:
+      - prometheus
+    networks:
+      - axolotl
+
+# -----------------------------------------------------------------------------
+volumes:
+  models:
+  postgres_data:
+  redis_data:
+  caddy_data:
+  caddy_config:
+  prometheus_data:
+  grafana_data:
+
+networks:
+  axolotl:
+    driver: bridge
