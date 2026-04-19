@@ -1,7 +1,7 @@
 "use client";
 
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
-import { Check, Home, LogOut, MessageSquarePlus, Pencil, Settings2, Trash2, X } from "lucide-react";
+import { Check, Home, LogOut, MessageSquarePlus, Pencil, Search, Settings2, Trash2, X } from "lucide-react";
 import { AnimatePresence, motion } from "motion/react";
 import Link from "next/link";
 import { usePathname, useRouter } from "next/navigation";
@@ -156,6 +156,31 @@ export function AppSidebar() {
   const pathname = usePathname();
   const qc = useQueryClient();
   const { data: user } = useSession();
+  const [filter, setFilter] = useState("");
+  const filterRef = useRef<HTMLInputElement>(null);
+
+  // Global `/` shortcut to focus the filter (Escape clears+blurs).
+  useEffect(() => {
+    const onKey = (e: KeyboardEvent) => {
+      const target = e.target as HTMLElement | null;
+      const typing =
+        target &&
+        (target.tagName === "INPUT" ||
+          target.tagName === "TEXTAREA" ||
+          target.isContentEditable);
+      if (e.key === "/" && !typing) {
+        e.preventDefault();
+        filterRef.current?.focus();
+        filterRef.current?.select();
+      }
+      if (e.key === "Escape" && target === filterRef.current) {
+        setFilter("");
+        filterRef.current?.blur();
+      }
+    };
+    window.addEventListener("keydown", onKey);
+    return () => window.removeEventListener("keydown", onKey);
+  }, []);
 
   const sessionsQuery = useQuery({
     queryKey: ["sessions"],
@@ -233,10 +258,39 @@ export function AppSidebar() {
         </button>
       </div>
 
+      {/* Filter input */}
+      <div className="px-3 pb-2">
+        <div className="relative">
+          <Search className="pointer-events-none absolute left-2 top-1/2 size-3.5 -translate-y-1/2 text-muted-foreground" />
+          <input
+            ref={filterRef}
+            value={filter}
+            onChange={(e) => setFilter(e.target.value)}
+            placeholder="Filter…"
+            className="h-8 w-full border-2 border-border bg-card pl-7 pr-8 text-[13px] outline-none transition-[box-shadow] duration-100 focus:shadow-[3px_3px_0_0_var(--lime)] placeholder:text-muted-foreground"
+            aria-label="Filter conversations"
+          />
+          <span
+            aria-hidden
+            className="pointer-events-none absolute right-1.5 top-1/2 -translate-y-1/2 border border-border/40 bg-background px-1 py-0.5 font-pixel text-[9px] uppercase tracking-widest text-muted-foreground"
+          >
+            /
+          </span>
+        </div>
+      </div>
+
       <div className="flex-1 overflow-y-auto px-3">
-        <ul className="space-y-1 pb-3">
-          <AnimatePresence initial={false}>
-            {sessionsQuery.data?.map((s, i) => (
+        {(() => {
+          const all = sessionsQuery.data ?? [];
+          const q = filter.trim().toLowerCase();
+          const filtered = q
+            ? all.filter((s) => s.title.toLowerCase().includes(q))
+            : all;
+          return (
+            <>
+              <ul className="space-y-1 pb-2">
+                <AnimatePresence initial={false}>
+                  {filtered.map((s, i) => (
               <motion.div
                 key={s.id}
                 layout
@@ -256,12 +310,25 @@ export function AppSidebar() {
               </motion.div>
             ))}
           </AnimatePresence>
-          {sessionsQuery.data?.length === 0 && (
-            <p className="px-2 py-3 text-xs text-muted-foreground">
-              No conversations yet.
-            </p>
-          )}
-        </ul>
+              </ul>
+              {all.length === 0 && (
+                <p className="px-2 py-3 text-xs text-muted-foreground">
+                  No conversations yet.
+                </p>
+              )}
+              {q && filtered.length === 0 && all.length > 0 && (
+                <p className="px-2 py-3 font-pixel text-[11px] uppercase tracking-wider text-muted-foreground">
+                  No match for “{filter}”
+                </p>
+              )}
+              {q && filtered.length > 0 && (
+                <p className="px-2 pb-3 font-mono text-[10px] tabular-nums text-muted-foreground">
+                  {filtered.length} / {all.length}
+                </p>
+              )}
+            </>
+          );
+        })()}
       </div>
 
       <div className="space-y-1 border-t-2 border-border p-3">

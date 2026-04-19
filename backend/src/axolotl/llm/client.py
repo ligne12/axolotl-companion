@@ -29,6 +29,14 @@ class VLLMClient:
     async def aclose(self) -> None:
         await self._client.aclose()
 
+    async def list_models(self) -> list[dict[str, Any]]:
+        """Call vLLM's OpenAI-compatible ``/v1/models`` and return ``data``."""
+        resp = await self._client.get(f"{self._base_url}/models", timeout=5.0)
+        resp.raise_for_status()
+        payload = resp.json()
+        data = payload.get("data") if isinstance(payload, dict) else None
+        return data if isinstance(data, list) else []
+
     async def stream_chat(
         self,
         *,

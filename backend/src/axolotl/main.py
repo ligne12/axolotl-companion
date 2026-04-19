@@ -49,12 +49,14 @@ def create_app() -> FastAPI:
         return {"status": "ok", "version": __version__}
 
     from axolotl.api.v1 import auth as auth_router
+    from axolotl.api.v1 import config as config_router
     from axolotl.api.v1 import sessions as sessions_router
     from axolotl.api.v1 import tools as tools_router
 
     app.include_router(auth_router.router, prefix="/auth", tags=["auth"])
     app.include_router(sessions_router.router, prefix="/v1/sessions", tags=["sessions"])
     app.include_router(tools_router.router, prefix="/v1/tools", tags=["tools"])
+    app.include_router(config_router.router, prefix="/v1/config", tags=["config"])
 
     return app
 

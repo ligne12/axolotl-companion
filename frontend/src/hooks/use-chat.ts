@@ -1,8 +1,9 @@
 "use client";
 
-import { useCallback, useRef, useState } from "react";
+import { useCallback, useEffect, useRef, useState } from "react";
 
 import { API_BASE } from "@/lib/utils";
+import { useChatStatus } from "@/stores/chat-status";
 import type {
   MessageDoneData,
   MessagePublic,
@@ -58,6 +59,23 @@ export function useChat(
   const controllerRef = useRef<AbortController | null>(null);
   const lastUserMessageRef = useRef<string | null>(null);
   const tickRef = useRef<ReturnType<typeof setInterval> | null>(null);
+
+  // Mirror the local isSending + rough tokens/s into the global chat-status
+  // store so non-chat surfaces (terminal footer, ambient indicators) can react.
+  const setStoreSending = useChatStatus((s) => s.setIsSending);
+  const setStoreTps = useChatStatus((s) => s.setTokensPerSec);
+  useEffect(() => {
+    setStoreSending(isSending);
+    if (!isSending) setStoreTps(null);
+  }, [isSending, setStoreSending, setStoreTps]);
+  useEffect(() => {
+    if (!streaming || streaming.elapsedMs < 400) return;
+    const chars = streaming.content.length + streaming.reasoning.length;
+    if (chars === 0) return;
+    // ~4 chars per token is the classic tokenizer rule of thumb
+    const tps = chars / 4 / (streaming.elapsedMs / 1000);
+    setStoreTps(Math.round(tps));
+  }, [streaming, setStoreTps]);
 
   const stop = useCallback(() => {
     controllerRef.current?.abort();
