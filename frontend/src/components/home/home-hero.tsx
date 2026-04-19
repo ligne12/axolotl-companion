@@ -8,9 +8,11 @@ import { useEffect, useState } from "react";
 import { toast } from "sonner";
 
 import { AxolotlSprite, type AxolotlMood } from "@/components/axolotl/axolotl-sprite";
+import CircularText from "@/components/reactbits/circular-text";
 import ClickSpark from "@/components/reactbits/click-spark";
 import Magnet from "@/components/reactbits/magnet";
 import PixelSnow from "@/components/reactbits/pixel-snow";
+import Shuffle from "@/components/reactbits/shuffle";
 import TextType from "@/components/reactbits/text-type";
 import { useApi } from "@/hooks/use-api";
 import { cn } from "@/lib/utils";
@@ -64,56 +66,58 @@ export function HomeHero({
   });
 
   return (
-    <section
-      className={cn(
-        "relative isolate overflow-hidden rounded-2xl border-2 border-border bg-[color:var(--pastel-pink)] p-6",
-        "shadow-[4px_4px_0_0_var(--border)] md:p-10",
-      )}
-    >
-      {/* Subtle pixel snow — lime flakes on the warm pastel wash. */}
-      <div className="pointer-events-none absolute inset-0 opacity-60">
+    <section className="relative isolate overflow-hidden rounded-[28px] border-2 border-border bg-card p-6 shadow-[3px_3px_0_0_var(--border)] md:p-10">
+      {/* Faint pixel snow in the background — low density, lime flakes */}
+      <div className="pointer-events-none absolute inset-0 opacity-30">
         <PixelSnow
           color="#baff39"
-          density={0.18}
-          speed={0.6}
-          brightness={0.7}
-          pixelResolution={260}
+          density={0.12}
+          speed={0.45}
+          brightness={0.55}
+          pixelResolution={280}
           variant="square"
         />
       </div>
 
-      <div className="relative z-10 flex flex-col items-center gap-6 text-center md:flex-row md:items-center md:gap-10 md:text-left">
-        {/* Axolotl: clicking triggers a spark burst and swaps mood to happy */}
-        <div className="shrink-0">
-          <ClickSpark sparkColor="#baff39" sparkCount={12} sparkRadius={22} duration={500}>
+      <div className="relative z-10 flex flex-col items-center gap-8 md:flex-row md:items-center md:gap-12">
+        {/* Axolotl wrapped in a circular ring of text */}
+        <div className="relative shrink-0">
+          <div className="absolute inset-0 -m-4 flex items-center justify-center text-[color:var(--muted-foreground)]">
+            <CircularText
+              text="AXOLOTL · COMPANION · LOCAL · FIRST · "
+              spinDuration={28}
+              onHover="speedUp"
+              className="!h-[240px] !w-[240px] !text-[10px] !font-mono !uppercase !tracking-[0.2em]"
+            />
+          </div>
+          <ClickSpark sparkColor="#baff39" sparkCount={14} sparkRadius={26} duration={500}>
             <button
               type="button"
               onClick={() => setMood("happy")}
               aria-label="Poke the axolotl"
-              className="rounded-2xl border-2 border-border bg-card p-3 shadow-[3px_3px_0_0_var(--border)] transition-transform active:translate-x-[2px] active:translate-y-[2px] active:shadow-[1px_1px_0_0_var(--border)]"
+              className="relative z-10 rounded-2xl border-2 border-border bg-card p-3 shadow-[3px_3px_0_0_var(--border)] transition-[transform,box-shadow] duration-100 active:translate-x-[2px] active:translate-y-[2px] active:shadow-[1px_1px_0_0_var(--border)]"
             >
-              <AxolotlSprite mood={mood} size={170} />
+              <AxolotlSprite mood={mood} size={150} />
             </button>
           </ClickSpark>
         </div>
 
-        <div className="flex max-w-xl flex-col gap-3">
-          <span className="inline-flex w-fit self-center items-center gap-2 rounded-full border-2 border-border bg-card px-3 py-1 font-mono text-[10px] uppercase tracking-[0.2em] md:self-start">
-            <span className="size-1.5 rounded-full bg-[color:var(--lime)]" />
+        <div className="flex max-w-xl flex-col gap-4 text-center md:text-left">
+          <span className="inline-flex w-fit self-center items-center gap-2 border-2 border-border bg-card px-3 py-1 font-mono text-[10px] uppercase tracking-[0.22em] md:self-start">
+            <span className="size-1.5 bg-[color:var(--lime)]" />
             Hi {name}
           </span>
 
-          <h1 className="font-display text-balance text-4xl font-bold leading-[1.05] md:text-5xl">
-            Your axolotl is{" "}
-            <span className="relative inline-block italic">
-              <span className="relative z-10">listening</span>
-              <span
-                aria-hidden
-                className="absolute inset-x-1 bottom-1 -z-0 h-3 bg-[color:var(--lime)]"
-              />
-            </span>
-            .
-          </h1>
+          <Shuffle
+            tag="h1"
+            text="Your axolotl is listening."
+            className="font-display text-balance text-4xl font-bold leading-[1.05] md:text-5xl"
+            shuffleTimes={2}
+            duration={0.5}
+            stagger={0.03}
+            triggerOnce
+            animationMode="evenodd"
+          />
 
           <TextType
             as="p"
@@ -126,7 +130,7 @@ export function HomeHero({
             cursorClassName="text-[color:var(--lime-foreground)]"
           />
 
-          <div className="mt-3 flex flex-wrap items-center justify-center gap-3 md:justify-start">
+          <div className="mt-2 flex flex-wrap items-center justify-center gap-3 md:justify-start">
             <Magnet padding={80} magnetStrength={3}>
               <button
                 type="button"
@@ -134,8 +138,8 @@ export function HomeHero({
                 disabled={createSession.isPending}
                 className={cn(
                   "group inline-flex items-center gap-2 border-2 border-border bg-primary px-5 py-2.5 text-sm font-semibold text-primary-foreground",
-                  "shadow-[4px_4px_0_0_var(--lime)] transition-[transform,box-shadow] duration-100",
-                  "hover:-translate-x-[1px] hover:-translate-y-[1px] hover:shadow-[6px_6px_0_0_var(--lime)]",
+                  "shadow-[3px_3px_0_0_var(--lime)] transition-[transform,box-shadow] duration-100",
+                  "hover:shadow-[4px_4px_0_0_var(--lime)]",
                   "active:translate-x-[2px] active:translate-y-[2px] active:shadow-[1px_1px_0_0_var(--lime)]",
                   "disabled:cursor-not-allowed disabled:opacity-60",
                 )}
@@ -151,8 +155,8 @@ export function HomeHero({
                   href={`/chat/${lastSessionId}`}
                   className={cn(
                     "inline-flex items-center gap-2 border-2 border-border bg-card px-5 py-2.5 text-sm font-semibold",
-                    "shadow-[4px_4px_0_0_var(--border)] transition-[transform,box-shadow] duration-100",
-                    "hover:-translate-x-[1px] hover:-translate-y-[1px] hover:shadow-[6px_6px_0_0_var(--border)]",
+                    "shadow-[3px_3px_0_0_var(--border)] transition-[transform,box-shadow] duration-100",
+                    "hover:shadow-[4px_4px_0_0_var(--border)]",
                     "active:translate-x-[2px] active:translate-y-[2px] active:shadow-[1px_1px_0_0_var(--border)]",
                   )}
                 >

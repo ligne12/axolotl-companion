@@ -112,7 +112,7 @@ function ToolCallCard({
   const isWebSearch = name === "web_search" && result !== undefined && isWebSearchResult(result);
 
   return (
-    <div className="rounded-md border-2 border-border bg-[color:var(--pastel-butter)] p-2.5 text-xs">
+    <div className="rounded-md border-2 border-border bg-card p-2.5 text-xs shadow-[2px_2px_0_0_var(--border)]">
       {isWebSearch ? (
         <WebSearchResults
           query={(result as { query: string }).query ?? ""}

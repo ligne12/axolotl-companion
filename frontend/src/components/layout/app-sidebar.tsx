@@ -198,7 +198,7 @@ export function AppSidebar() {
     <aside className="flex h-dvh w-64 flex-col border-r-2 border-border bg-background">
       <Link
         href="/home"
-        className="flex items-center gap-2 border-b-2 border-border px-4 py-3 transition hover:bg-[color:var(--pastel-butter)]/40"
+        className="flex items-center gap-2 border-b-2 border-border px-4 py-3 transition hover:bg-card"
       >
         <span aria-hidden className="text-xl">🪷</span>
         <span className="font-display text-lg font-bold">Axolotl</span>
