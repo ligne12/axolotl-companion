@@ -35,7 +35,7 @@ export function ChatInput({
     // bottom-of-shell separator, so stacking two 2px strokes feels noisy.
     // Extra bottom padding lifts the input away from the footer's LOCAL
     // status line so the two feel like distinct zones.
-    <div className="bg-background px-3 pt-3 pb-5">
+    <div className="bg-background px-3 pt-3 pb-8">
       <div className="mx-auto flex max-w-3xl items-end gap-2">
         <div
           className={cn(

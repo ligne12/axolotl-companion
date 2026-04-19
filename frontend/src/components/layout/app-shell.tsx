@@ -6,6 +6,7 @@ import { useEffect, useState } from "react";
 
 import { AppSidebar } from "@/components/layout/app-sidebar";
 import { TerminalBar } from "@/components/layout/terminal-bar";
+import { KeyboardShortcutsProvider } from "@/components/providers/keyboard-shortcuts";
 import { Button } from "@/components/ui/button";
 import { cn } from "@/lib/utils";
 
@@ -19,6 +20,7 @@ export function AppShell({ children }: { children: React.ReactNode }) {
   }, [pathname]);
 
   return (
+    <KeyboardShortcutsProvider>
     <div className="flex h-dvh w-screen overflow-hidden">
       {/* Mobile backdrop */}
       {open && (
@@ -59,5 +61,6 @@ export function AppShell({ children }: { children: React.ReactNode }) {
         <TerminalBar />
       </div>
     </div>
+    </KeyboardShortcutsProvider>
   );
 }

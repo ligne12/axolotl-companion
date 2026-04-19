@@ -45,6 +45,7 @@
     "next-intl": "^3.26.0",
     "react-markdown": "^9.0.0",
     "remark-gfm": "^4.0.0",
+    "cmdk": "^1.0.0",
     "gsap": "^3.13.0",
     "@gsap/react": "^2.1.2",
     "three": "^0.167.1",
