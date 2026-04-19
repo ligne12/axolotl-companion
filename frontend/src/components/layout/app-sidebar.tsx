@@ -1,7 +1,7 @@
 "use client";
 
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
-import { Check, LogOut, MessageSquarePlus, Pencil, Settings2, Trash2, X } from "lucide-react";
+import { Check, Home, LogOut, MessageSquarePlus, Pencil, Settings2, Trash2, X } from "lucide-react";
 import Link from "next/link";
 import { usePathname, useRouter } from "next/navigation";
 import { signOut, useSession } from "next-auth/react";
@@ -194,10 +194,13 @@ export function AppSidebar() {
 
   return (
     <aside className="flex h-dvh w-64 flex-col border-r bg-muted/30">
-      <div className="flex items-center gap-2 border-b px-4 py-3">
+      <Link
+        href="/home"
+        className="flex items-center gap-2 border-b px-4 py-3 transition hover:bg-accent/30"
+      >
         <span aria-hidden className="text-xl">🪷</span>
         <span className="font-semibold">Axolotl</span>
-      </div>
+      </Link>
 
       <div className="p-3">
         <Button
@@ -231,6 +234,15 @@ export function AppSidebar() {
       </div>
 
       <div className="space-y-1 border-t p-3">
+        <Link
+          href="/home"
+          className={cn(
+            "flex items-center gap-2 rounded-md px-2 py-1.5 text-sm transition hover:bg-accent",
+            pathname === "/home" && "bg-accent",
+          )}
+        >
+          <Home className="size-4" /> Home
+        </Link>
         <Link
           href="/tools"
           className={cn(

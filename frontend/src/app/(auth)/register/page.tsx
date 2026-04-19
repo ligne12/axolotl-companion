@@ -46,7 +46,7 @@ export default function RegisterPage() {
         throw new Error("auto-login failed");
       }
       toast.success("Welcome!");
-      router.push("/chat");
+      router.push("/home");
       router.refresh();
     } catch (err: unknown) {
       const msg =

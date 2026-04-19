@@ -5,7 +5,7 @@ import { auth } from "@/auth";
 export default async function RootPage() {
   const session = await auth();
   if (session?.user) {
-    redirect("/chat");
+    redirect("/home");
   }
   redirect("/login");
 }
