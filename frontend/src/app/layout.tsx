@@ -3,7 +3,6 @@ import { Inter, Pixelify_Sans } from "next/font/google";
 import { Toaster } from "sonner";
 
 import { AppBackground } from "@/components/layout/app-background";
-import { GlobalClickSpark } from "@/components/layout/global-click-spark";
 import { QueryProvider } from "@/components/providers/query-provider";
 import { SessionProvider } from "@/components/providers/session-provider";
 import { ThemeProvider } from "@/components/providers/theme-provider";
@@ -62,9 +61,7 @@ export default function RootLayout({
           <AppBackground />
           <SessionProvider>
             <QueryProvider>
-              <GlobalClickSpark>
-                {children}
-              </GlobalClickSpark>
+              {children}
               <Toaster richColors position="top-right" />
             </QueryProvider>
           </SessionProvider>

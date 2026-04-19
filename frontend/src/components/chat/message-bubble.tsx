@@ -1,6 +1,6 @@
 "use client";
 
-import { Check, Copy, RotateCw, Search, Wrench } from "lucide-react";
+import { Check, Copy, RotateCw } from "lucide-react";
 import { useState } from "react";
 import ReactMarkdown from "react-markdown";
 import remarkGfm from "remark-gfm";
@@ -31,10 +31,7 @@ function WebSearchResults({
   return (
     <div className="space-y-2">
       <div className="flex items-center gap-2 text-xs">
-        <span className="inline-flex items-center gap-1.5 font-pixel uppercase tracking-[0.14em]">
-          <Search className="size-3.5" aria-hidden />
-          Web search
-        </span>
+        <span className="font-display font-semibold uppercase tracking-wider">🔍 Web search</span>
         <span className="truncate text-muted-foreground">“{query}”</span>
         <span className="text-muted-foreground">· {results.length} result{results.length > 1 ? "s" : ""}</span>
         {typeof durationMs === "number" && (
@@ -125,10 +122,7 @@ function ToolCallCard({
       ) : (
         <>
           <div className="flex items-center gap-1.5">
-            <span className="inline-flex items-center gap-1.5 font-pixel uppercase tracking-[0.14em]">
-              <Wrench className="size-3.5" aria-hidden />
-              {name}
-            </span>
+            <span className="font-display font-semibold">🔧 {name}</span>
             {typeof durationMs === "number" && (
               <span className="ml-auto font-mono tabular-nums text-[10px] text-muted-foreground">
                 {formatDuration(durationMs)}
@@ -154,7 +148,7 @@ function ToolCallCard({
 
 function Markdown({ text }: { text: string }) {
   return (
-    <div className="markdown-body">
+    <div className="markdown-body space-y-2 text-sm leading-relaxed [&_a]:underline [&_a]:underline-offset-2 [&_code]:rounded [&_code]:bg-background/60 [&_code]:px-1 [&_code]:py-0.5 [&_code]:text-xs [&_h1]:mt-2 [&_h1]:text-lg [&_h1]:font-semibold [&_h2]:mt-2 [&_h2]:text-base [&_h2]:font-semibold [&_h3]:mt-2 [&_h3]:text-sm [&_h3]:font-semibold [&_li]:ml-4 [&_ol]:list-decimal [&_ol]:pl-4 [&_p]:whitespace-pre-wrap [&_pre]:overflow-x-auto [&_pre]:rounded-md [&_pre]:bg-background/60 [&_pre]:p-2 [&_pre_code]:bg-transparent [&_pre_code]:p-0 [&_strong]:font-semibold [&_ul]:list-disc [&_ul]:pl-4">
       <ReactMarkdown remarkPlugins={[remarkGfm]}>{text}</ReactMarkdown>
     </div>
   );

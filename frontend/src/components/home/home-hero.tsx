@@ -12,6 +12,7 @@ import CircularText from "@/components/reactbits/circular-text";
 import ClickSpark from "@/components/reactbits/click-spark";
 import Magnet from "@/components/reactbits/magnet";
 import PixelSnow from "@/components/reactbits/pixel-snow";
+import Shuffle from "@/components/reactbits/shuffle";
 import TextType from "@/components/reactbits/text-type";
 import { useApi } from "@/hooks/use-api";
 import { cn } from "@/lib/utils";
@@ -91,25 +92,32 @@ export function HomeHero({
               <AxolotlSprite mood={mood} size={150} />
             </button>
           </ClickSpark>
-          <div className="pointer-events-none absolute inset-0 -m-6 z-20 flex items-center justify-center">
+          <div className="pointer-events-none absolute inset-0 -m-6 z-20 flex items-center justify-center text-foreground">
             <CircularText
               text="AXOLOTL · COMPANION · LOCAL · FIRST · "
               spinDuration={28}
               onHover="speedUp"
-              className="!h-[220px] !w-[220px] !text-[11px] !text-foreground font-pixel !uppercase !tracking-[0.18em]"
+              className="!h-[220px] !w-[220px] !text-[11px] font-pixel !uppercase !tracking-[0.18em]"
             />
           </div>
         </div>
 
-        <div className="flex min-w-0 flex-1 max-w-xl flex-col gap-4 text-left">
+        <div className="flex max-w-xl flex-col gap-4 text-left">
           <span className="inline-flex w-fit items-center gap-2 border-2 border-border bg-card px-2.5 py-1 font-pixel text-[12px] uppercase tracking-[0.14em]">
             <span className="size-2 bg-[color:var(--lime)]" />
             Hi {name}
           </span>
 
-          <h1 className="font-display text-4xl font-bold uppercase leading-[1.05] md:text-5xl">
-            Your <span className="italic">axolotl</span> is listening.
-          </h1>
+          <Shuffle
+            tag="h1"
+            text="Your axolotl is listening."
+            className="font-display text-balance text-4xl font-bold leading-[1.05] md:text-5xl"
+            shuffleTimes={2}
+            duration={0.5}
+            stagger={0.03}
+            triggerOnce
+            animationMode="evenodd"
+          />
 
           <TextType
             as="p"
