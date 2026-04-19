@@ -31,11 +31,11 @@ export function ChatInput({
   const canSend = Boolean(text.trim()) && !isSending && !disabled;
 
   return (
-    // No ``border-t`` here — the terminal footer below provides the single
-    // bottom-of-shell separator, so stacking two 2px strokes feels noisy.
-    // Extra bottom padding lifts the input away from the footer's LOCAL
-    // status line so the two feel like distinct zones.
-    <div className="bg-background px-3 pt-3 pb-8">
+    // Transparent wrapper so the global PixelBlast drift shows through.
+    // No ``border-t`` — the terminal footer below provides the single
+    // bottom-of-shell separator. Extra bottom padding lifts the input
+    // away from the footer's LOCAL line.
+    <div className="px-3 pt-3 pb-8">
       <div className="mx-auto flex max-w-3xl items-end gap-2">
         <div
           className={cn(

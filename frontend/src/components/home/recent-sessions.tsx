@@ -1,4 +1,7 @@
+"use client";
+
 import { ArrowRight, Clock } from "lucide-react";
+import { motion } from "motion/react";
 import Link from "next/link";
 
 import type { SessionPublic } from "@/types/api";
@@ -34,8 +37,13 @@ export function RecentSessions({ sessions }: { sessions: SessionPublic[] }) {
         Recent
       </h2>
       <ul className="grid gap-3 sm:grid-cols-2">
-        {sessions.map((s) => (
-          <li key={s.id}>
+        {sessions.map((s, i) => (
+          <motion.li
+            key={s.id}
+            initial={{ opacity: 0, y: 10, scale: 0.985 }}
+            animate={{ opacity: 1, y: 0, scale: 1 }}
+            transition={{ duration: 0.32, delay: Math.min(i, 8) * 0.06, ease: "easeOut" }}
+          >
             <Link
               href={`/chat/${s.id}`}
               className="group flex h-full flex-col justify-between gap-3 rounded-xl border-2 border-border bg-card p-4 shadow-[3px_3px_0_0_var(--border)] transition-[transform,box-shadow] duration-100 hover:-translate-x-[1px] hover:-translate-y-[1px] hover:shadow-[5px_5px_0_0_var(--lime)] focus:outline-none focus-visible:-translate-x-[1px] focus-visible:-translate-y-[1px] focus-visible:shadow-[5px_5px_0_0_var(--lime)]"
@@ -51,7 +59,7 @@ export function RecentSessions({ sessions }: { sessions: SessionPublic[] }) {
                 <ArrowRight className="size-3.5 translate-x-[-4px] opacity-0 transition-all group-hover:translate-x-0 group-hover:opacity-100" />
               </div>
             </Link>
-          </li>
+          </motion.li>
         ))}
       </ul>
     </section>
