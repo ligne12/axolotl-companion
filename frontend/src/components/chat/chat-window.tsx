@@ -48,8 +48,12 @@ export function ChatWindow({
       <div ref={scrollRef} className="flex-1 overflow-y-auto">
         <div className="mx-auto max-w-3xl space-y-4 p-4">
           {visible.length === 0 && !chat.streaming && (
-            <div className="flex h-[40vh] items-center justify-center text-center text-muted-foreground">
-              Say hi to your axolotl companion.
+            <div className="mx-auto flex h-[40vh] max-w-sm flex-col items-center justify-center gap-2 text-center">
+              <span aria-hidden className="font-display text-4xl">🪷</span>
+              <p className="font-display text-lg font-semibold">Say hi to your axolotl.</p>
+              <p className="text-sm text-muted-foreground">
+                Ask a question, drop a link, or just think out loud. I&apos;ll keep up.
+              </p>
             </div>
           )}
           {visible.map((m) => (

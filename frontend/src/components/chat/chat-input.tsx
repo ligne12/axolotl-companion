@@ -3,7 +3,7 @@
 import { Send, Square } from "lucide-react";
 import { useRef, useState } from "react";
 
-import { Button } from "@/components/ui/button";
+import { cn } from "@/lib/utils";
 
 export function ChatInput({
   onSend,
@@ -17,6 +17,7 @@ export function ChatInput({
   disabled?: boolean;
 }) {
   const [text, setText] = useState("");
+  const [focused, setFocused] = useState(false);
   const textareaRef = useRef<HTMLTextAreaElement>(null);
 
   const submit = () => {
@@ -27,44 +28,59 @@ export function ChatInput({
     requestAnimationFrame(() => textareaRef.current?.focus());
   };
 
+  const canSend = Boolean(text.trim()) && !isSending && !disabled;
+
   return (
-    <div className="border-t bg-background p-3">
+    <div className="border-t-2 border-border bg-background p-3">
       <div className="mx-auto flex max-w-3xl items-end gap-2">
-        <textarea
-          ref={textareaRef}
-          value={text}
-          onChange={(e) => setText(e.target.value)}
-          onKeyDown={(e) => {
-            if (e.key === "Enter" && !e.shiftKey) {
-              e.preventDefault();
-              submit();
-            }
-          }}
-          rows={1}
-          disabled={disabled}
-          placeholder="Send a message... (Shift+Enter for newline)"
-          className="min-h-[40px] max-h-48 flex-1 resize-none rounded-md border border-input bg-transparent px-3 py-2 text-sm shadow-sm focus:outline-none focus:ring-1 focus:ring-ring disabled:cursor-not-allowed disabled:opacity-50"
-        />
+        <div
+          className={cn(
+            "flex flex-1 items-end rounded-xl border-2 border-border bg-card transition-[box-shadow] duration-100",
+            focused ? "shadow-[4px_4px_0_0_var(--lime)]" : "shadow-[3px_3px_0_0_var(--border)]",
+          )}
+        >
+          <textarea
+            ref={textareaRef}
+            value={text}
+            onChange={(e) => setText(e.target.value)}
+            onKeyDown={(e) => {
+              if (e.key === "Enter" && !e.shiftKey) {
+                e.preventDefault();
+                submit();
+              }
+            }}
+            onFocus={() => setFocused(true)}
+            onBlur={() => setFocused(false)}
+            rows={1}
+            disabled={disabled}
+            placeholder="Send a message... (Shift+Enter for newline)"
+            className="min-h-[40px] max-h-48 flex-1 resize-none bg-transparent px-3 py-2.5 text-sm placeholder:text-muted-foreground focus:outline-none disabled:cursor-not-allowed disabled:opacity-50"
+          />
+        </div>
         {isSending ? (
-          <Button
+          <button
             type="button"
-            variant="secondary"
-            size="icon"
             onClick={onStop}
             aria-label="Stop"
+            className="inline-flex h-11 w-11 items-center justify-center rounded-xl border-2 border-border bg-destructive text-destructive-foreground shadow-[3px_3px_0_0_var(--border)] transition-[transform,box-shadow] duration-100 hover:-translate-x-[1px] hover:-translate-y-[1px] hover:shadow-[4px_4px_0_0_var(--border)] active:translate-x-[1px] active:translate-y-[1px] active:shadow-[1px_1px_0_0_var(--border)]"
           >
-            <Square />
-          </Button>
+            <Square className="size-4" />
+          </button>
         ) : (
-          <Button
+          <button
             type="button"
-            size="icon"
             onClick={submit}
-            disabled={!text.trim() || disabled}
+            disabled={!canSend}
             aria-label="Send"
+            className={cn(
+              "inline-flex h-11 w-11 items-center justify-center rounded-xl border-2 border-border bg-primary text-primary-foreground transition-[transform,box-shadow] duration-100",
+              canSend
+                ? "shadow-[3px_3px_0_0_var(--lime)] hover:-translate-x-[1px] hover:-translate-y-[1px] hover:shadow-[4px_4px_0_0_var(--lime)] active:translate-x-[1px] active:translate-y-[1px] active:shadow-[1px_1px_0_0_var(--lime)]"
+                : "shadow-[3px_3px_0_0_var(--border)] opacity-60",
+            )}
           >
-            <Send />
-          </Button>
+            <Send className="size-4" />
+          </button>
         )}
       </div>
     </div>

@@ -46,7 +46,8 @@
     "react-markdown": "^9.0.0",
     "remark-gfm": "^4.0.0",
     "gsap": "^3.13.0",
-    "three": "^0.167.1"
+    "three": "^0.167.1",
+    "motion": "^12.23.12"
   },
   "devDependencies": {
     "@types/node": "^22.10.0",
