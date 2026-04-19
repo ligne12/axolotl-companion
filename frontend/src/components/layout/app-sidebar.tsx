@@ -10,6 +10,7 @@ import { useEffect, useRef, useState } from "react";
 import { toast } from "sonner";
 
 import { ThemeToggle } from "@/components/layout/theme-toggle";
+import { ConfirmDialog } from "@/components/ui/confirm-dialog";
 import { useApi } from "@/hooks/use-api";
 import { cn } from "@/lib/utils";
 import type { SessionPublic } from "@/types/api";
@@ -27,6 +28,7 @@ function SessionRow({
 }) {
   const [editing, setEditing] = useState(false);
   const [value, setValue] = useState(session.title);
+  const [confirmOpen, setConfirmOpen] = useState(false);
   const inputRef = useRef<HTMLInputElement>(null);
 
   useEffect(() => {
@@ -128,11 +130,20 @@ function SessionRow({
             className="opacity-0 transition group-hover:opacity-100 hover:text-destructive"
             onClick={(e) => {
               e.preventDefault();
-              if (confirm("Delete this conversation?")) onDelete(session.id);
+              setConfirmOpen(true);
             }}
           >
             <Trash2 className="size-3.5" />
           </button>
+          <ConfirmDialog
+            open={confirmOpen}
+            onOpenChange={setConfirmOpen}
+            title="Delete *conversation*?"
+            description={`“${session.title}” will be permanently removed along with its messages. This can't be undone.`}
+            confirmLabel="Delete"
+            variant="destructive"
+            onConfirm={() => onDelete(session.id)}
+          />
         </>
       )}
     </li>

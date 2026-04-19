@@ -102,15 +102,7 @@ function LoginForm() {
 
 export default function LoginPage() {
   return (
-    <div className="relative flex min-h-dvh items-center justify-center overflow-hidden bg-background p-4">
-      <div
-        aria-hidden
-        className="pointer-events-none absolute inset-0 select-none opacity-[0.04]"
-        style={{
-          backgroundImage: "url(\"data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='64' height='64'%3E%3Ctext x='12' y='44' font-size='36'%3E🪷%3C/text%3E%3C/svg%3E\")",
-          backgroundSize: "120px 120px",
-        }}
-      />
+    <div className="relative flex min-h-dvh items-center justify-center p-4">
       <Suspense fallback={null}>
         <LoginForm />
       </Suspense>
