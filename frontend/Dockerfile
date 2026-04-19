@@ -2,7 +2,7 @@
 # Axolotl frontend — Next.js, multi-stage with pnpm
 # =============================================================================
 
-FROM node:22-alpine AS base
+FROM node:25-alpine AS base
 
 RUN corepack enable && corepack prepare pnpm@9.12.0 --activate
 
