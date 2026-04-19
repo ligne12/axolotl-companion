@@ -7,14 +7,21 @@ import type {
   MessageDoneData,
   MessagePublic,
   SSEEventType,
+  ToolCall,
   ToolCallEventData,
   ToolResultEventData,
 } from "@/types/api";
 
+export type StreamingToolCall = {
+  name: string;
+  arguments: unknown;
+  result?: unknown;
+};
+
 type StreamingAssistant = {
   reasoning: string;
   content: string;
-  toolCalls: Record<string, { name: string; arguments: unknown; result?: unknown }>;
+  toolCalls: Record<string, StreamingToolCall>;
   done: boolean;
 };
 
@@ -25,6 +32,7 @@ export interface UseChatResult {
   isSending: boolean;
   error: string | null;
   send: (content: string) => Promise<void>;
+  regenerate: () => Promise<void>;
   stop: () => void;
 }
 
@@ -32,12 +40,17 @@ export interface UseChatResult {
  * Opens a fetch-based SSE stream to ``POST /v1/sessions/{id}/messages`` and
  * parses the chat event stream into React state.
  */
-export function useChat(sessionId: number, token: string | null): UseChatResult {
-  const [messages, setMessages] = useState<MessagePublic[]>([]);
+export function useChat(
+  sessionId: number,
+  token: string | null,
+  initialMessages: MessagePublic[] = [],
+): UseChatResult {
+  const [messages, setMessages] = useState<MessagePublic[]>(initialMessages);
   const [streaming, setStreaming] = useState<StreamingAssistant | null>(null);
   const [isSending, setIsSending] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const controllerRef = useRef<AbortController | null>(null);
+  const lastUserMessageRef = useRef<string | null>(null);
 
   const stop = useCallback(() => {
     controllerRef.current?.abort();
@@ -49,8 +62,10 @@ export function useChat(sessionId: number, token: string | null): UseChatResult 
     async (content: string) => {
       if (!content.trim() || !token) return;
 
+      lastUserMessageRef.current = content;
+
       const userMsg: MessagePublic = {
-        id: Date.now(),
+        id: -Date.now(), // negative to never collide with DB ids
         role: "user",
         content,
         reasoning: null,
@@ -67,20 +82,23 @@ export function useChat(sessionId: number, token: string | null): UseChatResult 
       const ctrl = new AbortController();
       controllerRef.current = ctrl;
 
+      const acc = {
+        reasoning: "",
+        content: "",
+        toolCalls: {} as Record<string, StreamingToolCall>,
+      };
+
       try {
-        const res = await fetch(
-          `${API_BASE}/v1/sessions/${sessionId}/messages`,
-          {
-            method: "POST",
-            headers: {
-              "Content-Type": "application/json",
-              Authorization: `Bearer ${token}`,
-              Accept: "text/event-stream",
-            },
-            body: JSON.stringify({ content }),
-            signal: ctrl.signal,
+        const res = await fetch(`${API_BASE}/v1/sessions/${sessionId}/messages`, {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+            Authorization: `Bearer ${token}`,
+            Accept: "text/event-stream",
           },
-        );
+          body: JSON.stringify({ content }),
+          signal: ctrl.signal,
+        });
 
         if (!res.ok || !res.body) {
           throw new Error(`HTTP ${res.status}`);
@@ -107,66 +125,71 @@ export function useChat(sessionId: number, token: string | null): UseChatResult 
         };
 
         const handleEvent = (ev: SSEEventType, data: unknown) => {
-          setStreaming((prev) => {
-            if (!prev) return prev;
-            const next = { ...prev };
-            switch (ev) {
-              case "reasoning.delta": {
-                const d = data as { text: string };
-                next.reasoning += d.text;
-                break;
-              }
-              case "message.delta": {
-                const d = data as { text: string };
-                next.content += d.text;
-                break;
-              }
-              case "tool.call": {
-                const d = data as ToolCallEventData;
-                next.toolCalls = {
-                  ...next.toolCalls,
-                  [d.id]: { name: d.name, arguments: d.arguments },
-                };
-                break;
-              }
-              case "tool.result": {
-                const d = data as ToolResultEventData;
-                const existing = next.toolCalls[d.id] ?? {
-                  name: "",
-                  arguments: null,
-                };
-                next.toolCalls = {
-                  ...next.toolCalls,
-                  [d.id]: { ...existing, result: d.result },
-                };
-                break;
-              }
-              case "message.done": {
-                const d = data as MessageDoneData;
-                const finalAssistant: MessagePublic = {
-                  id: d.message_id,
-                  role: "assistant",
-                  content: next.content || null,
-                  reasoning: next.reasoning || null,
-                  tool_calls: null,
-                  tool_call_id: null,
-                  created_at: new Date().toISOString(),
-                };
-                setMessages((m) => [...m, finalAssistant]);
-                next.done = true;
-                break;
-              }
-              case "error": {
-                const d = data as { message: string };
-                setError(d.message);
-                next.done = true;
-                break;
-              }
-              default:
-                break;
-            }
-            return next;
-          });
+          if (ev === "reasoning.delta") {
+            const d = data as { text: string };
+            acc.reasoning += d.text;
+            setStreaming((prev) => (prev ? { ...prev, reasoning: acc.reasoning } : prev));
+            return;
+          }
+          if (ev === "message.delta") {
+            const d = data as { text: string };
+            acc.content += d.text;
+            setStreaming((prev) => (prev ? { ...prev, content: acc.content } : prev));
+            return;
+          }
+          if (ev === "tool.call") {
+            const d = data as ToolCallEventData;
+            acc.toolCalls[d.id] = { name: d.name, arguments: d.arguments };
+            setStreaming((prev) =>
+              prev ? { ...prev, toolCalls: { ...acc.toolCalls } } : prev,
+            );
+            return;
+          }
+          if (ev === "tool.result") {
+            const d = data as ToolResultEventData;
+            const existing = acc.toolCalls[d.id] ?? { name: "", arguments: null };
+            acc.toolCalls[d.id] = { ...existing, result: d.result };
+            setStreaming((prev) =>
+              prev ? { ...prev, toolCalls: { ...acc.toolCalls } } : prev,
+            );
+            return;
+          }
+          if (ev === "message.done") {
+            const d = data as MessageDoneData;
+            const toolCallsList: ToolCall[] | null =
+              Object.keys(acc.toolCalls).length > 0
+                ? Object.entries(acc.toolCalls).map(([id, tc]) => ({
+                    id,
+                    type: "function" as const,
+                    function: {
+                      name: tc.name,
+                      arguments: JSON.stringify(tc.arguments),
+                    },
+                    result: tc.result,
+                  }))
+                : null;
+
+            const finalAssistant: MessagePublic = {
+              id: d.message_id,
+              role: "assistant",
+              content: acc.content || null,
+              reasoning: acc.reasoning || null,
+              tool_calls: toolCallsList,
+              tool_call_id: null,
+              created_at: new Date().toISOString(),
+            };
+            setMessages((m) => {
+              if (m.some((x) => x.id === finalAssistant.id)) return m;
+              return [...m, finalAssistant];
+            });
+            setStreaming(null);
+            return;
+          }
+          if (ev === "error") {
+            const d = data as { message: string };
+            setError(d.message);
+            setStreaming(null);
+          }
         };
 
         while (true) {
@@ -183,7 +206,7 @@ export function useChat(sessionId: number, token: string | null): UseChatResult 
               commit();
               continue;
             }
-            if (line.startsWith(":")) continue; // comment
+            if (line.startsWith(":")) continue;
             if (line.startsWith("event:")) {
               currentEvent = line.slice(6).trim() as SSEEventType;
             } else if (line.startsWith("data:")) {
@@ -192,7 +215,7 @@ export function useChat(sessionId: number, token: string | null): UseChatResult 
           }
         }
         commit();
-      } catch (err) {
+      } catch (err: unknown) {
         if ((err as { name?: string }).name !== "AbortError") {
           setError((err as Error).message);
         }
@@ -205,5 +228,17 @@ export function useChat(sessionId: number, token: string | null): UseChatResult 
     [sessionId, token],
   );
 
-  return { messages, setMessages, streaming, isSending, error, send, stop };
+  const regenerate = useCallback(async () => {
+    const last = lastUserMessageRef.current;
+    if (!last) return;
+    setMessages((m) => {
+      const lastAssistantIdx = [...m].reverse().findIndex((x) => x.role === "assistant");
+      if (lastAssistantIdx === -1) return m;
+      const realIdx = m.length - 1 - lastAssistantIdx;
+      return m.slice(0, realIdx);
+    });
+    await send(last);
+  }, [send]);
+
+  return { messages, setMessages, streaming, isSending, error, send, regenerate, stop };
 }

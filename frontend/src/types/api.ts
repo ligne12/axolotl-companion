@@ -32,6 +32,8 @@ export interface ToolCall {
   id: string;
   type: "function";
   function: { name: string; arguments: string };
+  /** Result merged client-side from the accompanying tool.result events. */
+  result?: unknown;
 }
 
 export interface MessagePublic {

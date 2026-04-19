@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useRef } from "react";
+import { useEffect, useMemo, useRef } from "react";
 
 import { ChatInput } from "@/components/chat/chat-input";
 import { MessageBubble, StreamingBubble } from "@/components/chat/message-bubble";
@@ -16,13 +16,8 @@ export function ChatWindow({
   initialMessages: MessagePublic[];
   token: string | null;
 }) {
-  const chat = useChat(sessionId, token);
+  const chat = useChat(sessionId, token, initialMessages);
   const scrollRef = useRef<HTMLDivElement>(null);
-
-  useEffect(() => {
-    chat.setMessages(initialMessages);
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [initialMessages, sessionId]);
 
   useEffect(() => {
     const el = scrollRef.current;
@@ -30,17 +25,40 @@ export function ChatWindow({
     el.scrollTo({ top: el.scrollHeight, behavior: "smooth" });
   }, [chat.messages.length, chat.streaming]);
 
+  // Deduplicate by id (safety net) and hide standalone tool-role messages
+  const visible = useMemo(() => {
+    const seen = new Set<number>();
+    return chat.messages.filter((m) => {
+      if (seen.has(m.id)) return false;
+      seen.add(m.id);
+      if (m.role === "tool") return false;
+      return true;
+    });
+  }, [chat.messages]);
+
+  const lastAssistantId = useMemo(() => {
+    for (let i = visible.length - 1; i >= 0; i--) {
+      if (visible[i]?.role === "assistant") return visible[i]!.id;
+    }
+    return null;
+  }, [visible]);
+
   return (
     <div className="flex h-full flex-col">
       <div ref={scrollRef} className="flex-1 overflow-y-auto">
         <div className="mx-auto max-w-3xl space-y-4 p-4">
-          {chat.messages.length === 0 && !chat.streaming && (
+          {visible.length === 0 && !chat.streaming && (
             <div className="flex h-[40vh] items-center justify-center text-center text-muted-foreground">
               Say hi to your axolotl companion.
             </div>
           )}
-          {chat.messages.map((m) => (
-            <MessageBubble key={m.id} message={m} />
+          {visible.map((m) => (
+            <MessageBubble
+              key={m.id}
+              message={m}
+              isLast={m.id === lastAssistantId && !chat.streaming}
+              onRegenerate={chat.regenerate}
+            />
           ))}
           {chat.streaming && (
             <StreamingBubble
