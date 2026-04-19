@@ -2,6 +2,7 @@
 
 from __future__ import annotations
 
+import asyncio
 import json
 from collections.abc import AsyncIterator
 from typing import Any
@@ -91,7 +92,7 @@ async def stream_chat(
         usage: dict[str, Any] | None = None
         finish_reason: str | None = None
 
-        async for chunk in client.stream_chat(
+        stream = client.stream_chat(
             messages=history,
             model=model,
             tools=tools,
@@ -103,36 +104,45 @@ async def stream_chat(
             repetition_penalty=settings.vllm_repetition_penalty,
             max_tokens=settings.vllm_max_tokens,
             enable_thinking=settings.vllm_enable_thinking,
-        ):
-            if chunk.get("usage"):
-                usage = chunk["usage"]
+        )
 
-            choices = chunk.get("choices") or []
-            if not choices:
-                continue
-            choice = choices[0]
-            if choice.get("finish_reason"):
-                finish_reason = choice["finish_reason"]
-            delta = choice.get("delta", {})
+        try:
+            async for chunk in stream:
+                if chunk.get("usage"):
+                    usage = chunk["usage"]
 
-            if rsn := (delta.get("reasoning") or delta.get("reasoning_content")):
-                reasoning_parts.append(rsn)
-                yield ChatEvent(event="reasoning.delta", data={"text": rsn})
+                choices = chunk.get("choices") or []
+                if not choices:
+                    continue
+                choice = choices[0]
+                if choice.get("finish_reason"):
+                    finish_reason = choice["finish_reason"]
+                delta = choice.get("delta", {})
 
-            if content := delta.get("content"):
-                content_parts.append(content)
-                yield ChatEvent(event="message.delta", data={"text": content})
+                if rsn := (delta.get("reasoning") or delta.get("reasoning_content")):
+                    reasoning_parts.append(rsn)
+                    yield ChatEvent(event="reasoning.delta", data={"text": rsn})
 
-            for tc in delta.get("tool_calls") or []:
-                idx = int(tc.get("index", 0))
-                slot = tool_calls_acc.setdefault(idx, {"id": "", "name": "", "arguments": ""})
-                if tc.get("id"):
-                    slot["id"] = tc["id"]
-                fn = tc.get("function") or {}
-                if fn.get("name"):
-                    slot["name"] = fn["name"]
-                if fn.get("arguments"):
-                    slot["arguments"] += fn["arguments"]
+                if content := delta.get("content"):
+                    content_parts.append(content)
+                    yield ChatEvent(event="message.delta", data={"text": content})
+
+                for tc in delta.get("tool_calls") or []:
+                    idx = int(tc.get("index", 0))
+                    slot = tool_calls_acc.setdefault(idx, {"id": "", "name": "", "arguments": ""})
+                    if tc.get("id"):
+                        slot["id"] = tc["id"]
+                    fn = tc.get("function") or {}
+                    if fn.get("name"):
+                        slot["name"] = fn["name"]
+                    if fn.get("arguments"):
+                        slot["arguments"] += fn["arguments"]
+        except asyncio.CancelledError:
+            # Client disconnected (Stop button). The async-generator context
+            # manager inside client.stream_chat closes the httpx stream on
+            # exit, which makes vLLM detect the closed connection and abort.
+            logger.info("chat.cancelled", reason="client_disconnect")
+            raise
 
         content_str = "".join(content_parts)
         reasoning_str = "".join(reasoning_parts) or None

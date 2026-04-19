@@ -193,7 +193,7 @@ export function AppSidebar() {
   });
 
   return (
-    <aside className="flex h-screen w-64 flex-col border-r bg-muted/30">
+    <aside className="flex h-dvh w-64 flex-col border-r bg-muted/30">
       <div className="flex items-center gap-2 border-b px-4 py-3">
         <span aria-hidden className="text-xl">🪷</span>
         <span className="font-semibold">Axolotl</span>

@@ -1,7 +1,7 @@
 import { redirect } from "next/navigation";
 
 import { auth } from "@/auth";
-import { AppSidebar } from "@/components/layout/app-sidebar";
+import { AppShell } from "@/components/layout/app-shell";
 
 export default async function AppLayout({
   children,
@@ -12,10 +12,5 @@ export default async function AppLayout({
   if (!session?.user || session.error === "RefreshAccessTokenError") {
     redirect("/login");
   }
-  return (
-    <div className="flex h-screen w-screen">
-      <AppSidebar />
-      <main className="flex-1 overflow-hidden">{children}</main>
-    </div>
-  );
+  return <AppShell>{children}</AppShell>;
 }
