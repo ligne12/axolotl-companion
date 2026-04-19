@@ -162,7 +162,7 @@ async def stream_chat(
             yield ChatEvent(
                 event="message.done",
                 data={
-                    "message_id": assistant_msg.id,
+                    "message_id": str(assistant_msg.id),
                     "finish_reason": finish_reason or "stop",
                     "usage": usage,
                 },

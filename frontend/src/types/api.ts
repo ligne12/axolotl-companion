@@ -37,7 +37,7 @@ export interface ToolCall {
 }
 
 export interface MessagePublic {
-  id: number;
+  id: string; // UUID
   role: MessageRole;
   content: string | null;
   reasoning: string | null;
@@ -86,7 +86,7 @@ export interface ToolResultEventData {
 }
 
 export interface MessageDoneData {
-  message_id: number;
+  message_id: string; // UUID
   finish_reason: string;
   usage: { prompt_tokens: number; completion_tokens: number; total_tokens: number } | null;
 }

@@ -2,10 +2,12 @@
 
 from datetime import UTC, datetime
 from typing import Any
+from uuid import UUID, uuid4
 
 from sqlalchemy import JSON, BigInteger, Column, DateTime, Index, UniqueConstraint
 from sqlalchemy import String as SAString
 from sqlalchemy.dialects.postgresql import CITEXT
+from sqlalchemy.dialects.postgresql import UUID as PG_UUID
 from sqlmodel import Field, Relationship, SQLModel
 
 
@@ -128,9 +130,9 @@ class Session(SQLModel, table=True):
 class Message(SQLModel, table=True):
     __tablename__ = "messages"
 
-    id: int | None = Field(
-        default=None,
-        sa_column=Column(BigInteger, primary_key=True, autoincrement=True),
+    id: UUID = Field(
+        default_factory=uuid4,
+        sa_column=Column(PG_UUID(as_uuid=True), primary_key=True),
     )
     session_id: int = Field(foreign_key="sessions.id", nullable=False, index=True)
     role: str = Field(max_length=20)  # user | assistant | tool | system

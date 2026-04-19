@@ -1,4 +1,4 @@
-import { notFound } from "next/navigation";
+import { notFound, redirect } from "next/navigation";
 
 import { auth } from "@/auth";
 import { ChatWindow } from "@/components/chat/chat-window";
@@ -15,14 +15,17 @@ export default async function ChatSessionPage({
   if (!Number.isFinite(sessionId)) notFound();
 
   const session = await auth();
-  const token = session?.accessToken;
-  if (!token) notFound();
+  if (!session?.accessToken || session.error === "RefreshAccessTokenError") {
+    redirect("/login");
+  }
+  const token = session.accessToken;
 
   let detail: SessionDetail;
   try {
     detail = await apiFetch<SessionDetail>(`/v1/sessions/${sessionId}`, { token });
   } catch (err: unknown) {
     if (err instanceof ApiError && err.status === 404) notFound();
+    if (err instanceof ApiError && err.status === 401) redirect("/login");
     throw err;
   }
 

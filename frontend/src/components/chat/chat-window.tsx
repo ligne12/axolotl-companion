@@ -27,7 +27,7 @@ export function ChatWindow({
 
   // Deduplicate by id (safety net) and hide standalone tool-role messages
   const visible = useMemo(() => {
-    const seen = new Set<number>();
+    const seen = new Set<string>();
     return chat.messages.filter((m) => {
       if (seen.has(m.id)) return false;
       seen.add(m.id);
@@ -36,7 +36,7 @@ export function ChatWindow({
     });
   }, [chat.messages]);
 
-  const lastAssistantId = useMemo(() => {
+  const lastAssistantId = useMemo<string | null>(() => {
     for (let i = visible.length - 1; i >= 0; i--) {
       if (visible[i]?.role === "assistant") return visible[i]!.id;
     }

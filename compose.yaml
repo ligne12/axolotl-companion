@@ -165,8 +165,9 @@ services:
       - NEXT_PUBLIC_APP_NAME=${NEXT_PUBLIC_APP_NAME:-Axolotl Companion}
       - INTERNAL_API_URL=http://backend:8001
       - AUTH_SECRET=${AUTH_SECRET}
-      - AUTH_URL=${AUTH_URL:-http://localhost:3000}
-      - NEXTAUTH_URL=${NEXTAUTH_URL:-http://localhost:3000}
+      - AUTH_URL=${AUTH_URL:-https://chat.localhost}
+      - NEXTAUTH_URL=${NEXTAUTH_URL:-https://chat.localhost}
+      - AUTH_TRUST_HOST=${AUTH_TRUST_HOST:-true}
     ports:
       - "3000:3000"
     volumes:

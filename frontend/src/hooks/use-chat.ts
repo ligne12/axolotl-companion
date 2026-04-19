@@ -65,7 +65,9 @@ export function useChat(
       lastUserMessageRef.current = content;
 
       const userMsg: MessagePublic = {
-        id: -Date.now(), // negative to never collide with DB ids
+        id: typeof crypto !== "undefined" && "randomUUID" in crypto
+          ? crypto.randomUUID()
+          : `local-${Date.now()}-${Math.random().toString(36).slice(2, 8)}`,
         role: "user",
         content,
         reasoning: null,

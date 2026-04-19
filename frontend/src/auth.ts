@@ -1,9 +1,10 @@
 /**
  * Auth.js v5 — Credentials provider calling the FastAPI backend.
  *
- * On login the provider hits ``POST /auth/login`` and stores the access +
- * refresh tokens in the encrypted session JWT so the browser never sees them
- * in plain text.
+ * Access tokens are short-lived (15 min). The ``jwt`` callback refreshes
+ * them silently using the refresh token when needed. Tokens are stored
+ * inside the encrypted session JWT and never exposed to client JS in
+ * plain text.
  */
 
 import NextAuth from "next-auth";
@@ -27,6 +28,17 @@ async function login(username: string, password: string) {
   const me = await apiFetch<UserPublic>("/auth/me", { token: tokens.access_token });
   return { tokens, user: me };
 }
+
+async function refreshAccessToken(refreshToken: string): Promise<TokenPair> {
+  return apiFetch<TokenPair>("/auth/refresh", {
+    method: "POST",
+    body: { refresh_token: refreshToken },
+  });
+}
+
+// Consider the token expired 60 s before its stated expiry so we don't race
+// with the backend.
+const REFRESH_SKEW_MS = 60_000;
 
 export const { handlers, auth, signIn, signOut } = NextAuth({
   ...authConfig,
@@ -60,20 +72,41 @@ export const { handlers, auth, signIn, signOut } = NextAuth({
   callbacks: {
     ...authConfig.callbacks,
     async jwt({ token, user }) {
+      // Initial sign-in
       if (user) {
         token.accessToken = user.accessToken;
         token.refreshToken = user.refreshToken;
         token.accessTokenExpiresAt = user.accessTokenExpiresAt;
+        return token;
       }
+
+      // Silent refresh when the access token is about to expire
+      if (
+        typeof token.accessTokenExpiresAt === "string" &&
+        typeof token.refreshToken === "string"
+      ) {
+        const expiresAt = new Date(token.accessTokenExpiresAt).getTime();
+        if (Date.now() < expiresAt - REFRESH_SKEW_MS) {
+          return token; // still valid
+        }
+
+        try {
+          const fresh = await refreshAccessToken(token.refreshToken);
+          token.accessToken = fresh.access_token;
+          token.refreshToken = fresh.refresh_token;
+          token.accessTokenExpiresAt = fresh.access_expires_at;
+          delete token.error;
+        } catch {
+          token.error = "RefreshAccessTokenError";
+        }
+      }
+
       return token;
     },
     async session({ session, token }) {
-      if (token.accessToken && typeof token.accessToken === "string") {
-        session.accessToken = token.accessToken;
-      }
-      if (token.refreshToken && typeof token.refreshToken === "string") {
-        session.refreshToken = token.refreshToken;
-      }
+      if (typeof token.accessToken === "string") session.accessToken = token.accessToken;
+      if (typeof token.refreshToken === "string") session.refreshToken = token.refreshToken;
+      if (typeof token.error === "string") session.error = token.error;
       return session;
     },
   },
