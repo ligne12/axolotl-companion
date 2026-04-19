@@ -1,0 +1,61 @@
+"""Pydantic DTOs for session + message endpoints."""
+
+from __future__ import annotations
+
+from datetime import datetime
+from typing import Any
+
+from pydantic import BaseModel, ConfigDict, Field
+
+
+# -----------------------------------------------------------------------------
+# Sessions
+# -----------------------------------------------------------------------------
+class SessionCreate(BaseModel):
+    title: str = Field(default="New conversation", max_length=200)
+    persona_id: int | None = None
+    model: str | None = Field(default=None, max_length=100)
+
+
+class SessionUpdate(BaseModel):
+    title: str | None = Field(default=None, max_length=200)
+    archived: bool | None = None
+
+
+class SessionPublic(BaseModel):
+    model_config = ConfigDict(from_attributes=True)
+
+    id: int
+    title: str
+    persona_id: int | None
+    model: str | None
+    archived: bool
+    created_at: datetime
+    updated_at: datetime
+
+
+class SessionDetail(SessionPublic):
+    messages: list[MessagePublic] = Field(default_factory=list)
+
+
+# -----------------------------------------------------------------------------
+# Messages
+# -----------------------------------------------------------------------------
+class MessageCreate(BaseModel):
+    content: str = Field(min_length=1, max_length=100_000)
+
+
+class MessagePublic(BaseModel):
+    model_config = ConfigDict(from_attributes=True)
+
+    id: int
+    role: str
+    content: str | None
+    reasoning: str | None
+    tool_calls: list[dict[str, Any]] | None
+    tool_call_id: str | None
+    created_at: datetime
+
+
+# Finish forward ref
+SessionDetail.model_rebuild()

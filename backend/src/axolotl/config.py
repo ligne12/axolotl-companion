@@ -41,9 +41,23 @@ class Settings(BaseSettings):
     cors_origins: str = "http://localhost:3000"
 
     # -- LLM (vLLM) -----------------------------------------------------------
+    # Defaults follow the Qwen3.5 "thinking mode" recipe.
     vllm_api_url: str = "http://localhost:8000/v1"
     vllm_served_model_name: str = "default"
     vllm_api_key: str = "EMPTY"
+    vllm_temperature: float = 1.0
+    vllm_top_p: float = 0.95
+    vllm_top_k: int = 20
+    vllm_min_p: float = 0.0
+    vllm_presence_penalty: float = 1.5
+    vllm_repetition_penalty: float = 1.0
+    vllm_max_tokens: int = 8192
+    vllm_enable_thinking: bool = True
+
+    # -- Tool calling / agent -------------------------------------------------
+    max_tool_rounds: int = 3
+    web_search_max_results: int = 5
+    web_search_timeout_seconds: float = 10.0
 
     @property
     def cors_origins_list(self) -> list[str]:
