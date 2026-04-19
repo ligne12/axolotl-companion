@@ -59,7 +59,7 @@ obs: ## Start stack + observability stack
 test: test-backend test-frontend ## Run all tests
 
 test-backend:
-	$(COMPOSE) exec backend uv run pytest -v
+	$(COMPOSE) exec backend pytest -v
 
 test-frontend:
 	$(COMPOSE) exec frontend pnpm test
@@ -70,15 +70,15 @@ test-e2e: ## Run Playwright e2e tests
 lint: lint-backend lint-frontend ## Lint all
 
 lint-backend:
-	$(COMPOSE) exec backend uv run ruff check src tests
-	$(COMPOSE) exec backend uv run mypy src
+	$(COMPOSE) exec backend ruff check src tests
+	$(COMPOSE) exec backend mypy src
 
 lint-frontend:
 	$(COMPOSE) exec frontend pnpm lint
 	$(COMPOSE) exec frontend pnpm type-check
 
 fmt: ## Format all code
-	$(COMPOSE) exec backend uv run ruff format src tests
+	$(COMPOSE) exec backend ruff format src tests
 	$(COMPOSE) exec frontend pnpm format
 
 # -----------------------------------------------------------------------------
@@ -91,10 +91,13 @@ db-shell: ## Open a psql shell
 	$(COMPOSE) exec postgres psql -U $${POSTGRES_USER:-axolotl} -d $${POSTGRES_DB:-axolotl}
 
 db-migrate: ## Run Alembic migrations
-	$(COMPOSE) exec backend uv run alembic upgrade head
+	$(COMPOSE) exec backend alembic upgrade head
 
 db-makemigration: ## Generate a new Alembic migration (MSG="...")
-	$(COMPOSE) exec backend uv run alembic revision --autogenerate -m "$(MSG)"
+	$(COMPOSE) exec backend alembic revision --autogenerate -m "$(MSG)"
+
+db-stamp-head: ## Mark current DB as being at latest migration (no SQL run)
+	$(COMPOSE) exec backend alembic stamp head
 
 db-reset: ## Drop + recreate DB (destructive!)
 	$(COMPOSE) exec postgres dropdb -U $${POSTGRES_USER:-axolotl} $${POSTGRES_DB:-axolotl}

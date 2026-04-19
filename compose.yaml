@@ -40,7 +40,9 @@ services:
       - PYTORCH_CUDA_ALLOC_CONF=expandable_segments:True,max_split_size_mb:128
       - VLLM_MEMORY_PROFILER_ESTIMATE_CUDAGRAPHS=1
     volumes:
-      - models:/root/.cache/huggingface
+      # Bind-mount the host HF cache so vLLM reuses models you've already
+      # downloaded (override to ${HF_HOME} if you use a different path).
+      - ${HF_HOME:-~/.cache/huggingface}:/root/.cache/huggingface
     deploy:
       resources:
         reservations:
@@ -161,6 +163,7 @@ services:
       - NODE_ENV=${NODE_ENV:-development}
       - NEXT_PUBLIC_API_URL=${NEXT_PUBLIC_API_URL:-http://localhost:8001}
       - NEXT_PUBLIC_APP_NAME=${NEXT_PUBLIC_APP_NAME:-Axolotl Companion}
+      - INTERNAL_API_URL=http://backend:8001
       - AUTH_SECRET=${AUTH_SECRET}
       - AUTH_URL=${AUTH_URL:-http://localhost:3000}
       - NEXTAUTH_URL=${NEXTAUTH_URL:-http://localhost:3000}

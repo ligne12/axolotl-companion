@@ -26,7 +26,7 @@ RUN apt-get update && apt-get install -y --no-install-recommends \
 # -----------------------------------------------------------------------------
 FROM base AS deps
 
-COPY pyproject.toml uv.lock* ./
+COPY pyproject.toml uv.lock* README.md ./
 
 # Install only production deps
 RUN --mount=type=cache,target=/root/.cache/uv \
@@ -40,8 +40,9 @@ FROM base AS development
 
 COPY --from=deps /opt/venv /opt/venv
 
-# Install all deps including dev tools
-COPY pyproject.toml uv.lock* ./
+# Install all deps including dev tools. README is required by hatchling
+# because pyproject.toml references it.
+COPY pyproject.toml uv.lock* README.md ./
 RUN --mount=type=cache,target=/root/.cache/uv \
     uv sync --no-install-project || true
 
@@ -62,6 +63,7 @@ FROM base AS production
 COPY --from=deps /opt/venv /opt/venv
 ENV PATH="/opt/venv/bin:$PATH" PYTHONPATH="/app/src"
 
+COPY pyproject.toml README.md ./
 COPY src ./src
 COPY alembic.ini ./
 
