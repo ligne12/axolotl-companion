@@ -41,7 +41,7 @@ export function AppShell({ children }: { children: React.ReactNode }) {
 
       <div className="flex min-w-0 flex-1 flex-col">
         {/* Mobile top bar with hamburger */}
-        <div className="flex items-center justify-between border-b px-3 py-2 md:hidden">
+        <div className="flex items-center justify-between border-b-2 border-border bg-background px-3 py-2 md:hidden">
           <Button
             variant="ghost"
             size="icon"
@@ -50,7 +50,7 @@ export function AppShell({ children }: { children: React.ReactNode }) {
           >
             {open ? <X /> : <Menu />}
           </Button>
-          <span className="text-sm font-medium">🪷 Axolotl</span>
+          <span className="font-display text-sm font-bold">🪷 Axolotl</span>
           <span className="w-9" /> {/* spacer for symmetry */}
         </div>
 

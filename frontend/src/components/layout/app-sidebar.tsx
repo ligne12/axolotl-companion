@@ -2,13 +2,13 @@
 
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { Check, Home, LogOut, MessageSquarePlus, Pencil, Settings2, Trash2, X } from "lucide-react";
+import { AnimatePresence, motion } from "motion/react";
 import Link from "next/link";
 import { usePathname, useRouter } from "next/navigation";
 import { signOut, useSession } from "next-auth/react";
 import { useEffect, useRef, useState } from "react";
 import { toast } from "sonner";
 
-import { Button } from "@/components/ui/button";
 import { useApi } from "@/hooks/use-api";
 import { cn } from "@/lib/utils";
 import type { SessionPublic } from "@/types/api";
@@ -50,8 +50,10 @@ function SessionRow({
   return (
     <li
       className={cn(
-        "group flex items-center gap-2 rounded-md px-2 py-1.5 text-sm transition",
-        active ? "bg-accent text-accent-foreground" : "hover:bg-accent/50",
+        "group flex items-center gap-2 rounded-md px-2.5 py-1.5 text-sm transition-colors",
+        active
+          ? "border-2 border-border bg-card text-foreground shadow-[2px_2px_0_0_var(--lime)]"
+          : "border-2 border-transparent hover:border-border/40 hover:bg-card/60",
       )}
     >
       {editing ? (
@@ -69,7 +71,7 @@ function SessionRow({
             }}
             onBlur={() => void save()}
             maxLength={200}
-            className="flex-1 min-w-0 rounded-sm bg-background px-1 text-sm outline-none ring-1 ring-ring"
+            className="flex-1 min-w-0 rounded-sm border-2 border-border bg-background px-1 text-sm outline-none focus:shadow-[2px_2px_0_0_var(--lime)]"
           />
           <button
             type="button"
@@ -193,38 +195,55 @@ export function AppSidebar() {
   });
 
   return (
-    <aside className="flex h-dvh w-64 flex-col border-r bg-muted/30">
+    <aside className="flex h-dvh w-64 flex-col border-r-2 border-border bg-background">
       <Link
         href="/home"
-        className="flex items-center gap-2 border-b px-4 py-3 transition hover:bg-accent/30"
+        className="flex items-center gap-2 border-b-2 border-border px-4 py-3 transition hover:bg-[color:var(--pastel-butter)]/40"
       >
         <span aria-hidden className="text-xl">🪷</span>
-        <span className="font-semibold">Axolotl</span>
+        <span className="font-display text-lg font-bold">Axolotl</span>
       </Link>
 
       <div className="p-3">
-        <Button
+        <button
+          type="button"
           onClick={() => createSession.mutate()}
           disabled={createSession.isPending}
-          className="w-full justify-start"
+          className={cn(
+            "flex w-full items-center justify-center gap-2 border-2 border-border bg-primary px-3 py-2 text-sm font-semibold text-primary-foreground",
+            "shadow-[3px_3px_0_0_var(--lime)] transition-[transform,box-shadow] duration-100",
+            "hover:-translate-x-[1px] hover:-translate-y-[1px] hover:shadow-[4px_4px_0_0_var(--lime)]",
+            "active:translate-x-[1px] active:translate-y-[1px] active:shadow-[1px_1px_0_0_var(--lime)]",
+            "disabled:cursor-not-allowed disabled:opacity-60",
+          )}
         >
-          <MessageSquarePlus /> New chat
-        </Button>
+          <MessageSquarePlus className="size-4" /> New chat
+        </button>
       </div>
 
       <div className="flex-1 overflow-y-auto px-3">
         <ul className="space-y-1 pb-3">
-          {sessionsQuery.data?.map((s) => (
-            <SessionRow
-              key={s.id}
-              session={s}
-              active={pathname === `/chat/${s.id}`}
-              onDelete={(id) => deleteSession.mutate(id)}
-              onRename={async (id, title) => {
-                await renameSession.mutateAsync({ id, title });
-              }}
-            />
-          ))}
+          <AnimatePresence initial={false}>
+            {sessionsQuery.data?.map((s, i) => (
+              <motion.div
+                key={s.id}
+                layout
+                initial={{ opacity: 0, y: -4 }}
+                animate={{ opacity: 1, y: 0 }}
+                exit={{ opacity: 0, y: -4 }}
+                transition={{ duration: 0.18, delay: Math.min(i, 8) * 0.025 }}
+              >
+                <SessionRow
+                  session={s}
+                  active={pathname === `/chat/${s.id}`}
+                  onDelete={(id) => deleteSession.mutate(id)}
+                  onRename={async (id, title) => {
+                    await renameSession.mutateAsync({ id, title });
+                  }}
+                />
+              </motion.div>
+            ))}
+          </AnimatePresence>
           {sessionsQuery.data?.length === 0 && (
             <p className="px-2 py-3 text-xs text-muted-foreground">
               No conversations yet.
@@ -233,12 +252,14 @@ export function AppSidebar() {
         </ul>
       </div>
 
-      <div className="space-y-1 border-t p-3">
+      <div className="space-y-1 border-t-2 border-border p-3">
         <Link
           href="/home"
           className={cn(
-            "flex items-center gap-2 rounded-md px-2 py-1.5 text-sm transition hover:bg-accent",
-            pathname === "/home" && "bg-accent",
+            "flex items-center gap-2 rounded-md border-2 px-2 py-1.5 text-sm transition-colors",
+            pathname === "/home"
+              ? "border-border bg-card shadow-[2px_2px_0_0_var(--lime)]"
+              : "border-transparent hover:border-border/40 hover:bg-card/60",
           )}
         >
           <Home className="size-4" /> Home
@@ -246,8 +267,10 @@ export function AppSidebar() {
         <Link
           href="/tools"
           className={cn(
-            "flex items-center gap-2 rounded-md px-2 py-1.5 text-sm transition hover:bg-accent",
-            pathname === "/tools" && "bg-accent",
+            "flex items-center gap-2 rounded-md border-2 px-2 py-1.5 text-sm transition-colors",
+            pathname === "/tools"
+              ? "border-border bg-card shadow-[2px_2px_0_0_var(--lime)]"
+              : "border-transparent hover:border-border/40 hover:bg-card/60",
           )}
         >
           <Settings2 className="size-4" /> Tools
