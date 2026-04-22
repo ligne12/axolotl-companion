@@ -122,14 +122,14 @@ export function CommandPalette({
                   onSelect={cycleTheme}
                 />
                 <PaletteItem
-                  icon={Settings2}
-                  label="Open tools"
-                  onSelect={() => go("/tools")}
-                />
-                <PaletteItem
                   icon={Settings}
                   label="Open settings"
                   onSelect={() => go("/settings")}
+                />
+                <PaletteItem
+                  icon={Settings2}
+                  label="Open tools"
+                  onSelect={() => go("/settings/tools")}
                 />
                 <PaletteItem
                   icon={Keyboard}

@@ -1,6 +1,14 @@
 "use client";
 
-import { Construction, User as UserIcon, Settings2, SlidersHorizontal, Brain } from "lucide-react";
+import {
+  Brain,
+  Construction,
+  FlaskConical,
+  IdCard,
+  SlidersHorizontal,
+  User as UserIcon,
+  Wrench,
+} from "lucide-react";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 
@@ -15,9 +23,11 @@ type Tab = {
 
 const TABS: Tab[] = [
   { href: "/settings", label: "Profile", Icon: UserIcon },
-  { href: "/settings/personas", label: "Personas", Icon: Settings2, soon: true },
+  { href: "/settings/personas", label: "Personas", Icon: IdCard, soon: true },
+  { href: "/settings/tools", label: "Tools", Icon: Wrench },
   { href: "/settings/model", label: "Model", Icon: SlidersHorizontal, soon: true },
   { href: "/settings/reasoning", label: "Reasoning", Icon: Brain, soon: true },
+  { href: "/settings/sandbox", label: "Sandbox", Icon: FlaskConical },
 ];
 
 export default function SettingsLayout({ children }: { children: React.ReactNode }) {

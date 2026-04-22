@@ -139,9 +139,10 @@ export default function ProfilePage() {
         </div>
       </div>
 
-      {/* Floating save — only when dirty */}
+      {/* Save sits anchored to the form's leading edge, under the last input.
+       * Only renders when there's something to save — no layout jitter. */}
       {dirty && (
-        <div className="sticky bottom-4 flex justify-end">
+        <div className="pt-2">
           <button
             type="submit"
             disabled={save.isPending}

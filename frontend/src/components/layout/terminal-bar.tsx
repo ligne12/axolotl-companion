@@ -3,6 +3,7 @@
 import { useQuery } from "@tanstack/react-query";
 import { useEffect, useState } from "react";
 
+import { WeatherPill } from "@/components/layout/weather-pill";
 import { useApi } from "@/hooks/use-api";
 import { cn } from "@/lib/utils";
 import { useChatStatus } from "@/stores/chat-status";
@@ -71,7 +72,7 @@ export function TerminalBar() {
 
   return (
     <div className="flex h-7 shrink-0 items-center gap-3 border-t-2 border-border bg-card px-4 font-pixel text-[10px] uppercase tracking-[0.14em]">
-      {/* LOCAL · <locality> */}
+      {/* LOCAL · <locality> · <weather> */}
       <span className="inline-flex items-center gap-1.5">
         <Dot className="bg-[color:var(--lime)]" />
         Local
@@ -81,6 +82,7 @@ export function TerminalBar() {
           </span>
         )}
       </span>
+      <WeatherPill locality={locality} />
 
       <Sep />
 
