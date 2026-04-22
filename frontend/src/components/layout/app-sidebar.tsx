@@ -1,7 +1,7 @@
 "use client";
 
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
-import { Check, Home, LogOut, MessageSquarePlus, Pencil, Search, Settings2, Trash2, X } from "lucide-react";
+import { Check, FlaskConical, Home, LogOut, MessageSquarePlus, Pencil, Search, Settings2, Trash2, X } from "lucide-react";
 import { AnimatePresence, motion } from "motion/react";
 import Link from "next/link";
 import { usePathname, useRouter } from "next/navigation";
@@ -353,6 +353,17 @@ export function AppSidebar() {
           )}
         >
           <Settings2 className="size-4" /> Tools
+        </Link>
+        <Link
+          href="/dev/components"
+          className={cn(
+            "flex items-center gap-2 rounded-md border-2 px-2 py-1.5 text-sm transition-colors",
+            pathname === "/dev/components"
+              ? "border-border bg-card shadow-[2px_2px_0_0_var(--lime)]"
+              : "border-transparent hover:border-border/40 hover:bg-card/60",
+          )}
+        >
+          <FlaskConical className="size-4" /> Sandbox
         </Link>
         <div className="flex items-center justify-between px-2 py-1.5 text-sm">
           <ThemeToggle />
