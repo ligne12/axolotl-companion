@@ -155,6 +155,58 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/v1/personas": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * List Personas
+         * @description List the current user's personas + any built-ins.
+         */
+        get: operations["list_personas_v1_personas_get"];
+        put?: never;
+        /**
+         * Create Persona
+         * @description Create a persona owned by the current user.
+         */
+        post: operations["create_persona_v1_personas_post"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/v1/personas/{persona_id}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * Get Persona
+         * @description Fetch one persona (owned by the user or a built-in).
+         */
+        get: operations["get_persona_v1_personas__persona_id__get"];
+        put?: never;
+        post?: never;
+        /**
+         * Delete Persona
+         * @description Delete one of the user's personas. Built-ins can't be removed.
+         */
+        delete: operations["delete_persona_v1_personas__persona_id__delete"];
+        options?: never;
+        head?: never;
+        /**
+         * Update Persona
+         * @description Patch a persona. Built-ins are read-only — 403 on edit.
+         */
+        patch: operations["update_persona_v1_personas__persona_id__patch"];
+        trace?: never;
+    };
     "/v1/sessions": {
         parameters: {
             query?: never;
@@ -320,6 +372,51 @@ export interface components {
             tool_calls: {
                 [key: string]: unknown;
             }[] | null;
+        };
+        /** PersonaCreate */
+        PersonaCreate: {
+            /** Name */
+            name: string;
+            /** Params */
+            params?: {
+                [key: string]: unknown;
+            };
+            /** System Prompt */
+            system_prompt: string;
+        };
+        /** PersonaPublic */
+        PersonaPublic: {
+            /**
+             * Created At
+             * Format: date-time
+             */
+            created_at: string;
+            /** Id */
+            id: number;
+            /** Is Builtin */
+            is_builtin: boolean;
+            /** Name */
+            name: string;
+            /** Params */
+            params?: {
+                [key: string]: unknown;
+            };
+            /** System Prompt */
+            system_prompt: string;
+        };
+        /**
+         * PersonaUpdate
+         * @description Partial update — only non-``None`` fields are applied.
+         */
+        PersonaUpdate: {
+            /** Name */
+            name?: string | null;
+            /** Params */
+            params?: {
+                [key: string]: unknown;
+            } | null;
+            /** System Prompt */
+            system_prompt?: string | null;
         };
         /** RefreshRequest */
         RefreshRequest: {
@@ -759,6 +856,154 @@ export interface operations {
                 };
                 content: {
                     "application/json": components["schemas"]["RuntimeConfig"];
+                };
+            };
+        };
+    };
+    list_personas_v1_personas_get: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["PersonaPublic"][];
+                };
+            };
+        };
+    };
+    create_persona_v1_personas_post: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["PersonaCreate"];
+            };
+        };
+        responses: {
+            /** @description Successful Response */
+            201: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["PersonaPublic"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    get_persona_v1_personas__persona_id__get: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                persona_id: number;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["PersonaPublic"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    delete_persona_v1_personas__persona_id__delete: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                persona_id: number;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            204: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    update_persona_v1_personas__persona_id__patch: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                persona_id: number;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["PersonaUpdate"];
+            };
+        };
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["PersonaPublic"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
                 };
             };
         };

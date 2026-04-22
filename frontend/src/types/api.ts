@@ -31,6 +31,9 @@ export type SessionCreate = components["schemas"]["SessionCreate"];
 export type SessionUpdate = components["schemas"]["SessionUpdate"];
 export type ToolInfo = components["schemas"]["ToolInfo"];
 export type RuntimeConfig = components["schemas"]["RuntimeConfig"];
+export type PersonaPublic = components["schemas"]["PersonaPublic"];
+export type PersonaCreate = components["schemas"]["PersonaCreate"];
+export type PersonaUpdate = components["schemas"]["PersonaUpdate"];
 
 // -----------------------------------------------------------------------------
 // Domain-refined types — OpenAPI sees these as ``dict[str, Any]`` / raw JSON
