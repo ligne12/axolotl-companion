@@ -1,8 +1,12 @@
 """Pydantic DTOs for auth endpoints."""
 
 from datetime import datetime
+from typing import Literal
 
 from pydantic import BaseModel, ConfigDict, EmailStr, Field
+
+TimeFormat = Literal["12h", "24h"]
+TemperatureUnit = Literal["C", "F"]
 
 
 class RegisterRequest(BaseModel):
@@ -36,6 +40,8 @@ class UserPublic(BaseModel):
     email: EmailStr
     avatar_url: str | None = None
     locality: str | None = None
+    time_format: TimeFormat = "24h"
+    temperature_unit: TemperatureUnit = "C"
     created_at: datetime
 
 
@@ -49,3 +55,5 @@ class UserUpdate(BaseModel):
     )
     avatar_url: str | None = Field(default=None, max_length=500)
     locality: str | None = Field(default=None, max_length=80)
+    time_format: TimeFormat | None = None
+    temperature_unit: TemperatureUnit | None = None

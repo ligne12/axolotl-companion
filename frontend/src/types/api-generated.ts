@@ -483,6 +483,18 @@ export interface components {
             id: number;
             /** Locality */
             locality?: string | null;
+            /**
+             * Temperature Unit
+             * @default C
+             * @enum {string}
+             */
+            temperature_unit: "C" | "F";
+            /**
+             * Time Format
+             * @default 24h
+             * @enum {string}
+             */
+            time_format: "12h" | "24h";
             /** Username */
             username: string;
         };
@@ -497,6 +509,10 @@ export interface components {
             avatar_url?: string | null;
             /** Locality */
             locality?: string | null;
+            /** Temperature Unit */
+            temperature_unit?: ("C" | "F") | null;
+            /** Time Format */
+            time_format?: ("12h" | "24h") | null;
             /** Username */
             username?: string | null;
         };

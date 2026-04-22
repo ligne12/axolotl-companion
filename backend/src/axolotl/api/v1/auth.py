@@ -178,6 +178,10 @@ async def update_me(
         current_user.avatar_url = payload.avatar_url or None
     if payload.locality is not None:
         current_user.locality = payload.locality.strip() or None
+    if payload.time_format is not None:
+        current_user.time_format = payload.time_format
+    if payload.temperature_unit is not None:
+        current_user.temperature_unit = payload.temperature_unit
 
     current_user.updated_at = datetime.now(UTC)
     db.add(current_user)

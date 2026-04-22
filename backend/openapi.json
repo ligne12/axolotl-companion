@@ -524,6 +524,24 @@
             ],
             "title": "Locality"
           },
+          "temperature_unit": {
+            "default": "C",
+            "enum": [
+              "C",
+              "F"
+            ],
+            "title": "Temperature Unit",
+            "type": "string"
+          },
+          "time_format": {
+            "default": "24h",
+            "enum": [
+              "12h",
+              "24h"
+            ],
+            "title": "Time Format",
+            "type": "string"
+          },
           "username": {
             "title": "Username",
             "type": "string"
@@ -564,6 +582,36 @@
               }
             ],
             "title": "Locality"
+          },
+          "temperature_unit": {
+            "anyOf": [
+              {
+                "enum": [
+                  "C",
+                  "F"
+                ],
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Temperature Unit"
+          },
+          "time_format": {
+            "anyOf": [
+              {
+                "enum": [
+                  "12h",
+                  "24h"
+                ],
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Time Format"
           },
           "username": {
             "anyOf": [

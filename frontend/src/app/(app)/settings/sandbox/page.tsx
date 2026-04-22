@@ -22,36 +22,30 @@ import { cn } from "@/lib/utils";
  */
 export default function ComponentsSandboxPage() {
   return (
-    <div className="h-full overflow-y-auto">
-      <div className="mx-auto max-w-5xl px-4 py-10 md:py-14">
-        <header className="mb-10 space-y-3">
-          <div className="inline-flex w-fit items-center gap-2 border-2 border-border bg-card px-2.5 py-1 font-pixel text-[12px] uppercase tracking-[0.14em]">
-            <span className="size-2 bg-[color:var(--lime)]" />
-            Dev / Components
-          </div>
-          <h1 className="font-display text-4xl font-bold uppercase leading-[1.05] md:text-5xl">
-            Design <span className="italic">sandbox</span>.
-          </h1>
-          <p className="max-w-2xl text-sm text-muted-foreground">
-            Every primitive in the DA — typography, colours, shadows, buttons,
-            pills, inputs, modals, palette, chat bubbles, mascot. If a new
-            pattern doesn&apos;t land cleanly here, it isn&apos;t ready to ship.
-          </p>
-        </header>
+    <div>
+      <header className="mb-8 space-y-3">
+        <h1 className="font-display text-3xl font-bold leading-tight">
+          Design <span className="italic">sandbox</span>.
+        </h1>
+        <p className="max-w-2xl text-sm text-muted-foreground">
+          Every primitive in the DA — typography, colours, shadows, buttons,
+          pills, inputs, modals, palette, chat bubbles, mascot. If a new
+          pattern doesn&apos;t land cleanly here, it isn&apos;t ready to ship.
+        </p>
+      </header>
 
-        <div className="space-y-14">
-          <SectionTypography />
-          <SectionColours />
-          <SectionShadows />
-          <SectionButtons />
-          <SectionPills />
-          <SectionInputs />
-          <SectionCards />
-          <SectionModals />
-          <SectionInteractions />
-          <SectionChat />
-          <SectionMascot />
-        </div>
+      <div className="space-y-14">
+        <SectionTypography />
+        <SectionColours />
+        <SectionShadows />
+        <SectionButtons />
+        <SectionPills />
+        <SectionInputs />
+        <SectionCards />
+        <SectionModals />
+        <SectionInteractions />
+        <SectionChat />
+        <SectionMascot />
       </div>
     </div>
   );

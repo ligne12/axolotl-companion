@@ -43,7 +43,11 @@ export default function RootLayout({
   readonly children: React.ReactNode;
 }) {
   return (
-    <html lang="en" suppressHydrationWarning className={`${inter.variable} ${pixelify.variable}`}>
+    <html
+      lang="en"
+      suppressHydrationWarning
+      className={`h-dvh ${inter.variable} ${pixelify.variable}`}
+    >
       <head>
         <link rel="preconnect" href="https://api.fontshare.com" crossOrigin="" />
         <link rel="preconnect" href="https://cdn.fontshare.com" crossOrigin="" />
@@ -52,7 +56,7 @@ export default function RootLayout({
           href="https://api.fontshare.com/v2/css?f[]=clash-display@500,600,700&display=swap"
         />
       </head>
-      <body className="min-h-screen bg-background text-foreground antialiased">
+      <body className="h-dvh overflow-hidden bg-background text-foreground antialiased">
         <ThemeProvider
           attribute="class"
           defaultTheme="system"

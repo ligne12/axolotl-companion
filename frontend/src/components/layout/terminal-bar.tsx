@@ -20,9 +20,15 @@ function truncate(s: string, n: number): string {
   return s.slice(0, n - 1) + "…";
 }
 
-function formatClock(d: Date): string {
-  const h = d.getHours().toString().padStart(2, "0");
+function formatClock(d: Date, format: "12h" | "24h" = "24h"): string {
   const m = d.getMinutes().toString().padStart(2, "0");
+  if (format === "12h") {
+    const hours = d.getHours();
+    const suffix = hours >= 12 ? "PM" : "AM";
+    const h12 = hours % 12 || 12;
+    return `${h12}:${m} ${suffix}`;
+  }
+  const h = d.getHours().toString().padStart(2, "0");
   return `${h}:${m}`;
 }
 
@@ -55,13 +61,15 @@ export function TerminalBar() {
   const modelName = config.data?.model ?? "—";
   const appVersion = config.data?.version ? `v${config.data.version}` : "";
   const locality = me.data?.locality?.trim() || null;
+  const timeFormat: "12h" | "24h" = me.data?.time_format === "12h" ? "12h" : "24h";
+  const tempUnit: "C" | "F" = me.data?.temperature_unit === "F" ? "F" : "C";
 
   useEffect(() => {
-    const tick = () => setClock(formatClock(new Date()));
+    const tick = () => setClock(formatClock(new Date(), timeFormat));
     tick();
     const id = setInterval(tick, 30_000);
     return () => clearInterval(id);
-  }, []);
+  }, [timeFormat]);
 
   const Dot = ({ className }: { className?: string }) => (
     <span
@@ -82,7 +90,7 @@ export function TerminalBar() {
           </span>
         )}
       </span>
-      <WeatherPill locality={locality} />
+      <WeatherPill locality={locality} unit={tempUnit} />
 
       <Sep />
 
