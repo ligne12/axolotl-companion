@@ -1,15 +1,21 @@
 "use client";
 
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
-import { Lock, Pencil, Plus, Trash2 } from "lucide-react";
+import { Lock, Pencil, Pin, PinOff, Plus, Trash2 } from "lucide-react";
 import { useState } from "react";
 import { toast } from "sonner";
 
 import { ConfirmDialog } from "@/components/ui/confirm-dialog";
+import { Markdown } from "@/components/ui/markdown";
 import { Modal } from "@/components/ui/modal";
 import { useApi } from "@/hooks/use-api";
 import { cn } from "@/lib/utils";
-import type { PersonaCreate, PersonaPublic, PersonaUpdate } from "@/types/api";
+import type {
+  PersonaCreate,
+  PersonaPublic,
+  PersonaUpdate,
+  UserPublic,
+} from "@/types/api";
 
 const INPUT =
   "w-full border-2 border-border bg-card px-3 py-2 text-sm outline-none transition-[box-shadow] duration-100 focus:shadow-[3px_3px_0_0_var(--lime)] placeholder:text-muted-foreground disabled:cursor-not-allowed disabled:opacity-60";
@@ -28,6 +34,11 @@ export default function PersonasPage() {
   const personas = useQuery({
     queryKey: ["personas"],
     queryFn: () => api<PersonaPublic[]>("/v1/personas"),
+  });
+
+  const meQuery = useQuery({
+    queryKey: ["auth", "me"],
+    queryFn: () => api<UserPublic>("/auth/me"),
   });
 
   const [editor, setEditor] = useState<Draft | null>(null);
@@ -60,9 +71,27 @@ export default function PersonasPage() {
       api<void>(`/v1/personas/${id}`, { method: "DELETE" }),
     onSuccess: () => {
       qc.invalidateQueries({ queryKey: ["personas"] });
+      qc.invalidateQueries({ queryKey: ["auth", "me"] });
       toast.success("Persona deleted");
     },
     onError: () => toast.error("Could not delete"),
+  });
+
+  const setDefaultMut = useMutation({
+    mutationFn: (id: number | null) =>
+      api<UserPublic>("/auth/me", {
+        method: "PATCH",
+        body: { default_persona_id: id },
+      }),
+    onSuccess: (next) => {
+      qc.setQueryData<UserPublic>(["auth", "me"], next);
+      toast.success(
+        next.default_persona_id === null
+          ? "Default cleared"
+          : "Default persona updated",
+      );
+    },
+    onError: () => toast.error("Could not update default"),
   });
 
   const startCreate = () => setEditor({ id: null, name: "", system_prompt: "" });
@@ -83,6 +112,7 @@ export default function PersonasPage() {
   };
 
   const list = personas.data ?? [];
+  const defaultId = meQuery.data?.default_persona_id ?? null;
 
   return (
     <div className="space-y-6">
@@ -113,49 +143,84 @@ export default function PersonasPage() {
       )}
 
       <ul className="grid gap-3 sm:grid-cols-2">
-        {list.map((p) => (
-          <li
-            key={p.id}
-            className="group relative flex h-full flex-col gap-2 rounded-xl border-2 border-border bg-card p-4 shadow-[3px_3px_0_0_var(--border)] transition-[transform,box-shadow] duration-100 hover:-translate-x-[1px] hover:-translate-y-[1px] hover:shadow-[5px_5px_0_0_var(--lime)]"
-          >
-            <div className="flex items-center gap-2">
-              <h2 className="font-display text-base font-semibold">{p.name}</h2>
-              {p.is_builtin && (
-                <span
-                  className="inline-flex items-center gap-1 border-2 border-border bg-background px-1.5 py-0.5 font-pixel text-[10px] uppercase tracking-widest text-muted-foreground"
-                  title="Built-in persona — read only"
-                >
-                  <Lock className="size-3" />
-                  built-in
-                </span>
+        {list.map((p) => {
+          const isDefault = defaultId === p.id;
+          return (
+            <li
+              key={p.id}
+              className={cn(
+                "group relative flex h-full flex-col gap-2 rounded-xl border-2 border-border bg-card p-4 transition-[transform,box-shadow] duration-100 hover:-translate-x-[1px] hover:-translate-y-[1px]",
+                isDefault
+                  ? "shadow-[3px_3px_0_0_var(--lime)] hover:shadow-[5px_5px_0_0_var(--lime)]"
+                  : "shadow-[3px_3px_0_0_var(--border)] hover:shadow-[5px_5px_0_0_var(--lime)]",
               )}
-            </div>
-            <p className="line-clamp-3 text-xs text-muted-foreground">
-              {p.system_prompt}
-            </p>
-
-            {!p.is_builtin && (
-              <div className="mt-auto flex justify-end gap-1 pt-2 opacity-0 transition-opacity group-hover:opacity-100">
-                <button
-                  type="button"
-                  aria-label="Edit"
-                  onClick={() => startEdit(p)}
-                  className="inline-flex size-7 items-center justify-center text-muted-foreground hover:text-foreground"
-                >
-                  <Pencil className="size-3.5" />
-                </button>
-                <button
-                  type="button"
-                  aria-label="Delete"
-                  onClick={() => setPendingDelete(p)}
-                  className="inline-flex size-7 items-center justify-center text-muted-foreground hover:text-destructive"
-                >
-                  <Trash2 className="size-3.5" />
-                </button>
+            >
+              <div className="flex flex-wrap items-center gap-2">
+                <h2 className="font-display text-base font-semibold">{p.name}</h2>
+                {isDefault && (
+                  <span
+                    className="inline-flex items-center gap-1 border-2 border-border bg-[color:var(--lime)] px-1.5 py-0.5 font-pixel text-[10px] uppercase tracking-widest text-[color:var(--lime-foreground)]"
+                    title="Default for new sessions"
+                  >
+                    <Pin className="size-3" />
+                    default
+                  </span>
+                )}
+                {p.is_builtin && (
+                  <span
+                    className="inline-flex items-center gap-1 border-2 border-border bg-background px-1.5 py-0.5 font-pixel text-[10px] uppercase tracking-widest text-muted-foreground"
+                    title="Built-in persona — read only"
+                  >
+                    <Lock className="size-3" />
+                    built-in
+                  </span>
+                )}
               </div>
-            )}
-          </li>
-        ))}
+              <Markdown
+                text={p.system_prompt}
+                className="line-clamp-3 overflow-hidden text-xs text-muted-foreground [&_*]:!m-0 [&_*+*]:!mt-0 [&>*]:inline"
+              />
+
+              <div className="mt-auto flex justify-end gap-1 pt-2 opacity-0 transition-opacity group-hover:opacity-100 focus-within:opacity-100">
+                <button
+                  type="button"
+                  aria-label={isDefault ? "Clear default" : "Set as default"}
+                  title={isDefault ? "Clear default" : "Set as default"}
+                  onClick={() => setDefaultMut.mutate(isDefault ? null : p.id)}
+                  disabled={setDefaultMut.isPending}
+                  className={cn(
+                    "inline-flex size-7 items-center justify-center transition-colors",
+                    isDefault
+                      ? "text-[color:var(--lime-foreground)] bg-[color:var(--lime)] border-2 border-border"
+                      : "text-muted-foreground hover:text-foreground",
+                  )}
+                >
+                  {isDefault ? <PinOff className="size-3.5" /> : <Pin className="size-3.5" />}
+                </button>
+                {!p.is_builtin && (
+                  <>
+                    <button
+                      type="button"
+                      aria-label="Edit"
+                      onClick={() => startEdit(p)}
+                      className="inline-flex size-7 items-center justify-center text-muted-foreground hover:text-foreground"
+                    >
+                      <Pencil className="size-3.5" />
+                    </button>
+                    <button
+                      type="button"
+                      aria-label="Delete"
+                      onClick={() => setPendingDelete(p)}
+                      className="inline-flex size-7 items-center justify-center text-muted-foreground hover:text-destructive"
+                    >
+                      <Trash2 className="size-3.5" />
+                    </button>
+                  </>
+                )}
+              </div>
+            </li>
+          );
+        })}
       </ul>
 
       {/* Create / edit modal */}

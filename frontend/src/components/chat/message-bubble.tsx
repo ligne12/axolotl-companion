@@ -2,12 +2,11 @@
 
 import { Check, Copy, RotateCw, Search, Wrench } from "lucide-react";
 import { useState } from "react";
-import ReactMarkdown from "react-markdown";
-import remarkGfm from "remark-gfm";
 
-import { Button } from "@/components/ui/button";
-import type { StreamingToolCall } from "@/hooks/use-chat";
 import DecryptedText from "@/components/reactbits/decrypted-text";
+import { Button } from "@/components/ui/button";
+import { Markdown } from "@/components/ui/markdown";
+import type { StreamingToolCall } from "@/hooks/use-chat";
 import { cn, formatDuration } from "@/lib/utils";
 import type { MessagePublic, ToolCall } from "@/types/api";
 
@@ -148,14 +147,6 @@ function ToolCallCard({
           )}
         </>
       )}
-    </div>
-  );
-}
-
-function Markdown({ text }: { text: string }) {
-  return (
-    <div className="markdown-body">
-      <ReactMarkdown remarkPlugins={[remarkGfm]}>{text}</ReactMarkdown>
     </div>
   );
 }
