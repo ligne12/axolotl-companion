@@ -11,7 +11,10 @@
 }
 
 # -----------------------------------------------------------------------------
-# Frontend : chat.localhost
+# chat.localhost — frontend on / and backend on /api/* under one origin, so
+# the Next.js bundle can use a relative NEXT_PUBLIC_API_URL (/api) that works
+# from every entry point (chat.localhost, Tailscale, LAN IP, …) without the
+# cross-origin cookie dance.
 # -----------------------------------------------------------------------------
 chat.localhost {
 	tls internal
@@ -26,15 +29,29 @@ chat.localhost {
 		Permissions-Policy "camera=(), microphone=(), geolocation=()"
 	}
 
-	reverse_proxy frontend:3000 {
-		header_up X-Real-IP {remote_host}
-		header_up X-Forwarded-For {remote_host}
-		header_up X-Forwarded-Proto {scheme}
+	handle_path /api/* {
+		reverse_proxy backend:8001 {
+			header_up X-Real-IP {remote_host}
+			header_up X-Forwarded-For {remote_host}
+			header_up X-Forwarded-Proto {scheme}
+
+			# SSE support: disable buffering
+			flush_interval -1
+		}
+	}
+
+	handle {
+		reverse_proxy frontend:3000 {
+			header_up X-Real-IP {remote_host}
+			header_up X-Forwarded-For {remote_host}
+			header_up X-Forwarded-Proto {scheme}
+		}
 	}
 }
 
 # -----------------------------------------------------------------------------
-# API : api.localhost
+# api.localhost — legacy direct-to-backend origin, kept around for
+# server-to-server scripts. New code should use chat.localhost/api/… instead.
 # -----------------------------------------------------------------------------
 api.localhost {
 	tls internal
