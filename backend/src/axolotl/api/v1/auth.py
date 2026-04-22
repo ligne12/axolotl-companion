@@ -26,6 +26,7 @@ from axolotl.schemas.auth import (
     RegisterRequest,
     TokenPair,
     UserPublic,
+    UserUpdate,
 )
 
 logger = structlog.get_logger(__name__)
@@ -146,4 +147,41 @@ async def logout(payload: RefreshRequest, db: DbSession) -> None:
 @router.get("/me", response_model=UserPublic)
 async def me(current_user: CurrentUser) -> User:
     """Return the currently authenticated user."""
+    return current_user
+
+
+@router.patch("/me", response_model=UserPublic)
+async def update_me(
+    payload: UserUpdate,
+    current_user: CurrentUser,
+    db: DbSession,
+) -> User:
+    """Patch the current user's profile. Only non-``None`` fields are applied.
+
+    A username change is guarded against collision with another account.
+    """
+    if payload.username is not None and payload.username != current_user.username:
+        existing = await db.execute(
+            select(User).where(
+                col(User.username) == payload.username,
+                col(User.id) != current_user.id,
+            )
+        )
+        if existing.scalar_one_or_none():
+            raise HTTPException(
+                status_code=status.HTTP_409_CONFLICT,
+                detail="Username already taken",
+            )
+        current_user.username = payload.username
+
+    if payload.avatar_url is not None:
+        current_user.avatar_url = payload.avatar_url or None
+    if payload.locality is not None:
+        current_user.locality = payload.locality.strip() or None
+
+    current_user.updated_at = datetime.now(UTC)
+    db.add(current_user)
+    await db.commit()
+    await db.refresh(current_user)
+    logger.info("auth.update_me", user_id=current_user.id)
     return current_user

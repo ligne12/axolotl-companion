@@ -61,7 +61,13 @@ export interface paths {
         delete?: never;
         options?: never;
         head?: never;
-        patch?: never;
+        /**
+         * Update Me
+         * @description Patch the current user's profile. Only non-``None`` fields are applied.
+         *
+         *     A username change is guarded against collision with another account.
+         */
+        patch: operations["update_me_auth_me_patch"];
         trace?: never;
     };
     "/auth/refresh": {
@@ -475,8 +481,24 @@ export interface components {
             email: string;
             /** Id */
             id: number;
+            /** Locality */
+            locality?: string | null;
             /** Username */
             username: string;
+        };
+        /**
+         * UserUpdate
+         * @description Partial profile update. All fields optional; only non-``None`` values
+         *     are applied. ``username`` goes through the same uniqueness check as
+         *     registration.
+         */
+        UserUpdate: {
+            /** Avatar Url */
+            avatar_url?: string | null;
+            /** Locality */
+            locality?: string | null;
+            /** Username */
+            username?: string | null;
         };
         /** ValidationError */
         ValidationError: {
@@ -580,6 +602,39 @@ export interface operations {
                 };
                 content: {
                     "application/json": components["schemas"]["UserPublic"];
+                };
+            };
+        };
+    };
+    update_me_auth_me_patch: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["UserUpdate"];
+            };
+        };
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["UserPublic"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
                 };
             };
         };

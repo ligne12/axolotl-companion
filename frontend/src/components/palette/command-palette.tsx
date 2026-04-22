@@ -9,6 +9,7 @@ import {
   MessageCircle,
   MessageSquarePlus,
   Palette,
+  Settings,
   Settings2,
 } from "lucide-react";
 import { signOut } from "next-auth/react";
@@ -124,6 +125,11 @@ export function CommandPalette({
                   icon={Settings2}
                   label="Open tools"
                   onSelect={() => go("/tools")}
+                />
+                <PaletteItem
+                  icon={Settings}
+                  label="Open settings"
+                  onSelect={() => go("/settings")}
                 />
                 <PaletteItem
                   icon={Keyboard}

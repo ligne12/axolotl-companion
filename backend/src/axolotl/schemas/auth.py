@@ -35,4 +35,17 @@ class UserPublic(BaseModel):
     username: str
     email: EmailStr
     avatar_url: str | None = None
+    locality: str | None = None
     created_at: datetime
+
+
+class UserUpdate(BaseModel):
+    """Partial profile update. All fields optional; only non-``None`` values
+    are applied. ``username`` goes through the same uniqueness check as
+    registration."""
+
+    username: str | None = Field(
+        default=None, min_length=3, max_length=50, pattern=r"^[a-zA-Z0-9_-]+$"
+    )
+    avatar_url: str | None = Field(default=None, max_length=500)
+    locality: str | None = Field(default=None, max_length=80)

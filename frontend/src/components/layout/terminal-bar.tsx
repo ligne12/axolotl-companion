@@ -6,6 +6,7 @@ import { useEffect, useState } from "react";
 import { useApi } from "@/hooks/use-api";
 import { cn } from "@/lib/utils";
 import { useChatStatus } from "@/stores/chat-status";
+import type { UserPublic } from "@/types/api";
 
 type RuntimeConfig = {
   version: string;
@@ -44,8 +45,15 @@ export function TerminalBar() {
     staleTime: 5 * 60_000,
     retry: 1,
   });
+  // Current user's locality — rendered next to the LOCAL dot when set.
+  const me = useQuery({
+    queryKey: ["auth", "me"],
+    queryFn: () => api<UserPublic>("/auth/me"),
+    staleTime: 60_000,
+  });
   const modelName = config.data?.model ?? "—";
   const appVersion = config.data?.version ? `v${config.data.version}` : "";
+  const locality = me.data?.locality?.trim() || null;
 
   useEffect(() => {
     const tick = () => setClock(formatClock(new Date()));
@@ -63,10 +71,15 @@ export function TerminalBar() {
 
   return (
     <div className="flex h-7 shrink-0 items-center gap-3 border-t-2 border-border bg-card px-4 font-pixel text-[10px] uppercase tracking-[0.14em]">
-      {/* LOCAL */}
+      {/* LOCAL · <locality> */}
       <span className="inline-flex items-center gap-1.5">
         <Dot className="bg-[color:var(--lime)]" />
         Local
+        {locality && (
+          <span className="text-muted-foreground">
+            · <span className="text-foreground">{truncate(locality, 24)}</span>
+          </span>
+        )}
       </span>
 
       <Sep />

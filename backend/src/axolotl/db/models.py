@@ -37,6 +37,7 @@ class User(SQLModel, table=True):
     )
     password_hash: str = Field(sa_column=Column(SAString(255), nullable=False))
     avatar_url: str | None = Field(default=None, max_length=500)
+    locality: str | None = Field(default=None, max_length=80)
     created_at: datetime = Field(
         default_factory=utcnow,
         sa_column=Column(DateTime(timezone=True), nullable=False),
