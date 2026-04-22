@@ -67,7 +67,12 @@ class User(SQLModel, table=True):
     )
     personas: list["Persona"] = Relationship(
         back_populates="user",
-        sa_relationship_kwargs={"cascade": "all, delete-orphan"},
+        sa_relationship_kwargs={
+            "cascade": "all, delete-orphan",
+            # Disambiguate from users.default_persona_id — both columns link
+            # users ↔ personas, but the ownership relationship uses user_id.
+            "foreign_keys": "Persona.user_id",
+        },
     )
     refresh_tokens: list["RefreshToken"] = Relationship(
         back_populates="user",
@@ -98,7 +103,10 @@ class Persona(SQLModel, table=True):
         sa_column=Column(DateTime(timezone=True), nullable=False),
     )
 
-    user: User | None = Relationship(back_populates="personas")
+    user: User | None = Relationship(
+        back_populates="personas",
+        sa_relationship_kwargs={"foreign_keys": "Persona.user_id"},
+    )
     sessions: list["Session"] = Relationship(back_populates="persona")
 
 
