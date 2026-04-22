@@ -190,6 +190,7 @@ async def create_session(
         title=payload.title,
         persona_id=payload.persona_id,
         model=payload.model,
+        overrides=payload.overrides.model_dump(exclude_none=True),
     )
     db.add(session)
     await db.commit()
@@ -240,10 +241,14 @@ async def update_session(
         session.title = payload.title
     if payload.archived is not None:
         session.archived = payload.archived
-    # ``persona_id`` supports explicit null to detach. We tell "unset" from
-    # "set to None" via ``model_fields_set``.
+    # ``persona_id`` + ``model`` support explicit null to detach/reset. We tell
+    # "unset" from "set to None" via ``model_fields_set``.
     if "persona_id" in payload.model_fields_set:
         session.persona_id = payload.persona_id
+    if "model" in payload.model_fields_set:
+        session.model = payload.model
+    if payload.overrides is not None:
+        session.overrides = payload.overrides.model_dump(exclude_none=True)
     session.updated_at = datetime.now(UTC)
     db.add(session)
     await db.commit()
@@ -321,6 +326,7 @@ async def post_message(
             client=llm,
             model=model_name,
             enabled_tools=enabled_tools,
+            user_defaults=current_user.defaults,
         ):
             yield event.to_sse()
 

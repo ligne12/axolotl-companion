@@ -5,6 +5,8 @@ from typing import Literal
 
 from pydantic import BaseModel, ConfigDict, EmailStr, Field
 
+from axolotl.schemas.params import HyperParams
+
 TimeFormat = Literal["12h", "24h"]
 TemperatureUnit = Literal["C", "F"]
 
@@ -42,6 +44,7 @@ class UserPublic(BaseModel):
     locality: str | None = None
     time_format: TimeFormat = "24h"
     temperature_unit: TemperatureUnit = "C"
+    defaults: HyperParams = Field(default_factory=HyperParams)
     created_at: datetime
 
 
@@ -57,3 +60,4 @@ class UserUpdate(BaseModel):
     locality: str | None = Field(default=None, max_length=80)
     time_format: TimeFormat | None = None
     temperature_unit: TemperatureUnit | None = None
+    defaults: HyperParams | None = None

@@ -6,7 +6,7 @@ from uuid import UUID, uuid4
 
 from sqlalchemy import JSON, BigInteger, Column, DateTime, ForeignKey, Index, UniqueConstraint
 from sqlalchemy import String as SAString
-from sqlalchemy.dialects.postgresql import CITEXT
+from sqlalchemy.dialects.postgresql import CITEXT, JSONB
 from sqlalchemy.dialects.postgresql import UUID as PG_UUID
 from sqlmodel import Field, Relationship, SQLModel
 
@@ -40,6 +40,10 @@ class User(SQLModel, table=True):
     locality: str | None = Field(default=None, max_length=80)
     time_format: str = Field(default="24h", max_length=3)
     temperature_unit: str = Field(default="C", max_length=1)
+    defaults: dict[str, Any] = Field(
+        default_factory=dict,
+        sa_column=Column(JSONB, nullable=False, server_default="{}"),
+    )
     created_at: datetime = Field(
         default_factory=utcnow,
         sa_column=Column(DateTime(timezone=True), nullable=False),
@@ -104,6 +108,10 @@ class Session(SQLModel, table=True):
     persona_id: int | None = Field(default=None, foreign_key="personas.id")
     title: str = Field(default="New conversation", max_length=200)
     model: str | None = Field(default=None, max_length=100)
+    overrides: dict[str, Any] = Field(
+        default_factory=dict,
+        sa_column=Column(JSONB, nullable=False, server_default="{}"),
+    )
     archived: bool = Field(default=False)
     created_at: datetime = Field(
         default_factory=utcnow,

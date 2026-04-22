@@ -77,6 +77,48 @@ def _finalize_tool_calls(acc: dict[int, dict[str, str]]) -> list[dict[str, Any]]
     return out
 
 
+_SAMPLING_KEYS = (
+    "temperature",
+    "top_p",
+    "top_k",
+    "min_p",
+    "presence_penalty",
+    "repetition_penalty",
+    "max_tokens",
+    "enable_thinking",
+)
+
+
+def _merge_sampling_params(
+    *,
+    user_defaults: dict[str, Any] | None,
+    session_overrides: dict[str, Any] | None,
+) -> dict[str, Any]:
+    """Layer ``settings`` (base) → ``user_defaults`` → ``session_overrides``,
+    keeping only keys the LLM client understands. Input dicts are the sparse
+    JSONB maps stored on ``User.defaults`` / ``Session.overrides`` — their
+    missing keys mean "fall through to the next layer"."""
+    settings = get_settings()
+    base: dict[str, Any] = {
+        "temperature": settings.vllm_temperature,
+        "top_p": settings.vllm_top_p,
+        "top_k": settings.vllm_top_k,
+        "min_p": settings.vllm_min_p,
+        "presence_penalty": settings.vllm_presence_penalty,
+        "repetition_penalty": settings.vllm_repetition_penalty,
+        "max_tokens": settings.vllm_max_tokens,
+        "enable_thinking": settings.vllm_enable_thinking,
+    }
+    for layer in (user_defaults, session_overrides):
+        if not layer:
+            continue
+        for key in _SAMPLING_KEYS:
+            value = layer.get(key)
+            if value is not None:
+                base[key] = value
+    return base
+
+
 async def stream_chat(
     *,
     db: AsyncSession,
@@ -84,18 +126,26 @@ async def stream_chat(
     client: VLLMClient,
     model: str,
     enabled_tools: list[str] | None = None,
+    user_defaults: dict[str, Any] | None = None,
 ) -> AsyncIterator[ChatEvent]:
     """Run the full LLM loop: stream deltas, execute tools, loop up to N rounds.
 
     ``enabled_tools`` filters which registered tools are exposed to the model.
     Pass ``None`` to fall back to the registry defaults, or ``[]`` to disable
     tool-calling entirely.
+
+    Sampling params are layered: global settings → ``user_defaults`` →
+    ``session.overrides``.
     """
     settings = get_settings()
     assert session.id is not None
     system_prompt = await _load_persona_prompt(db, session.persona_id)
     history = await _load_history(db, session.id, system_prompt=system_prompt)
     tool_specs = registry.specs_for(enabled_tools)
+    sampling = _merge_sampling_params(
+        user_defaults=user_defaults,
+        session_overrides=session.overrides,
+    )
 
     overall_start = time.monotonic()
     tool_durations_ms: dict[str, int] = {}
@@ -120,14 +170,7 @@ async def stream_chat(
             messages=history,
             model=model,
             tools=tools,
-            temperature=settings.vllm_temperature,
-            top_p=settings.vllm_top_p,
-            top_k=settings.vllm_top_k,
-            min_p=settings.vllm_min_p,
-            presence_penalty=settings.vllm_presence_penalty,
-            repetition_penalty=settings.vllm_repetition_penalty,
-            max_tokens=settings.vllm_max_tokens,
-            enable_thinking=settings.vllm_enable_thinking,
+            **sampling,
         )
 
         try:

@@ -14,6 +14,116 @@
         "title": "HTTPValidationError",
         "type": "object"
       },
+      "HyperParams": {
+        "additionalProperties": false,
+        "description": "Partial sampling-parameter map. Every field may be absent.",
+        "properties": {
+          "enable_thinking": {
+            "anyOf": [
+              {
+                "type": "boolean"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Enable Thinking"
+          },
+          "max_tokens": {
+            "anyOf": [
+              {
+                "maximum": 32768.0,
+                "minimum": 1.0,
+                "type": "integer"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Max Tokens"
+          },
+          "min_p": {
+            "anyOf": [
+              {
+                "maximum": 1.0,
+                "minimum": 0.0,
+                "type": "number"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Min P"
+          },
+          "presence_penalty": {
+            "anyOf": [
+              {
+                "maximum": 2.0,
+                "minimum": -2.0,
+                "type": "number"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Presence Penalty"
+          },
+          "repetition_penalty": {
+            "anyOf": [
+              {
+                "maximum": 2.0,
+                "minimum": 0.0,
+                "type": "number"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Repetition Penalty"
+          },
+          "temperature": {
+            "anyOf": [
+              {
+                "maximum": 2.0,
+                "minimum": 0.0,
+                "type": "number"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Temperature"
+          },
+          "top_k": {
+            "anyOf": [
+              {
+                "maximum": 500.0,
+                "minimum": 1.0,
+                "type": "integer"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Top K"
+          },
+          "top_p": {
+            "anyOf": [
+              {
+                "maximum": 1.0,
+                "minimum": 0.0,
+                "type": "number"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Top P"
+          }
+        },
+        "title": "HyperParams",
+        "type": "object"
+      },
       "LoginRequest": {
         "properties": {
           "password": {
@@ -327,6 +437,9 @@
             ],
             "title": "Model"
           },
+          "overrides": {
+            "$ref": "#/components/schemas/HyperParams"
+          },
           "persona_id": {
             "anyOf": [
               {
@@ -381,6 +494,9 @@
               }
             ],
             "title": "Model"
+          },
+          "overrides": {
+            "$ref": "#/components/schemas/HyperParams"
           },
           "persona_id": {
             "anyOf": [
@@ -442,6 +558,9 @@
             ],
             "title": "Model"
           },
+          "overrides": {
+            "$ref": "#/components/schemas/HyperParams"
+          },
           "persona_id": {
             "anyOf": [
               {
@@ -487,6 +606,28 @@
               }
             ],
             "title": "Archived"
+          },
+          "model": {
+            "anyOf": [
+              {
+                "maxLength": 100,
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Model"
+          },
+          "overrides": {
+            "anyOf": [
+              {
+                "$ref": "#/components/schemas/HyperParams"
+              },
+              {
+                "type": "null"
+              }
+            ]
           },
           "persona_id": {
             "anyOf": [
@@ -626,6 +767,9 @@
             "title": "Created At",
             "type": "string"
           },
+          "defaults": {
+            "$ref": "#/components/schemas/HyperParams"
+          },
           "email": {
             "format": "email",
             "title": "Email",
@@ -692,6 +836,16 @@
               }
             ],
             "title": "Avatar Url"
+          },
+          "defaults": {
+            "anyOf": [
+              {
+                "$ref": "#/components/schemas/HyperParams"
+              },
+              {
+                "type": "null"
+              }
+            ]
           },
           "locality": {
             "anyOf": [

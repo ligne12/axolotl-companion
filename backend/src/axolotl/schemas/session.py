@@ -8,6 +8,8 @@ from uuid import UUID
 
 from pydantic import BaseModel, ConfigDict, Field
 
+from axolotl.schemas.params import HyperParams
+
 
 # -----------------------------------------------------------------------------
 # Sessions
@@ -16,12 +18,15 @@ class SessionCreate(BaseModel):
     title: str = Field(default="New conversation", max_length=200)
     persona_id: int | None = None
     model: str | None = Field(default=None, max_length=100)
+    overrides: HyperParams = Field(default_factory=HyperParams)
 
 
 class SessionUpdate(BaseModel):
     title: str | None = Field(default=None, max_length=200)
     archived: bool | None = None
     persona_id: int | None = None
+    model: str | None = Field(default=None, max_length=100)
+    overrides: HyperParams | None = None
 
 
 class SessionPublic(BaseModel):
@@ -31,6 +36,7 @@ class SessionPublic(BaseModel):
     title: str
     persona_id: int | None
     model: str | None
+    overrides: HyperParams = Field(default_factory=HyperParams)
     archived: bool
     created_at: datetime
     updated_at: datetime

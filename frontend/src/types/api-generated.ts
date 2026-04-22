@@ -332,6 +332,28 @@ export interface components {
             /** Detail */
             detail?: components["schemas"]["ValidationError"][];
         };
+        /**
+         * HyperParams
+         * @description Partial sampling-parameter map. Every field may be absent.
+         */
+        HyperParams: {
+            /** Enable Thinking */
+            enable_thinking?: boolean | null;
+            /** Max Tokens */
+            max_tokens?: number | null;
+            /** Min P */
+            min_p?: number | null;
+            /** Presence Penalty */
+            presence_penalty?: number | null;
+            /** Repetition Penalty */
+            repetition_penalty?: number | null;
+            /** Temperature */
+            temperature?: number | null;
+            /** Top K */
+            top_k?: number | null;
+            /** Top P */
+            top_p?: number | null;
+        };
         /** LoginRequest */
         LoginRequest: {
             /** Password */
@@ -451,6 +473,7 @@ export interface components {
         SessionCreate: {
             /** Model */
             model?: string | null;
+            overrides?: components["schemas"]["HyperParams"];
             /** Persona Id */
             persona_id?: number | null;
             /**
@@ -477,6 +500,7 @@ export interface components {
             messages?: components["schemas"]["MessagePublic"][];
             /** Model */
             model: string | null;
+            overrides?: components["schemas"]["HyperParams"];
             /** Persona Id */
             persona_id: number | null;
             /** Title */
@@ -503,6 +527,7 @@ export interface components {
             id: string;
             /** Model */
             model: string | null;
+            overrides?: components["schemas"]["HyperParams"];
             /** Persona Id */
             persona_id: number | null;
             /** Title */
@@ -517,6 +542,9 @@ export interface components {
         SessionUpdate: {
             /** Archived */
             archived?: boolean | null;
+            /** Model */
+            model?: string | null;
+            overrides?: components["schemas"]["HyperParams"] | null;
             /** Persona Id */
             persona_id?: number | null;
             /** Title */
@@ -573,6 +601,7 @@ export interface components {
              * Format: date-time
              */
             created_at: string;
+            defaults?: components["schemas"]["HyperParams"];
             /**
              * Email
              * Format: email
@@ -606,6 +635,7 @@ export interface components {
         UserUpdate: {
             /** Avatar Url */
             avatar_url?: string | null;
+            defaults?: components["schemas"]["HyperParams"] | null;
             /** Locality */
             locality?: string | null;
             /** Temperature Unit */

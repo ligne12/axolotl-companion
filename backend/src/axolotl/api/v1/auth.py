@@ -182,6 +182,10 @@ async def update_me(
         current_user.time_format = payload.time_format
     if payload.temperature_unit is not None:
         current_user.temperature_unit = payload.temperature_unit
+    if payload.defaults is not None:
+        # Store only the keys actually set — the orchestrator layers this
+        # sparse dict on top of the global settings.
+        current_user.defaults = payload.defaults.model_dump(exclude_none=True)
 
     current_user.updated_at = datetime.now(UTC)
     db.add(current_user)

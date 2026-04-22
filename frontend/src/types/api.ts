@@ -34,6 +34,7 @@ export type RuntimeConfig = components["schemas"]["RuntimeConfig"];
 export type PersonaPublic = components["schemas"]["PersonaPublic"];
 export type PersonaCreate = components["schemas"]["PersonaCreate"];
 export type PersonaUpdate = components["schemas"]["PersonaUpdate"];
+export type HyperParams = components["schemas"]["HyperParams"];
 
 // -----------------------------------------------------------------------------
 // Domain-refined types — OpenAPI sees these as ``dict[str, Any]`` / raw JSON
