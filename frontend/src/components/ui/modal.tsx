@@ -46,7 +46,10 @@ function ModalRoot({
         />
         <Dialog.Content
           className={cn(
-            "fixed left-1/2 top-1/2 z-50 -translate-x-1/2 -translate-y-1/2",
+            // Mobile: centered on viewport. Desktop: shift right by half the
+            // sidebar width (w-64 = 16rem) so the modal is optically centred
+            // inside the main column, not under the sidebar's edge.
+            "fixed left-1/2 md:left-[calc(50%+8rem)] top-1/2 z-50 -translate-x-1/2 -translate-y-1/2",
             "w-[min(90vw,28rem)] max-w-md",
             "border-2 border-border bg-card rounded-xl p-6",
             "shadow-[4px_4px_0_0_var(--border)]",

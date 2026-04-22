@@ -77,7 +77,9 @@ export function CommandPalette({
         <Dialog.Content
           aria-describedby={undefined}
           className={cn(
-            "fixed left-1/2 top-[22%] z-50 -translate-x-1/2",
+            // Shift right by half the sidebar width on desktop so the palette
+            // sits in the optical centre of the main column, not the viewport.
+            "fixed left-1/2 md:left-[calc(50%+8rem)] top-[22%] z-50 -translate-x-1/2",
             "w-[min(92vw,34rem)]",
             "overflow-hidden border-2 border-border bg-card rounded-xl",
             "shadow-[4px_4px_0_0_var(--border)]",

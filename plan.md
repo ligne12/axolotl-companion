@@ -163,6 +163,10 @@ id, user_id FK, token_hash, expires_at, revoked_at
     max_tokens) with a reset-to-defaults button
   - **Reasoning** — toggle `enable_thinking` off per-session so the model
     skips the `<think>` phase when the user wants a straight answer
+  - **MCP servers** — CRUD on connected MCP servers (add, edit, remove,
+    toggle). Each server exposes a set of tools that plug into the same
+    registry as the built-in ones; per-user enable/disable lands on the
+    existing Tools page alongside `web_search`.
 - Export / import conversations
 - i18n FR / EN
 
