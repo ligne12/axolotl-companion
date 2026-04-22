@@ -29,6 +29,19 @@ chat.localhost {
 		Permissions-Policy "camera=(), microphone=(), geolocation=()"
 	}
 
+	# NextAuth owns /api/auth/* on the frontend (CSRF, session, callbacks,
+	# providers, error page, …). It happens to share the /api/auth namespace
+	# with our FastAPI /auth/* routes but the leaf paths don't collide, so we
+	# can split by matching NextAuth's exact endpoints.
+	@nextauth path /api/auth/signin /api/auth/signin/* /api/auth/signout /api/auth/signout/* /api/auth/callback /api/auth/callback/* /api/auth/session /api/auth/csrf /api/auth/providers /api/auth/error /api/auth/verify-request /api/auth/_log
+	handle @nextauth {
+		reverse_proxy frontend:3000 {
+			header_up X-Real-IP {remote_host}
+			header_up X-Forwarded-For {remote_host}
+			header_up X-Forwarded-Proto {scheme}
+		}
+	}
+
 	handle_path /api/* {
 		reverse_proxy backend:8001 {
 			header_up X-Real-IP {remote_host}
