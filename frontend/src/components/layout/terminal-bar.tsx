@@ -32,7 +32,9 @@ export function TerminalBar() {
   const api = useApi();
   const isSending = useChatStatus((s) => s.isSending);
   const tokensPerSec = useChatStatus((s) => s.tokensPerSec);
-  const [clock, setClock] = useState<string>(() => formatClock(new Date()));
+  // Placeholder during SSR so the server's UTC clock doesn't mismatch the
+  // client's local time on hydration. The effect below fills it in.
+  const [clock, setClock] = useState<string>("--:--");
 
   // Live config from the backend — proxies vLLM ``/v1/models`` so the bar
   // shows the **actually loaded** model, not what an env var claims.
