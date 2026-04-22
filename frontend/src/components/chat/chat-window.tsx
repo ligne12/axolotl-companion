@@ -1,7 +1,8 @@
 "use client";
 
-import { useEffect, useMemo, useRef } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 
+import { ChatControlsDrawer } from "@/components/chat/chat-controls-drawer";
 import { ChatInput } from "@/components/chat/chat-input";
 import { MessageBubble, StreamingBubble } from "@/components/chat/message-bubble";
 import { useChat } from "@/hooks/use-chat";
@@ -18,12 +19,25 @@ export function ChatWindow({
 }) {
   const chat = useChat(sessionId, token, initialMessages);
   const scrollRef = useRef<HTMLDivElement>(null);
+  const [controlsOpen, setControlsOpen] = useState(false);
 
   useEffect(() => {
     const el = scrollRef.current;
     if (!el) return;
     el.scrollTo({ top: el.scrollHeight, behavior: "smooth" });
   }, [chat.messages.length, chat.streaming]);
+
+  // Cmd+, / Ctrl+, toggles the controls drawer from anywhere in the chat.
+  useEffect(() => {
+    const onKey = (e: KeyboardEvent) => {
+      if ((e.metaKey || e.ctrlKey) && e.key === ",") {
+        e.preventDefault();
+        setControlsOpen((v) => !v);
+      }
+    };
+    window.addEventListener("keydown", onKey);
+    return () => window.removeEventListener("keydown", onKey);
+  }, []);
 
   // Deduplicate by id (safety net) and hide standalone tool-role messages
   const visible = useMemo(() => {
@@ -86,9 +100,11 @@ export function ChatWindow({
       <ChatInput
         onSend={(c) => void chat.send(c)}
         onStop={chat.stop}
+        onOpenControls={() => setControlsOpen(true)}
         isSending={chat.isSending}
         disabled={!token}
       />
+      <ChatControlsDrawer open={controlsOpen} onOpenChange={setControlsOpen} />
     </div>
   );
 }

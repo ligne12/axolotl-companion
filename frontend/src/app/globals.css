@@ -152,6 +152,15 @@ body {
   from { opacity: 1; }
   to { opacity: 0; }
 }
+/* Side drawer slide from the right (chat controls panel). */
+@keyframes axo-slide-in-right {
+  from { transform: translateX(100%); }
+  to { transform: translateX(0); }
+}
+@keyframes axo-slide-out-right {
+  from { transform: translateX(0); }
+  to { transform: translateX(100%); }
+}
 
 /* Chat markdown body — inline prose + GFM tables in the pixel-neubru DA */
 .markdown-body {

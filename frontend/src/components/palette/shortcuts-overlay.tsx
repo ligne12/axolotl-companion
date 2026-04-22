@@ -19,6 +19,7 @@ const GROUPS: { name: string; items: Shortcut[] }[] = [
     items: [
       { keys: ["Enter"], label: "Send message" },
       { keys: ["⇧", "Enter"], label: "New line" },
+      { keys: ["⌘", ","], label: "Toggle chat controls (tools + model)" },
     ],
   },
   {

@@ -1,6 +1,6 @@
 "use client";
 
-import { Send, Square } from "lucide-react";
+import { Send, SlidersHorizontal, Square } from "lucide-react";
 import { useRef, useState } from "react";
 
 import { cn } from "@/lib/utils";
@@ -8,11 +8,13 @@ import { cn } from "@/lib/utils";
 export function ChatInput({
   onSend,
   onStop,
+  onOpenControls,
   isSending,
   disabled,
 }: {
   onSend: (content: string) => void;
   onStop: () => void;
+  onOpenControls?: () => void;
   isSending: boolean;
   disabled?: boolean;
 }) {
@@ -37,6 +39,17 @@ export function ChatInput({
     // away from the footer's LOCAL line.
     <div className="px-3 pt-3 pb-8">
       <div className="mx-auto flex max-w-3xl items-end gap-2">
+        {onOpenControls && (
+          <button
+            type="button"
+            onClick={onOpenControls}
+            aria-label="Chat controls"
+            title="Chat controls (⌘,)"
+            className="inline-flex h-11 w-11 items-center justify-center rounded-xl border-2 border-border bg-card text-muted-foreground shadow-[3px_3px_0_0_var(--border)] transition-[transform,box-shadow,color] duration-100 hover:-translate-x-[1px] hover:-translate-y-[1px] hover:text-foreground hover:shadow-[4px_4px_0_0_var(--border)] active:translate-x-[1px] active:translate-y-[1px] active:shadow-[1px_1px_0_0_var(--border)]"
+          >
+            <SlidersHorizontal className="size-4" />
+          </button>
+        )}
         <div
           className={cn(
             "flex flex-1 items-end rounded-xl border-2 border-border bg-card transition-[box-shadow] duration-100",
