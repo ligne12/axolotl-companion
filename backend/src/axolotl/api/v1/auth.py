@@ -20,6 +20,7 @@ from axolotl.core.security import (
     verify_password,
 )
 from axolotl.db import RefreshToken, User
+from axolotl.db.models import Persona
 from axolotl.schemas.auth import (
     LoginRequest,
     RefreshRequest,
@@ -186,6 +187,20 @@ async def update_me(
         # Store only the keys actually set — the orchestrator layers this
         # sparse dict on top of the global settings.
         current_user.defaults = payload.defaults.model_dump(exclude_none=True)
+    if "default_persona_id" in payload.model_fields_set:
+        # Validate the persona exists and the user has access to it (owned
+        # or built-in). A 404 here beats letting the FK silently no-op.
+        if payload.default_persona_id is not None:
+            result = await db.execute(
+                select(Persona).where(Persona.id == payload.default_persona_id)
+            )
+            persona = result.scalar_one_or_none()
+            if persona is None or (persona.user_id != current_user.id and not persona.is_builtin):
+                raise HTTPException(
+                    status_code=status.HTTP_404_NOT_FOUND,
+                    detail="Persona not found",
+                )
+        current_user.default_persona_id = payload.default_persona_id
 
     current_user.updated_at = datetime.now(UTC)
     db.add(current_user)

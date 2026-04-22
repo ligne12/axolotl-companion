@@ -601,6 +601,8 @@ export interface components {
              * Format: date-time
              */
             created_at: string;
+            /** Default Persona Id */
+            default_persona_id?: number | null;
             defaults?: components["schemas"]["HyperParams"];
             /**
              * Email
@@ -630,11 +632,14 @@ export interface components {
          * UserUpdate
          * @description Partial profile update. All fields optional; only non-``None`` values
          *     are applied. ``username`` goes through the same uniqueness check as
-         *     registration.
+         *     registration. ``default_persona_id`` supports explicit ``null`` to detach
+         *     — "unset" vs "set to None" is distinguished via ``model_fields_set``.
          */
         UserUpdate: {
             /** Avatar Url */
             avatar_url?: string | null;
+            /** Default Persona Id */
+            default_persona_id?: number | null;
             defaults?: components["schemas"]["HyperParams"] | null;
             /** Locality */
             locality?: string | null;

@@ -45,13 +45,15 @@ class UserPublic(BaseModel):
     time_format: TimeFormat = "24h"
     temperature_unit: TemperatureUnit = "C"
     defaults: HyperParams = Field(default_factory=HyperParams)
+    default_persona_id: int | None = None
     created_at: datetime
 
 
 class UserUpdate(BaseModel):
     """Partial profile update. All fields optional; only non-``None`` values
     are applied. ``username`` goes through the same uniqueness check as
-    registration."""
+    registration. ``default_persona_id`` supports explicit ``null`` to detach
+    — "unset" vs "set to None" is distinguished via ``model_fields_set``."""
 
     username: str | None = Field(
         default=None, min_length=3, max_length=50, pattern=r"^[a-zA-Z0-9_-]+$"
@@ -61,3 +63,4 @@ class UserUpdate(BaseModel):
     time_format: TimeFormat | None = None
     temperature_unit: TemperatureUnit | None = None
     defaults: HyperParams | None = None
+    default_persona_id: int | None = None

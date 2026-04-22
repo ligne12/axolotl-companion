@@ -185,10 +185,17 @@ async def create_session(
 ) -> Session:
     """Create a new empty session."""
     assert current_user.id is not None
+    # If the client didn't touch persona_id at all, fall back to the user's
+    # default. An explicit null in the payload still means "no persona".
+    persona_id = (
+        payload.persona_id
+        if "persona_id" in payload.model_fields_set
+        else current_user.default_persona_id
+    )
     session = Session(
         user_id=current_user.id,
         title=payload.title,
-        persona_id=payload.persona_id,
+        persona_id=persona_id,
         model=payload.model,
         overrides=payload.overrides.model_dump(exclude_none=True),
     )

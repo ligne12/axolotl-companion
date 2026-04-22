@@ -767,6 +767,17 @@
             "title": "Created At",
             "type": "string"
           },
+          "default_persona_id": {
+            "anyOf": [
+              {
+                "type": "integer"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Default Persona Id"
+          },
           "defaults": {
             "$ref": "#/components/schemas/HyperParams"
           },
@@ -823,7 +834,7 @@
         "type": "object"
       },
       "UserUpdate": {
-        "description": "Partial profile update. All fields optional; only non-``None`` values\nare applied. ``username`` goes through the same uniqueness check as\nregistration.",
+        "description": "Partial profile update. All fields optional; only non-``None`` values\nare applied. ``username`` goes through the same uniqueness check as\nregistration. ``default_persona_id`` supports explicit ``null`` to detach\n\u2014 \"unset\" vs \"set to None\" is distinguished via ``model_fields_set``.",
         "properties": {
           "avatar_url": {
             "anyOf": [
@@ -836,6 +847,17 @@
               }
             ],
             "title": "Avatar Url"
+          },
+          "default_persona_id": {
+            "anyOf": [
+              {
+                "type": "integer"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Default Persona Id"
           },
           "defaults": {
             "anyOf": [
