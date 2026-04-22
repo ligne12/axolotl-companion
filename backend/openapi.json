@@ -488,6 +488,17 @@
             ],
             "title": "Archived"
           },
+          "persona_id": {
+            "anyOf": [
+              {
+                "type": "integer"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Persona Id"
+          },
           "title": {
             "anyOf": [
               {
@@ -1512,7 +1523,7 @@
         ]
       },
       "patch": {
-        "description": "Update a session (title / archived flag).",
+        "description": "Update a session (title / archived / persona).",
         "operationId": "update_session_v1_sessions__session_id__patch",
         "parameters": [
           {

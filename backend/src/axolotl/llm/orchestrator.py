@@ -14,7 +14,7 @@ from sqlalchemy.ext.asyncio import AsyncSession
 from sqlmodel import col, select
 
 from axolotl.config import get_settings
-from axolotl.db.models import Message, Session
+from axolotl.db.models import Message, Persona, Session
 from axolotl.llm.client import VLLMClient
 from axolotl.llm.events import ChatEvent
 from axolotl.llm.tools import execute_tool, registry
@@ -22,14 +22,28 @@ from axolotl.llm.tools import execute_tool, registry
 logger = structlog.get_logger(__name__)
 
 
-async def _load_history(db: AsyncSession, session_id: UUID) -> list[dict[str, Any]]:
-    """Load the full message history for a session in OpenAI format."""
+async def _load_persona_prompt(db: AsyncSession, persona_id: int | None) -> str | None:
+    """Fetch the attached persona's system prompt, if any."""
+    if persona_id is None:
+        return None
+    result = await db.execute(select(Persona).where(Persona.id == persona_id))
+    persona = result.scalar_one_or_none()
+    return persona.system_prompt if persona is not None else None
+
+
+async def _load_history(
+    db: AsyncSession, session_id: UUID, system_prompt: str | None = None
+) -> list[dict[str, Any]]:
+    """Load the session's message history in OpenAI format, optionally
+    prepending a system message from the session's persona."""
     result = await db.execute(
         select(Message).where(Message.session_id == session_id).order_by(col(Message.created_at))
     )
     messages = result.scalars().all()
 
     history: list[dict[str, Any]] = []
+    if system_prompt:
+        history.append({"role": "system", "content": system_prompt})
     for m in messages:
         msg: dict[str, Any] = {"role": m.role}
         if m.content is not None:
@@ -79,7 +93,8 @@ async def stream_chat(
     """
     settings = get_settings()
     assert session.id is not None
-    history = await _load_history(db, session.id)
+    system_prompt = await _load_persona_prompt(db, session.persona_id)
+    history = await _load_history(db, session.id, system_prompt=system_prompt)
     tool_specs = registry.specs_for(enabled_tools)
 
     overall_start = time.monotonic()

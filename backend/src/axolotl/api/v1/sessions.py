@@ -233,13 +233,17 @@ async def update_session(
     current_user: CurrentUser,
     db: DbSession,
 ) -> Session:
-    """Update a session (title / archived flag)."""
+    """Update a session (title / archived / persona)."""
     assert current_user.id is not None
     session = await _get_user_session(db, session_id, current_user.id)
     if payload.title is not None:
         session.title = payload.title
     if payload.archived is not None:
         session.archived = payload.archived
+    # ``persona_id`` supports explicit null to detach. We tell "unset" from
+    # "set to None" via ``model_fields_set``.
+    if "persona_id" in payload.model_fields_set:
+        session.persona_id = payload.persona_id
     session.updated_at = datetime.now(UTC)
     db.add(session)
     await db.commit()

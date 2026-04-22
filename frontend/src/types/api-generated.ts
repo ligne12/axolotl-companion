@@ -254,7 +254,7 @@ export interface paths {
         head?: never;
         /**
          * Update Session
-         * @description Update a session (title / archived flag).
+         * @description Update a session (title / archived / persona).
          */
         patch: operations["update_session_v1_sessions__session_id__patch"];
         trace?: never;
@@ -517,6 +517,8 @@ export interface components {
         SessionUpdate: {
             /** Archived */
             archived?: boolean | null;
+            /** Persona Id */
+            persona_id?: number | null;
             /** Title */
             title?: string | null;
         };

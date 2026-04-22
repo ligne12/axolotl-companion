@@ -4,6 +4,7 @@ import * as Dialog from "@radix-ui/react-dialog";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { Command } from "cmdk";
 import {
+  IdCard,
   Keyboard,
   LogOut,
   MessageCircle,
@@ -19,7 +20,7 @@ import { toast } from "sonner";
 
 import { useApi } from "@/hooks/use-api";
 import { cn } from "@/lib/utils";
-import type { SessionPublic } from "@/types/api";
+import type { PersonaPublic, SessionPublic } from "@/types/api";
 
 /**
  * Cmd+K command palette. Thin cmdk surface rendered in a Radix Dialog
@@ -46,11 +47,20 @@ export function CommandPalette({
     enabled: open,
   });
 
+  const personasQuery = useQuery({
+    queryKey: ["personas"],
+    queryFn: () => api<PersonaPublic[]>("/v1/personas"),
+    enabled: open,
+  });
+
   const createSession = useMutation({
-    mutationFn: () =>
+    mutationFn: (personaId?: number) =>
       api<SessionPublic>("/v1/sessions", {
         method: "POST",
-        body: { title: "New conversation" },
+        body: {
+          title: "New conversation",
+          ...(personaId !== undefined ? { persona_id: personaId } : {}),
+        },
       }),
     onSuccess: (s) => {
       qc.invalidateQueries({ queryKey: ["sessions"] });
@@ -114,7 +124,7 @@ export function CommandPalette({
                   icon={MessageSquarePlus}
                   label="New conversation"
                   shortcut="⌘N"
-                  onSelect={() => createSession.mutate()}
+                  onSelect={() => createSession.mutate(undefined)}
                 />
                 <PaletteItem
                   icon={Palette}
@@ -146,6 +156,23 @@ export function CommandPalette({
                   onSelect={() => signOut({ callbackUrl: "/login" })}
                 />
               </Command.Group>
+
+              {personasQuery.data && personasQuery.data.length > 0 && (
+                <Command.Group
+                  heading="Start as persona"
+                  className="[&_[cmdk-group-heading]]:px-4 [&_[cmdk-group-heading]]:pb-1 [&_[cmdk-group-heading]]:pt-3 [&_[cmdk-group-heading]]:font-pixel [&_[cmdk-group-heading]]:text-[10px] [&_[cmdk-group-heading]]:uppercase [&_[cmdk-group-heading]]:tracking-[0.14em] [&_[cmdk-group-heading]]:text-muted-foreground"
+                >
+                  {personasQuery.data.map((p) => (
+                    <PaletteItem
+                      key={p.id}
+                      icon={IdCard}
+                      label={`New chat as ${p.name}`}
+                      onSelect={() => createSession.mutate(p.id)}
+                      value={`persona-${p.id}-${p.name}`}
+                    />
+                  ))}
+                </Command.Group>
+              )}
 
               {sessionsQuery.data && sessionsQuery.data.length > 0 && (
                 <Command.Group

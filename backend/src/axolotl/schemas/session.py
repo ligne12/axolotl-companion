@@ -21,6 +21,7 @@ class SessionCreate(BaseModel):
 class SessionUpdate(BaseModel):
     title: str | None = Field(default=None, max_length=200)
     archived: bool | None = None
+    persona_id: int | None = None
 
 
 class SessionPublic(BaseModel):
