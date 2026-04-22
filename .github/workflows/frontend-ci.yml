@@ -5,10 +5,12 @@ on:
     branches: [main, dev]
     paths:
       - "frontend/**"
+      - "backend/openapi.json"
       - ".github/workflows/frontend-ci.yml"
   pull_request:
     paths:
       - "frontend/**"
+      - "backend/openapi.json"
       - ".github/workflows/frontend-ci.yml"
 
 concurrency:
@@ -42,6 +44,12 @@ jobs:
 
       - name: Type-check
         run: pnpm type-check
+
+      - name: TS type drift check
+        run: |
+          pnpm gen:api-types
+          git diff --exit-code src/types/api-generated.ts \
+            || (echo "✗ api-generated.ts is out of date. Run 'make gen-api-types' and commit."; exit 1)
 
       - name: Unit tests
         run: pnpm test

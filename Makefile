@@ -3,7 +3,7 @@
 # =============================================================================
 
 .DEFAULT_GOAL := help
-.PHONY: help dev prod stop down clean logs test lint fmt backend-shell db-migrate db-reset backup obs
+.PHONY: help dev prod stop down clean logs test lint fmt backend-shell db-migrate db-reset backup obs openapi-export gen-api-types check-api-types
 
 # -----------------------------------------------------------------------------
 COMPOSE := docker compose
@@ -122,4 +122,20 @@ restore: ## Restore postgres from latest backup
 # -----------------------------------------------------------------------------
 install-hooks: ## Install pre-commit hooks
 	pre-commit install --install-hooks
+
+# -----------------------------------------------------------------------------
+# OpenAPI → TS types
+# -----------------------------------------------------------------------------
+openapi-export: ## Dump backend OpenAPI schema to backend/openapi.json
+	$(COMPOSE) exec -T backend python scripts/export_openapi.py > backend/openapi.json
+	@echo "  → backend/openapi.json"
+
+gen-api-types: openapi-export ## Regenerate frontend TS types from OpenAPI
+	$(COMPOSE) exec -T frontend pnpm gen:api-types
+	@echo "  → frontend/src/types/api-generated.ts"
+
+check-api-types: ## Fail if frontend types drift from backend OpenAPI (CI)
+	$(MAKE) gen-api-types
+	@git diff --exit-code backend/openapi.json frontend/src/types/api-generated.ts \
+		|| (echo "  ✗ API types are out of sync. Run 'make gen-api-types' and commit."; exit 1)
 	pre-commit install --hook-type commit-msg

@@ -1,31 +1,41 @@
-/** Manual mirrors of the backend Pydantic schemas. */
+/**
+ * Domain types for the axolotl API.
+ *
+ * Primitive request/response shapes come straight from the auto-generated
+ * ``api-generated.ts`` (itself produced by ``make gen-api-types`` on the
+ * backend's OpenAPI schema). This file layers a small amount of domain
+ * refinement on top:
+ *
+ *  - ``ToolCall`` / ``MessageTimings`` / ``MessageMetadata`` narrow the
+ *    backend's permissive ``dict[str, Any]`` JSON blobs to the shapes we
+ *    actually encode/decode.
+ *  - ``MessagePublic`` keeps the same field list as the generated type but
+ *    reuses our refined ``ToolCall`` and ``MessageMetadata`` types.
+ *  - ``SSEEvent*`` types describe the streaming chat protocol, which isn't
+ *    part of OpenAPI.
+ *
+ * Anything not explicitly re-exported / refined here can be pulled via
+ * ``import type { components } from "./api-generated"`` then
+ * ``components["schemas"]["Foo"]``.
+ */
 
-export interface UserPublic {
-  id: number;
-  username: string;
-  email: string;
-  avatar_url: string | null;
-  created_at: string;
-}
+import type { components } from "./api-generated";
 
-export interface TokenPair {
-  access_token: string;
-  refresh_token: string;
-  token_type: "bearer";
-  access_expires_at: string;
-  refresh_expires_at: string;
-}
+// -----------------------------------------------------------------------------
+// Straight re-exports from the generated schemas
+// -----------------------------------------------------------------------------
+export type UserPublic = components["schemas"]["UserPublic"];
+export type TokenPair = components["schemas"]["TokenPair"];
+export type SessionPublic = components["schemas"]["SessionPublic"];
+export type SessionCreate = components["schemas"]["SessionCreate"];
+export type SessionUpdate = components["schemas"]["SessionUpdate"];
+export type ToolInfo = components["schemas"]["ToolInfo"];
+export type RuntimeConfig = components["schemas"]["RuntimeConfig"];
 
-export interface SessionPublic {
-  id: string; // UUID
-  title: string;
-  persona_id: number | null;
-  model: string | null;
-  archived: boolean;
-  created_at: string;
-  updated_at: string;
-}
-
+// -----------------------------------------------------------------------------
+// Domain-refined types — OpenAPI sees these as ``dict[str, Any]`` / raw JSON
+// blobs; we know the actual shape and prefer the stricter typing client-side.
+// -----------------------------------------------------------------------------
 export type MessageRole = "user" | "assistant" | "tool" | "system";
 
 export interface ToolCall {
@@ -52,6 +62,11 @@ export interface MessageMetadata {
   [key: string]: unknown;
 }
 
+/**
+ * Same shape as ``components["schemas"]["MessagePublic"]`` but with the
+ * refined ``ToolCall`` and ``MessageMetadata`` types instead of the loose
+ * JSON blobs OpenAPI reports.
+ */
 export interface MessagePublic {
   id: string; // UUID
   role: MessageRole;
@@ -67,16 +82,9 @@ export interface SessionDetail extends SessionPublic {
   messages: MessagePublic[];
 }
 
-export interface ToolInfo {
-  name: string;
-  title: string;
-  description: string;
-  category: string;
-  icon: string | null;
-  enabled: boolean;
-}
-
-// --- SSE events --------------------------------------------------------------
+// -----------------------------------------------------------------------------
+// SSE chat stream — protocol lives outside OpenAPI, described by hand
+// -----------------------------------------------------------------------------
 export type SSEEventType =
   | "message.start"
   | "reasoning.delta"

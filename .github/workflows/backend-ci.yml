@@ -75,6 +75,16 @@ jobs:
           FERNET_KEY: test_fernet_key_at_least_32_chars_xxxxx
         run: uv run pytest
 
+      - name: OpenAPI schema drift check
+        env:
+          JWT_SECRET: test_secret_at_least_32_chars_long_xxxxx
+          FERNET_KEY: test_fernet_key_at_least_32_chars_xxxxx
+          DATABASE_URL: postgresql+asyncpg://u:p@localhost/x
+        run: |
+          uv run python scripts/export_openapi.py > /tmp/openapi.json
+          diff -u openapi.json /tmp/openapi.json \
+            || (echo "✗ backend/openapi.json is out of date. Run 'make gen-api-types' and commit."; exit 1)
+
       - name: Upload coverage
         uses: codecov/codecov-action@v5
         with:
