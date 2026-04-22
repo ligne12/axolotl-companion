@@ -104,7 +104,11 @@ export function ChatWindow({
         isSending={chat.isSending}
         disabled={!token}
       />
-      <ChatControlsDrawer open={controlsOpen} onOpenChange={setControlsOpen} />
+      <ChatControlsDrawer
+        sessionId={sessionId}
+        open={controlsOpen}
+        onOpenChange={setControlsOpen}
+      />
     </div>
   );
 }
