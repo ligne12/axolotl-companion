@@ -40,9 +40,7 @@ def _join_nullable(a: str | None, b: str | None, sep: str) -> str | None:
     return a or b
 
 
-def _merge_timings(
-    a: dict[str, Any] | None, b: dict[str, Any] | None
-) -> dict[str, Any] | None:
+def _merge_timings(a: dict[str, Any] | None, b: dict[str, Any] | None) -> dict[str, Any] | None:
     """Sum the per-round timings of two assistant metadata dicts. Produces a
     ``total_ms`` that the UI can show on the merged bubble."""
     if not a and not b:

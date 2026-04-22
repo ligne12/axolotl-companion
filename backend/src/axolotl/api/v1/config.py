@@ -40,7 +40,8 @@ async def get_runtime_config(
 
     try:
         models = await llm.list_models()
-    except Exception as exc:  # noqa: BLE001 — any network / parse error lands us in fallback
+    except Exception as exc:
+        # Any network / parse error lands us in the env fallback.
         logger.warning("config.vllm_models_unreachable", error=str(exc))
         return RuntimeConfig(version=__version__, model=configured, model_source="config")
 
