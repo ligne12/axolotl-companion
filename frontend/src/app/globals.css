@@ -274,6 +274,57 @@ body {
   border-bottom: none;
 }
 
+/* Pixel-neubru range slider — flat 2px-ink track with a square lime thumb.
+ * Used for the sampling hyperparam sliders in Settings + the chat drawer. */
+.axo-range {
+  appearance: none;
+  -webkit-appearance: none;
+  width: 100%;
+  height: 24px;
+  background: transparent;
+  cursor: pointer;
+}
+.axo-range:disabled {
+  cursor: not-allowed;
+  opacity: 0.5;
+}
+.axo-range::-webkit-slider-runnable-track {
+  height: 6px;
+  background: var(--card);
+  border: 2px solid var(--border);
+  border-radius: 2px;
+}
+.axo-range::-moz-range-track {
+  height: 6px;
+  background: var(--card);
+  border: 2px solid var(--border);
+  border-radius: 2px;
+}
+.axo-range::-webkit-slider-thumb {
+  -webkit-appearance: none;
+  width: 14px;
+  height: 14px;
+  background: var(--lime);
+  border: 2px solid var(--border);
+  border-radius: 0;
+  margin-top: -6px;
+  box-shadow: 1px 1px 0 0 var(--border);
+}
+.axo-range::-moz-range-thumb {
+  width: 14px;
+  height: 14px;
+  background: var(--lime);
+  border: 2px solid var(--border);
+  border-radius: 0;
+  box-shadow: 1px 1px 0 0 var(--border);
+}
+.axo-range:focus-visible::-webkit-slider-thumb {
+  box-shadow: 2px 2px 0 0 var(--border);
+}
+.axo-range:focus-visible::-moz-range-thumb {
+  box-shadow: 2px 2px 0 0 var(--border);
+}
+
 /* Pixel-neubru button/card: strict 2px border + offset shadow that settles
  * to the baseline on press. Usable as a utility anywhere. */
 .pixel-shadow {

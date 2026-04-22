@@ -25,8 +25,8 @@ const TABS: Tab[] = [
   { href: "/settings", label: "Profile", Icon: UserIcon },
   { href: "/settings/personas", label: "Personas", Icon: IdCard },
   { href: "/settings/tools", label: "Tools", Icon: Wrench },
-  { href: "/settings/model", label: "Model", Icon: SlidersHorizontal, soon: true },
-  { href: "/settings/reasoning", label: "Reasoning", Icon: Brain, soon: true },
+  { href: "/settings/model", label: "Model", Icon: SlidersHorizontal },
+  { href: "/settings/reasoning", label: "Reasoning", Icon: Brain },
   { href: "/settings/sandbox", label: "Sandbox", Icon: FlaskConical },
 ];
 
