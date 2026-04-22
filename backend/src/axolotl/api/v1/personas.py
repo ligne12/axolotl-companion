@@ -3,6 +3,7 @@ can attach to a session."""
 
 from __future__ import annotations
 
+import sqlalchemy as sa
 import structlog
 from fastapi import APIRouter, HTTPException, status
 from sqlmodel import col, select
@@ -37,7 +38,10 @@ async def list_personas(current_user: CurrentUser, db: DbSession) -> list[Person
     stmt = (
         select(Persona)
         .where(
-            (Persona.user_id == current_user.id) | (col(Persona.is_builtin).is_(True))
+            sa.or_(
+                col(Persona.user_id) == current_user.id,
+                col(Persona.is_builtin).is_(True),
+            )
         )
         .order_by(col(Persona.created_at).desc())
     )
