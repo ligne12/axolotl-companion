@@ -4,10 +4,9 @@
 # =============================================================================
 
 {
-	# Global options
-	email admin@axolotl.local
-	# Uncomment for prod:
-	# acme_ca https://acme-v02.api.letsencrypt.org/directory
+	# No global options — Caddy registers anonymously with Let's Encrypt
+	# (accepted since 2023) and renews on its own without notifications.
+	# Add `email you@example.com` here if you want LE renewal emails.
 }
 
 # -----------------------------------------------------------------------------
