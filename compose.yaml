@@ -180,9 +180,17 @@ services:
   # Caddy — Reverse proxy with auto TLS
   # ---------------------------------------------------------------------------
   proxy:
-    image: caddy:2-alpine
+    build:
+      context: ./docker/proxy
+    image: axolotl/proxy:latest
     container_name: axolotl-proxy
     restart: unless-stopped
+    environment:
+      # Optional public hostnames (comma-separated) Caddy serves on :443 with
+      # a real Let's Encrypt cert via DNS-01. Leave blank to keep the stack
+      # on chat.localhost / api.localhost only.
+      - APP_HOSTNAMES=${APP_HOSTNAMES:-}
+      - CF_API_TOKEN=${CF_API_TOKEN:-}
     ports:
       - "80:80"
       - "443:443"

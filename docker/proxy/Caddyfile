@@ -63,6 +63,42 @@ chat.localhost {
 }
 
 # -----------------------------------------------------------------------------
+# Public hostnames — opt-in HTTPS via Let's Encrypt + DNS-01 challenge.
+# Activated by setting APP_HOSTNAMES + CF_API_TOKEN in .env. Defaults to a
+# bogus TLD so the block is dormant when unset (other sites keep working).
+# Same routing shape as chat.localhost (NextAuth split, /api/* to backend).
+# -----------------------------------------------------------------------------
+{$APP_HOSTNAMES:lan-disabled.invalid} {
+	tls {
+		dns cloudflare {env.CF_API_TOKEN}
+	}
+
+	encode gzip zstd
+
+	header {
+		X-Content-Type-Options nosniff
+		X-Frame-Options DENY
+		Referrer-Policy strict-origin-when-cross-origin
+		Permissions-Policy "camera=(), microphone=(), geolocation=()"
+	}
+
+	@nextauth path /api/auth/signin /api/auth/signin/* /api/auth/signout /api/auth/signout/* /api/auth/callback /api/auth/callback/* /api/auth/session /api/auth/csrf /api/auth/providers /api/auth/error /api/auth/verify-request /api/auth/_log
+	handle @nextauth {
+		reverse_proxy frontend:3000
+	}
+
+	handle_path /api/* {
+		reverse_proxy backend:8001 {
+			flush_interval -1
+		}
+	}
+
+	handle {
+		reverse_proxy frontend:3000
+	}
+}
+
+# -----------------------------------------------------------------------------
 # api.localhost — legacy direct-to-backend origin, kept around for
 # server-to-server scripts. New code should use chat.localhost/api/… instead.
 # -----------------------------------------------------------------------------
