@@ -64,10 +64,15 @@ export function useChat(
   // store so non-chat surfaces (terminal footer, ambient indicators) can react.
   const setStoreSending = useChatStatus((s) => s.setIsSending);
   const setStoreTps = useChatStatus((s) => s.setTokensPerSec);
+  const setStoreTool = useChatStatus((s) => s.setCurrentTool);
+  const flagStoreError = useChatStatus((s) => s.flagError);
   useEffect(() => {
     setStoreSending(isSending);
-    if (!isSending) setStoreTps(null);
-  }, [isSending, setStoreSending, setStoreTps]);
+    if (!isSending) {
+      setStoreTps(null);
+      setStoreTool(null);
+    }
+  }, [isSending, setStoreSending, setStoreTps, setStoreTool]);
   useEffect(() => {
     if (!streaming || streaming.elapsedMs < 400) return;
     const chars = streaming.content.length + streaming.reasoning.length;
@@ -218,6 +223,7 @@ export function useChat(
           if (ev === "tool.call") {
             const d = data as ToolCallEventData;
             acc.toolCalls[d.id] = { name: d.name, arguments: d.arguments };
+            setStoreTool(d.name);
             setStreaming((prev) =>
               prev ? { ...prev, toolCalls: { ...acc.toolCalls } } : prev,
             );
@@ -231,6 +237,7 @@ export function useChat(
               result: d.result,
               duration_ms: d.duration_ms,
             };
+            setStoreTool(null);
             setStreaming((prev) =>
               prev ? { ...prev, toolCalls: { ...acc.toolCalls } } : prev,
             );
@@ -280,6 +287,7 @@ export function useChat(
           if (ev === "error") {
             const d = data as { message: string };
             setError(d.message);
+            flagStoreError();
             setStreaming(null);
           }
         };
@@ -310,6 +318,7 @@ export function useChat(
       } catch (err: unknown) {
         if ((err as { name?: string }).name !== "AbortError") {
           setError((err as Error).message);
+          flagStoreError();
         }
       } finally {
         if (tickRef.current) {
@@ -321,7 +330,7 @@ export function useChat(
         controllerRef.current = null;
       }
     },
-    [sessionId, token],
+    [sessionId, token, setStoreTool, flagStoreError],
   );
 
   const regenerate = useCallback(async () => {

@@ -2,10 +2,18 @@
 
 import { ArrowRight, Clock, MessageSquarePlus, Search, Send, Sparkles, Square, Trash2, Wrench } from "lucide-react";
 import { useTranslations } from "next-intl";
+import dynamic from "next/dynamic";
 import { useState } from "react";
 
 import { AxolotlSprite, type AxolotlMood } from "@/components/axolotl/axolotl-sprite";
 import CircularText from "@/components/reactbits/circular-text";
+
+// Same dynamic-import pattern as the home hero: heavy Three.js bundle
+// stays out of the initial paint, SVG sprite renders during SSR.
+const Axolotl3D = dynamic(
+  () => import("@/components/axolotl/axolotl-3d").then((m) => m.Axolotl3D),
+  { ssr: false, loading: () => <AxolotlSprite mood="idle" size={140} /> },
+);
 import ClickSpark from "@/components/reactbits/click-spark";
 import DecryptedText from "@/components/reactbits/decrypted-text";
 import Magnet from "@/components/reactbits/magnet";
@@ -618,28 +626,36 @@ function SectionChat() {
 /* §11 — Axolotl mascot                                                */
 /* ------------------------------------------------------------------ */
 
+type MascotVariant = "3d" | "sprite";
+
+const MOODS: AxolotlMood[] = [
+  "idle",
+  "listening",
+  "thinking",
+  "searching",
+  "typing",
+  "happy",
+  "confused",
+];
+
 function SectionMascot() {
   const [mood, setMood] = useState<AxolotlMood>("idle");
-  const moods: AxolotlMood[] = [
-    "idle",
-    "listening",
-    "thinking",
-    "searching",
-    "typing",
-    "happy",
-    "confused",
-  ];
+  const [variant, setVariant] = useState<MascotVariant>("3d");
   return (
     <Section id="mascot" title="Axolotl mascot">
-      <div className="flex flex-col items-start gap-6 md:flex-row md:items-center">
-        <div className="relative">
+      <div className="flex flex-col items-start gap-8 md:flex-row md:items-center md:gap-10">
+        <div className="relative shrink-0">
           <ClickSpark sparkColor="#baff39" sparkCount={12} sparkRadius={22} duration={500}>
             <button
               onClick={() => setMood("happy")}
-              className="rounded-2xl border-2 border-border bg-card p-3 shadow-[3px_3px_0_0_var(--border)]"
+              className="rounded-2xl border-2 border-border bg-card p-3 shadow-[3px_3px_0_0_var(--border)] transition-[transform,box-shadow] duration-100 active:translate-x-[2px] active:translate-y-[2px] active:shadow-[1px_1px_0_0_var(--border)]"
               aria-label="Poke"
             >
-              <AxolotlSprite mood={mood} size={140} />
+              {variant === "3d" ? (
+                <Axolotl3D mood={mood} size={140} />
+              ) : (
+                <AxolotlSprite mood={mood} size={140} />
+              )}
             </button>
           </ClickSpark>
           <div className="pointer-events-none absolute inset-0 -m-6 z-10 flex items-center justify-center">
@@ -651,19 +667,68 @@ function SectionMascot() {
             />
           </div>
         </div>
-        <div className="flex flex-wrap gap-2">
-          {moods.map((m) => (
-            <button
-              key={m}
-              onClick={() => setMood(m)}
-              className={cn(
-                SECONDARY,
-                mood === m && "shadow-[3px_3px_0_0_var(--lime)]",
-              )}
+
+        <div className="min-w-0 flex-1 space-y-4">
+          {/* 3D / Sprite variant toggle — segmented control like the
+              ThemeToggle so the two renderings can be A/B'd inline. */}
+          <div className="space-y-1.5">
+            <p className="font-pixel text-[10px] uppercase tracking-[0.14em] text-muted-foreground">
+              Renderer
+            </p>
+            <div
+              role="radiogroup"
+              aria-label="Mascot renderer"
+              className="inline-flex items-center border-2 border-border bg-card p-0.5"
             >
-              {m}
-            </button>
-          ))}
+              {(["3d", "sprite"] as MascotVariant[]).map((v) => {
+                const active = variant === v;
+                return (
+                  <button
+                    key={v}
+                    type="button"
+                    role="radio"
+                    aria-checked={active}
+                    onClick={() => setVariant(v)}
+                    className={cn(
+                      "inline-flex h-7 min-w-[3.5rem] items-center justify-center px-2.5 font-pixel text-[10px] uppercase tracking-[0.14em] transition-colors",
+                      active
+                        ? "bg-[color:var(--lime)] text-[color:var(--lime-foreground)]"
+                        : "text-muted-foreground hover:text-foreground",
+                    )}
+                  >
+                    {v === "3d" ? "3D · GLB" : "Sprite · SVG"}
+                  </button>
+                );
+              })}
+            </div>
+            <p className="text-[11px] leading-relaxed text-muted-foreground">
+              The 3D renderer drives a Blender-baked GLB through Three.js
+              with seven NLA clips and 300 ms crossfade between moods.
+              Pixel-art emblems (thought bubble, magnifier, hearts, ?, ! )
+              overlay the canvas to read state at a glance. The SVG
+              sprite is the SSR + reduced-motion fallback.
+            </p>
+          </div>
+
+          <div className="space-y-1.5">
+            <p className="font-pixel text-[10px] uppercase tracking-[0.14em] text-muted-foreground">
+              Mood
+            </p>
+            <div className="flex flex-wrap gap-2">
+              {MOODS.map((m) => (
+                <button
+                  key={m}
+                  onClick={() => setMood(m)}
+                  className={cn(
+                    SECONDARY,
+                    mood === m && "shadow-[3px_3px_0_0_var(--lime)]",
+                  )}
+                >
+                  {m}
+                </button>
+              ))}
+            </div>
+          </div>
         </div>
       </div>
     </Section>

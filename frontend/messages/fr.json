@@ -64,6 +64,30 @@
     },
     "tag": "Réglages"
   },
+  "home": {
+    "hi": "Salut {name}",
+    "title": "Votre <em>axolotl</em> écoute.",
+    "greetings": [
+      "Prêt quand tu l'es.",
+      "À quoi tu penses aujourd'hui ?",
+      "On creuse ça ensemble ?",
+      "Bulles prêtes. On explore quoi ?",
+      "J'ai entraîné mon raisonnement pendant ton absence."
+    ],
+    "newConversation": "Nouvelle conversation",
+    "resumeLast": "Reprendre la dernière",
+    "poke": "Pousse l'axolotl",
+    "fallbackName": "ami",
+    "errCreate": "Impossible de créer une session",
+    "recent": "Récentes",
+    "empty": "Aucune conversation pour l'instant — démarrez-en une depuis le hero ci-dessus.",
+    "relativeTime": {
+      "justNow": "à l'instant",
+      "minutes": "il y a {count, plural, one {# min} other {# min}}",
+      "hours": "il y a {count, plural, one {# h} other {# h}}",
+      "days": "il y a {count, plural, one {# j} other {# j}}"
+    }
+  },
   "auth": {
     "tagSignIn": "Connexion",
     "tagRegister": "Inscription",

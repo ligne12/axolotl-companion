@@ -2,12 +2,20 @@
 
 import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { MessageSquarePlus, Sparkles } from "lucide-react";
+import { useTranslations } from "next-intl";
+import dynamic from "next/dynamic";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { useEffect, useState } from "react";
 import { toast } from "sonner";
 
 import { AxolotlSprite, type AxolotlMood } from "@/components/axolotl/axolotl-sprite";
+
+// Three.js bundle (~150 KB gz) is heavy; defer it from the initial paint.
+const Axolotl3D = dynamic(
+  () => import("@/components/axolotl/axolotl-3d").then((m) => m.Axolotl3D),
+  { ssr: false, loading: () => <AxolotlSprite mood="idle" size={150} /> },
+);
 import CircularText from "@/components/reactbits/circular-text";
 import ClickSpark from "@/components/reactbits/click-spark";
 import Magnet from "@/components/reactbits/magnet";
@@ -17,14 +25,6 @@ import { useApi } from "@/hooks/use-api";
 import { cn } from "@/lib/utils";
 import { useChatStatus } from "@/stores/chat-status";
 import type { SessionPublic } from "@/types/api";
-
-const GREETINGS = [
-  "Ready when you are.",
-  "What's on your mind today?",
-  "Let's figure something out together.",
-  "Bubbles are up. What shall we explore?",
-  "I've been practising my reasoning while you were away.",
-];
 
 export function HomeHero({
   name,
@@ -38,63 +38,56 @@ export function HomeHero({
   const router = useRouter();
   const api = useApi();
   const qc = useQueryClient();
-  const [mood, setMood] = useState<AxolotlMood>("idle");
+  const t = useTranslations("home");
+  const tn = useTranslations("nav");
+  // ``useTranslations.raw`` returns the array under "home.greetings" as-is
+  // (next-intl array support) so TextType still gets a list of strings.
+  const greetings = (t.raw("greetings") as string[]) ?? [];
   const [pokedUntil, setPokedUntil] = useState<number>(0);
+  const [justFinishedUntil, setJustFinishedUntil] = useState<number>(0);
+  const [, forceTick] = useState(0);
   const isSending = useChatStatus((s) => s.isSending);
+  const tokensPerSec = useChatStatus((s) => s.tokensPerSec);
+  const currentTool = useChatStatus((s) => s.currentTool);
+  const lastError = useChatStatus((s) => s.lastError);
 
-  // Reactive mood: mirrors the chat-status store + an idle timer.
-  //  - streaming → curious
-  //  - just finished streaming → happy for 3s
-  //  - idle for >60s → sleepy
-  //  - else gentle idle/curious cycle every 6.5s
+  // Stamp a 3s "happy" window each time a stream completes.
   useEffect(() => {
-    const wasSending = mood === "curious";
-    if (isSending) {
-      setMood("curious");
-      return;
-    }
-    if (wasSending) {
-      setMood("happy");
-      const t = setTimeout(() => setMood("idle"), 3000);
-      return () => clearTimeout(t);
-    }
-  }, [isSending]); // eslint-disable-line react-hooks/exhaustive-deps
+    if (!isSending) return;
+    return () => setJustFinishedUntil(Date.now() + 3000);
+  }, [isSending]);
 
+  // Re-render when the timed windows (poke, justFinished) elapse so the
+  // derived `mood` below can roll back to idle.
   useEffect(() => {
-    if (isSending) return;
-    const cycle = setInterval(() => {
-      const now = Date.now();
-      if (now < pokedUntil) return;
-      setMood((m) => {
-        if (m === "happy") return m;
-        const pool: AxolotlMood[] = ["idle", "curious"];
-        const others = pool.filter((x) => x !== m);
-        return others[Math.floor(Math.random() * others.length)]!;
-      });
-    }, 6500);
+    const target = Math.max(pokedUntil, justFinishedUntil);
+    if (target <= Date.now()) return;
+    const t = setTimeout(() => forceTick((n) => n + 1), target - Date.now());
+    return () => clearTimeout(t);
+  }, [pokedUntil, justFinishedUntil]);
 
-    // Long-idle → sleepy after 60s without streaming or poke
-    const sleepTimer = setTimeout(() => {
-      if (!isSending && Date.now() >= pokedUntil) setMood("sleepy");
-    }, 60_000);
-
-    return () => {
-      clearInterval(cycle);
-      clearTimeout(sleepTimer);
-    };
-  }, [isSending, pokedUntil]);
+  const mood: AxolotlMood = (() => {
+    const now = Date.now();
+    if (lastError) return "confused";
+    if (now < pokedUntil) return "happy";
+    if (currentTool === "web_search") return "searching";
+    if (isSending && tokensPerSec !== null && tokensPerSec > 0) return "typing";
+    if (isSending) return "thinking";
+    if (now < justFinishedUntil) return "happy";
+    return "idle";
+  })();
 
   const createSession = useMutation({
     mutationFn: () =>
       api<SessionPublic>("/v1/sessions", {
         method: "POST",
-        body: { title: "New conversation" },
+        body: { title: tn("newConversation") },
       }),
     onSuccess: (s) => {
       qc.invalidateQueries({ queryKey: ["sessions"] });
       router.push(`/chat/${s.id}`);
     },
-    onError: () => toast.error("Could not create a session"),
+    onError: () => toast.error(t("errCreate")),
   });
 
   return (
@@ -117,14 +110,11 @@ export function HomeHero({
           <ClickSpark sparkColor="#baff39" sparkCount={14} sparkRadius={26} duration={500}>
             <button
               type="button"
-              onClick={() => {
-                setMood("happy");
-                setPokedUntil(Date.now() + 3000);
-              }}
-              aria-label="Poke the axolotl"
+              onClick={() => setPokedUntil(Date.now() + 3000)}
+              aria-label={t("poke")}
               className="relative z-10 rounded-2xl border-2 border-border bg-card p-3 shadow-[3px_3px_0_0_var(--border)] transition-[transform,box-shadow] duration-100 active:translate-x-[2px] active:translate-y-[2px] active:shadow-[1px_1px_0_0_var(--border)]"
             >
-              <AxolotlSprite mood={mood} size={150} />
+              <Axolotl3D mood={mood} size={150} />
             </button>
           </ClickSpark>
           <div className="pointer-events-none absolute inset-0 -m-6 z-20 flex items-center justify-center">
@@ -140,17 +130,19 @@ export function HomeHero({
         <div className="flex min-w-0 flex-1 max-w-xl flex-col gap-4 text-left">
           <span className="inline-flex w-fit items-center gap-2 border-2 border-border bg-card px-2.5 py-1 font-pixel text-[12px] uppercase tracking-[0.14em]">
             <span className="size-2 bg-[color:var(--lime)]" />
-            Hi {name}
+            {t("hi", { name })}
           </span>
 
           <h1 className="font-display text-4xl font-bold uppercase leading-[1.05] md:text-5xl">
-            Your <span className="italic">axolotl</span> is listening.
+            {t.rich("title", {
+              em: (chunks) => <span className="italic">{chunks}</span>,
+            })}
           </h1>
 
           <TextType
             as="p"
             className="min-h-[3rem] max-w-md text-balance leading-snug text-muted-foreground"
-            text={GREETINGS}
+            text={greetings}
             typingSpeed={38}
             deletingSpeed={18}
             pauseDuration={2600}
@@ -173,7 +165,7 @@ export function HomeHero({
                 )}
               >
                 <MessageSquarePlus className="size-4" />
-                New conversation
+                {t("newConversation")}
               </button>
             </Magnet>
 
@@ -189,7 +181,7 @@ export function HomeHero({
                   )}
                 >
                   <Sparkles className="size-4" />
-                  Resume last
+                  {t("resumeLast")}
                 </Link>
               </Magnet>
             )}

@@ -109,10 +109,12 @@ test-results/
 # =============================================================================
 # Docker & infrastructure
 # =============================================================================
-# Volumes persisted locally (DB, Redis, models)
+# Volumes persisted locally (DB, Redis, vLLM HuggingFace cache)
 data/
-models/
 volumes/
+# Anchor the vLLM model cache to the repo root so we don't shadow
+# ``frontend/public/models/*.glb`` (the 3D mascot ships in the bundle).
+/models/
 
 # =============================================================================
 # Observability

@@ -441,3 +441,29 @@ body {
   transform: translate(2px, 2px);
   box-shadow: var(--shadow-pixel-sm);
 }
+
+/* Mood emblem animations for the 3D mascot — small pixel-art badges that
+ * pop above/around the head depending on the current chat state. */
+@keyframes mood-pop {
+  0%   { transform: scale(0) rotate(-8deg); opacity: 0; }
+  60%  { transform: scale(1.15) rotate(2deg); opacity: 1; }
+  100% { transform: scale(1) rotate(0deg); opacity: 1; }
+}
+@keyframes mood-rise {
+  0%   { transform: translateY(0) scale(0.6); opacity: 0; }
+  20%  { opacity: 1; }
+  100% { transform: translateY(-30px) scale(1); opacity: 0; }
+}
+@keyframes mood-bob {
+  0%, 100% { transform: translateY(0); }
+  50%      { transform: translateY(-3px); }
+}
+@keyframes mood-dots {
+  0%, 20%   { opacity: 0.2; }
+  40%       { opacity: 1; }
+  60%, 100% { opacity: 0.2; }
+}
+@keyframes mood-listen {
+  0%, 100% { transform: translateY(0) scaleY(1); }
+  50%      { transform: translateY(-2px) scaleY(1.15); }
+}

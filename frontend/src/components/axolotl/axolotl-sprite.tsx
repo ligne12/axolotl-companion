@@ -4,7 +4,14 @@ import { useEffect, useState } from "react";
 
 import { cn } from "@/lib/utils";
 
-export type AxolotlMood = "idle" | "happy" | "sleepy" | "curious";
+export type AxolotlMood =
+  | "idle"
+  | "listening"
+  | "thinking"
+  | "searching"
+  | "typing"
+  | "happy"
+  | "confused";
 
 /**
  * Pixel-art axolotl rendered as inline SVG. A 16x16 pixel grid is scaled up
@@ -45,8 +52,10 @@ export function AxolotlSprite({
   const mouth = "#c44082";
   const cheek = "#ff82ae";
 
-  const isSleepy = mood === "sleepy";
-  const isHappy = mood === "happy";
+  // The 2D SVG only models a coarse expression — collapse the 7 moods to the
+  // two visual states it can represent. Stays a valid reduced-motion fallback.
+  const isSleepy = mood === "thinking" || mood === "confused";
+  const isHappy = mood === "happy" || mood === "listening";
 
   return (
     <div

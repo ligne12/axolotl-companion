@@ -64,6 +64,30 @@
     },
     "tag": "Settings"
   },
+  "home": {
+    "hi": "Hi {name}",
+    "title": "Your <em>axolotl</em> is listening.",
+    "greetings": [
+      "Ready when you are.",
+      "What's on your mind today?",
+      "Let's figure something out together.",
+      "Bubbles are up. What shall we explore?",
+      "I've been practising my reasoning while you were away."
+    ],
+    "newConversation": "New conversation",
+    "resumeLast": "Resume last",
+    "poke": "Poke the axolotl",
+    "fallbackName": "friend",
+    "errCreate": "Could not create a session",
+    "recent": "Recent",
+    "empty": "No conversations yet — start one from the hero above.",
+    "relativeTime": {
+      "justNow": "just now",
+      "minutes": "{count, plural, one {# min ago} other {# min ago}}",
+      "hours": "{count, plural, one {# h ago} other {# h ago}}",
+      "days": "{count, plural, one {# d ago} other {# d ago}}"
+    }
+  },
   "auth": {
     "tagSignIn": "Sign in",
     "tagRegister": "Registration",
