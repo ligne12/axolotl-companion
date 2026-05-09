@@ -4,13 +4,19 @@
  * Service worker — Serwist v9 (App Router convention).
  *
  * Strategy:
- *  - Precache the Next.js build manifest emitted via __SW_MANIFEST.
- *  - Use Serwist's defaultCache for static assets (Google Fonts, images,
- *    JS/CSS chunks) — sane NetworkFirst / CacheFirst defaults.
- *  - Bypass the cache entirely for /api/* — auth tokens, SSE streams and
- *    chat data must always hit the backend.
- *  - skipWaiting + clientsClaim so a new build takes effect on the next
- *    page load without a hard refresh.
+ *  - Precache only immutable, hash-keyed assets (``/_next/static/*``,
+ *    icons, fonts). HTML / page shells are deliberately *not*
+ *    precached — they encode auth-driven redirects, and a stale
+ *    precache trapped users in a navigation loop after every rebuild
+ *    until they nuked the browser cache. Live navigations always go
+ *    to the network so middleware + Auth.js can arbitrate against the
+ *    current JWT secret.
+ *  - ``/api/*`` is NetworkOnly (auth, SSE, chat data — never cache).
+ *  - Everything else falls through to Serwist's defaultCache (Google
+ *    Fonts, images, JS / CSS chunks).
+ *  - skipWaiting + clientsClaim so a new build takes over on the next
+ *    page load without a hard refresh; Serwist's PrecacheController
+ *    cleans outdated precaches on activation.
  *
  * Built with `make dev` via the @serwist/next wrapper (next.config.ts).
  */
@@ -27,17 +33,42 @@ declare global {
 
 declare const self: ServiceWorkerGlobalScope;
 
+/**
+ * Keep precache to immutable assets only. HTML pages — including the
+ * App Router's page shells — get filtered out so auth-aware navigation
+ * never serves a stale redirect chain.
+ */
+const precacheEntries = (self.__SW_MANIFEST ?? []).filter((entry) => {
+  const url = typeof entry === "string" ? entry : entry.url;
+  return (
+    url.startsWith("/_next/static/") ||
+    url.startsWith("/icons/") ||
+    /\.(?:png|jpe?g|gif|svg|webp|avif|ico|woff2?|ttf|otf)$/i.test(url)
+  );
+});
+
 const apiBypass: RuntimeCaching = {
   matcher: ({ url }) => url.pathname.startsWith("/api/"),
   handler: new NetworkOnly(),
 };
 
+/**
+ * Page navigations always hit the network. Without this, a stale SW
+ * could serve a cached redirect from before the last rebuild — the
+ * exact loop we used to see when the JWT secret rotated between
+ * deploys and every cached ``/home`` shell pointed back at ``/login``.
+ */
+const navigationOnly: RuntimeCaching = {
+  matcher: ({ request }) => request.mode === "navigate",
+  handler: new NetworkOnly(),
+};
+
 const serwist = new Serwist({
-  precacheEntries: self.__SW_MANIFEST,
+  precacheEntries,
   skipWaiting: true,
   clientsClaim: true,
   navigationPreload: true,
-  runtimeCaching: [apiBypass, ...defaultCache],
+  runtimeCaching: [apiBypass, navigationOnly, ...defaultCache],
 });
 
 serwist.addEventListeners();

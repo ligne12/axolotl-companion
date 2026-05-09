@@ -12,7 +12,11 @@ const withSerwist = withSerwistInit({
   swSrc: "src/app/sw.ts",
   swDest: "public/sw.js",
   disable: process.env.NODE_ENV === "development",
-  cacheOnNavigation: true,
+  // ``cacheOnNavigation`` would re-cache every page on visit — we want
+  // navigations to always hit the network so middleware + Auth.js can
+  // arbitrate against the current JWT secret (see sw.ts for the loop
+  // story).
+  cacheOnNavigation: false,
   reloadOnOnline: true,
 });
 
