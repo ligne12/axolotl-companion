@@ -103,7 +103,7 @@ export function ParamSlider({
                 }
               }}
               autoFocus
-              className="w-20 border-2 border-border bg-card px-2 py-0.5 text-right font-pixel text-[11px] uppercase tracking-[0.12em] outline-none focus:shadow-[2px_2px_0_0_var(--lime)]"
+              className="w-24 border-2 border-border bg-card px-2 py-0.5 text-right font-mono text-xs tabular-nums outline-none focus:shadow-[2px_2px_0_0_var(--lime)]"
             />
           ) : (
             <button
@@ -116,13 +116,13 @@ export function ParamSlider({
               disabled={disabled}
               aria-label={`Edit ${field.label.toLowerCase()} value`}
               className={cn(
-                "border-2 border-border bg-card px-2 py-0.5 font-pixel text-[11px] uppercase tracking-[0.12em] transition-[transform,box-shadow] duration-100 hover:shadow-[1px_1px_0_0_var(--border)] active:translate-x-[1px] active:translate-y-[1px] active:shadow-none disabled:cursor-not-allowed disabled:opacity-50",
+                "border-2 border-border bg-card px-2 py-0.5 font-mono text-xs tabular-nums transition-[transform,box-shadow] duration-100 hover:shadow-[1px_1px_0_0_var(--border)] active:translate-x-[1px] active:translate-y-[1px] active:shadow-none disabled:cursor-not-allowed disabled:opacity-50",
                 overridden ? "text-foreground" : "text-muted-foreground",
               )}
             >
               {field.format(displayed)}
               {!overridden && (
-                <span className="ml-1.5 text-[9px] tracking-[0.2em] text-muted-foreground">
+                <span className="ml-1.5 font-pixel text-[9px] uppercase tracking-[0.2em] text-muted-foreground">
                   {defaultLabel}
                 </span>
               )}
