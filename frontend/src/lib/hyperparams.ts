@@ -21,10 +21,14 @@ export const SAMPLING_DEFAULTS = {
 
 export type SamplingKey = Exclude<keyof HyperParams, "enable_thinking">;
 
+/**
+ * Static slider constraints. Label / description are looked up at render
+ * time from ``messages/<locale>.json`` under the ``params.<key>`` namespace
+ * — keeping the human copy out of this file means a translation update
+ * doesn't touch any TS code.
+ */
 export type SamplingFieldMeta = {
   key: SamplingKey;
-  label: string;
-  description: string;
   min: number;
   max: number;
   step: number;
@@ -35,69 +39,13 @@ const fmt = (digits: number) => (v: number) => v.toFixed(digits);
 const fmtInt = (v: number) => Math.round(v).toString();
 
 export const SAMPLING_FIELDS: SamplingFieldMeta[] = [
-  {
-    key: "temperature",
-    label: "Temperature",
-    description: "Higher = more creative / random. 0 is deterministic.",
-    min: 0,
-    max: 2,
-    step: 0.05,
-    format: fmt(2),
-  },
-  {
-    key: "top_p",
-    label: "Top-p",
-    description: "Nucleus sampling cutoff. Keeps the smallest set of tokens whose probability sums to this.",
-    min: 0,
-    max: 1,
-    step: 0.01,
-    format: fmt(2),
-  },
-  {
-    key: "top_k",
-    label: "Top-k",
-    description: "Consider only the k most likely tokens each step.",
-    min: 1,
-    max: 500,
-    step: 1,
-    format: fmtInt,
-  },
-  {
-    key: "min_p",
-    label: "Min-p",
-    description: "Drop tokens whose probability is below this fraction of the top token.",
-    min: 0,
-    max: 1,
-    step: 0.01,
-    format: fmt(2),
-  },
-  {
-    key: "presence_penalty",
-    label: "Presence penalty",
-    description: "Positive values push the model toward new topics rather than repeating.",
-    min: -2,
-    max: 2,
-    step: 0.05,
-    format: fmt(2),
-  },
-  {
-    key: "repetition_penalty",
-    label: "Repetition penalty",
-    description: "Scales down tokens that have already appeared. 1.0 disables.",
-    min: 0.5,
-    max: 2,
-    step: 0.05,
-    format: fmt(2),
-  },
-  {
-    key: "max_tokens",
-    label: "Max tokens",
-    description: "Cap the length of the model's reply.",
-    min: 128,
-    max: 32768,
-    step: 128,
-    format: fmtInt,
-  },
+  { key: "temperature", min: 0, max: 2, step: 0.05, format: fmt(2) },
+  { key: "top_p", min: 0, max: 1, step: 0.01, format: fmt(2) },
+  { key: "top_k", min: 1, max: 500, step: 1, format: fmtInt },
+  { key: "min_p", min: 0, max: 1, step: 0.01, format: fmt(2) },
+  { key: "presence_penalty", min: -2, max: 2, step: 0.05, format: fmt(2) },
+  { key: "repetition_penalty", min: 0.5, max: 2, step: 0.05, format: fmt(2) },
+  { key: "max_tokens", min: 128, max: 32768, step: 128, format: fmtInt },
 ];
 
 /** Strip undefined/null keys so the backend only stores set overrides. */

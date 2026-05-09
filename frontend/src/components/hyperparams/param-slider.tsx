@@ -1,6 +1,7 @@
 "use client";
 
 import { Minus, Plus, RotateCcw } from "lucide-react";
+import { useTranslations } from "next-intl";
 import { useEffect, useRef, useState } from "react";
 
 import { useHaptic } from "@/hooks/use-haptic";
@@ -45,6 +46,9 @@ export function ParamSlider({
   const displayed = overridden ? (value as number) : fallback;
   const canClear = overridden && onClear !== undefined;
   const haptic = useHaptic();
+  const tp = useTranslations("params");
+  const label = tp(`${field.key}.label`);
+  const description = tp(`${field.key}.description`);
 
   const [editing, setEditing] = useState(false);
   const [draft, setDraft] = useState<string>(() => String(displayed));
@@ -79,7 +83,7 @@ export function ParamSlider({
     <div className="space-y-1.5">
       <div className="flex items-center justify-between gap-3">
         <label className="text-xs font-semibold uppercase tracking-wider">
-          {field.label}
+          {label}
         </label>
         <div className="flex items-center gap-2">
           {editing ? (
@@ -114,7 +118,7 @@ export function ParamSlider({
                 requestAnimationFrame(() => inputRef.current?.select());
               }}
               disabled={disabled}
-              aria-label={`Edit ${field.label.toLowerCase()} value`}
+              aria-label={`Edit ${label.toLowerCase()} value`}
               className={cn(
                 "border-2 border-border bg-card px-2 py-0.5 font-mono text-xs tabular-nums transition-[transform,box-shadow] duration-100 hover:shadow-[1px_1px_0_0_var(--border)] active:translate-x-[1px] active:translate-y-[1px] active:shadow-none disabled:cursor-not-allowed disabled:opacity-50",
                 overridden ? "text-foreground" : "text-muted-foreground",
@@ -136,7 +140,7 @@ export function ParamSlider({
                 onClear();
               }}
               disabled={disabled}
-              aria-label={`Reset ${field.label.toLowerCase()} to default`}
+              aria-label={`Reset ${label.toLowerCase()} to default`}
               className="inline-flex size-9 items-center justify-center text-muted-foreground transition-colors hover:text-foreground active:scale-90 disabled:opacity-40 md:size-auto"
             >
               <RotateCcw className="size-3.5" />
@@ -150,7 +154,7 @@ export function ParamSlider({
       <div className="flex items-center gap-2">
         <Stepper
           icon={Minus}
-          aria-label={`Decrement ${field.label.toLowerCase()}`}
+          aria-label={`Decrement ${label.toLowerCase()}`}
           onClick={() => stepBy(-field.step)}
           disabled={disabled || displayed <= field.min}
         />
@@ -166,14 +170,14 @@ export function ParamSlider({
         />
         <Stepper
           icon={Plus}
-          aria-label={`Increment ${field.label.toLowerCase()}`}
+          aria-label={`Increment ${label.toLowerCase()}`}
           onClick={() => stepBy(field.step)}
           disabled={disabled || displayed >= field.max}
         />
       </div>
 
       <p className="text-[11px] leading-relaxed text-muted-foreground">
-        {field.description}
+        {description}
       </p>
     </div>
   );

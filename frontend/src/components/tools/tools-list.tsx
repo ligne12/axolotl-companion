@@ -148,14 +148,23 @@ export function ToolsList({ compact = false }: { compact?: boolean }) {
                         compact ? "text-sm" : "text-base",
                       )}
                     >
-                      {tool.title}
+                      {/* If a translation key exists for this tool, use it;
+                          otherwise fall back to the backend's English copy
+                          so a newly-added tool keeps showing something. */}
+                      {t.has(`builtIns.${tool.name}.title`)
+                        ? t(`builtIns.${tool.name}.title`)
+                        : tool.title}
                     </h3>
                     <span className="border-2 border-border bg-background px-1.5 py-0.5 font-pixel text-[11px] uppercase tracking-wider text-muted-foreground">
-                      {tool.category}
+                      {t.has(`categories.${tool.category}`)
+                        ? t(`categories.${tool.category}`)
+                        : tool.category}
                     </span>
                   </div>
                   <p className={cn("text-muted-foreground", compact ? "text-xs" : "text-sm")}>
-                    {tool.description}
+                    {t.has(`builtIns.${tool.name}.description`)
+                      ? t(`builtIns.${tool.name}.description`)
+                      : tool.description}
                   </p>
                 </div>
                 <ToolToggle

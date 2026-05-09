@@ -3,6 +3,7 @@
 import * as Dialog from "@radix-ui/react-dialog";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { ChevronRight, IdCard, RotateCcw, Save, X } from "lucide-react";
+import { useTranslations } from "next-intl";
 import Link from "next/link";
 import { useEffect, useMemo, useState, type ReactNode } from "react";
 import { toast } from "sonner";
@@ -64,6 +65,8 @@ export function ChatControlsDrawer({
   const api = useApi();
   const qc = useQueryClient();
   const haptic = useHaptic();
+  const t = useTranslations("chat.drawer");
+  const tc = useTranslations("common");
 
   const sessionQuery = useQuery({
     queryKey: ["session", sessionId],
@@ -118,11 +121,11 @@ export function ChatControlsDrawer({
       qc.setQueryData<SessionPublic>(["session", sessionId], next);
       qc.invalidateQueries({ queryKey: ["sessions"] });
       haptic("success");
-      toast.success("Session controls updated");
+      toast.success(t("savedToast"));
     },
     onError: () => {
       haptic("error");
-      toast.error("Could not update session");
+      toast.error(t("errToast"));
     },
   });
 
@@ -165,13 +168,15 @@ export function ChatControlsDrawer({
           <div className="flex items-center justify-between border-b-2 border-border px-4 py-3">
             <Dialog.Title asChild>
               <h2 className="font-display text-lg font-bold">
-                Chat <span className="italic">controls</span>
+                {t.rich("title", {
+                  em: (chunks) => <span className="italic">{chunks}</span>,
+                })}
               </h2>
             </Dialog.Title>
             <Dialog.Close asChild>
               <button
                 type="button"
-                aria-label="Close"
+                aria-label={tc("close")}
                 className="inline-flex size-9 items-center justify-center text-muted-foreground transition-[transform,colors] duration-75 hover:text-destructive active:scale-90"
               >
                 <X className="size-5" />
@@ -180,7 +185,7 @@ export function ChatControlsDrawer({
           </div>
 
           <div className="flex-1 overflow-y-auto px-4 py-3">
-            <DrawerSection title="Persona" defaultOpen>
+            <DrawerSection title={t("personaSection")} defaultOpen>
               <PersonaList
                 personas={personasQuery.data ?? []}
                 selected={draft?.persona_id ?? null}
@@ -189,22 +194,21 @@ export function ChatControlsDrawer({
               />
             </DrawerSection>
 
-            <DrawerSection title="Model">
+            <DrawerSection title={t("modelSection")}>
               <input
                 type="text"
                 value={draft?.model ?? ""}
                 onChange={(e) => setModel(e.target.value)}
-                placeholder="server default"
+                placeholder={t("modelPlaceholder")}
                 disabled={!draft}
                 className="w-full border-2 border-border bg-card px-3 py-2 text-sm outline-none transition-[box-shadow] duration-100 focus:shadow-[2px_2px_0_0_var(--lime)] placeholder:text-muted-foreground disabled:cursor-not-allowed disabled:opacity-60"
               />
               <p className="mt-2 text-[11px] leading-relaxed text-muted-foreground">
-                Blank = whatever vLLM is serving. Override per session if you point at
-                a second model.
+                {t("modelHelp")}
               </p>
             </DrawerSection>
 
-            <DrawerSection title="Reasoning" defaultOpen>
+            <DrawerSection title={t("reasoningSection")} defaultOpen>
               <ReasoningRadios
                 value={thinkingChoice(draft?.overrides.enable_thinking)}
                 userDefault={userDefaults.enable_thinking}
@@ -218,7 +222,7 @@ export function ChatControlsDrawer({
             </DrawerSection>
 
             <DrawerSection
-              title="Sampling"
+              title={t("samplingSection")}
               action={
                 <button
                   type="button"
@@ -231,7 +235,7 @@ export function ChatControlsDrawer({
                   className="inline-flex items-center gap-1 font-pixel text-[10px] uppercase tracking-[0.14em] text-muted-foreground transition-colors hover:text-foreground disabled:opacity-40"
                 >
                   <RotateCcw className="size-3" />
-                  Reset
+                  {t("reset")}
                 </button>
               }
             >
@@ -252,29 +256,29 @@ export function ChatControlsDrawer({
                           ? (userValue as number)
                           : (SAMPLING_DEFAULTS[field.key] as number)
                       }
-                      defaultLabel={hasUserOverride ? "your default" : "server"}
+                      defaultLabel={hasUserOverride ? t("userDefaultLabel") : t("serverDefaultLabel")}
                       disabled={!draft}
                     />
                   );
                 })}
               </div>
               <p className="pt-3 text-[11px] leading-relaxed text-muted-foreground">
-                Overrides apply to this session only.{" "}
+                {t("samplingHelp")}{" "}
                 <Link
                   href="/settings/model"
                   className="underline underline-offset-2"
                   onClick={() => onOpenChange(false)}
                 >
-                  Edit your defaults →
+                  {t("editDefaults")}
                 </Link>
               </p>
             </DrawerSection>
 
             <DrawerSection
-              title="Tools"
+              title={t("toolsSection")}
               badge={
                 <span className="border-2 border-border bg-background px-1.5 py-0.5 font-pixel text-[9px] uppercase tracking-widest text-muted-foreground">
-                  user-level
+                  {t("toolsBadge")}
                 </span>
               }
             >
@@ -284,7 +288,7 @@ export function ChatControlsDrawer({
 
           <div className="flex items-center justify-between gap-3 border-t-2 border-border px-4 py-3">
             <span className="font-pixel text-[10px] uppercase tracking-[0.14em] text-muted-foreground">
-              ⌘, to toggle
+              {t("toggleHint")}
             </span>
             <button
               type="button"
@@ -299,7 +303,7 @@ export function ChatControlsDrawer({
               )}
             >
               <Save className="size-3.5" />
-              {apply.isPending ? "Applying…" : "Apply"}
+              {apply.isPending ? t("applying") : t("apply")}
             </button>
           </div>
         </Dialog.Content>
@@ -355,6 +359,7 @@ function PersonaList({
   onChange: (id: number | null) => void;
   disabled?: boolean;
 }) {
+  const t = useTranslations("chat.drawer");
   return (
     <div className="space-y-1.5">
       <PersonaRow
@@ -369,7 +374,7 @@ function PersonaList({
             selected === null ? "bg-[color:var(--lime)]" : "bg-background",
           )}
         />
-        <span className="flex-1 truncate">None</span>
+        <span className="flex-1 truncate">{t("personaNone")}</span>
       </PersonaRow>
       {personas.map((p) => (
         <PersonaRow
@@ -382,7 +387,7 @@ function PersonaList({
           <span className="flex-1 truncate">{p.name}</span>
           {p.is_builtin && (
             <span className="border-2 border-border bg-background px-1.5 py-0.5 font-pixel text-[9px] uppercase tracking-widest text-muted-foreground">
-              built-in
+              {t("personaBuiltIn")}
             </span>
           )}
         </PersonaRow>
@@ -431,16 +436,19 @@ function ReasoningRadios({
   onChange: (next: ThinkingChoice) => void;
   disabled?: boolean;
 }) {
+  const t = useTranslations("chat.drawer.reasoning");
   const inheritText =
     userDefault === true
-      ? "inherit · on"
+      ? t("inheritOn")
       : userDefault === false
-        ? "inherit · off"
-        : `inherit · ${SAMPLING_DEFAULTS.enable_thinking ? "on" : "off"} (server)`;
+        ? t("inheritOff")
+        : SAMPLING_DEFAULTS.enable_thinking
+          ? t("inheritServerOn")
+          : t("inheritServerOff");
 
   const OPTS: { value: ThinkingChoice; label: string }[] = [
-    { value: "on", label: "On" },
-    { value: "off", label: "Off" },
+    { value: "on", label: t("on") },
+    { value: "off", label: t("off") },
     { value: "inherit", label: inheritText },
   ];
 

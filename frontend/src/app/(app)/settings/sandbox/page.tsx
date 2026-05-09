@@ -1,6 +1,7 @@
 "use client";
 
 import { ArrowRight, Clock, MessageSquarePlus, Search, Send, Sparkles, Square, Trash2, Wrench } from "lucide-react";
+import { useTranslations } from "next-intl";
 import { useState } from "react";
 
 import { AxolotlSprite, type AxolotlMood } from "@/components/axolotl/axolotl-sprite";
@@ -21,17 +22,16 @@ import { cn } from "@/lib/utils";
  * prod beyond a route that nobody links to from user-facing chrome.
  */
 export default function ComponentsSandboxPage() {
+  const t = useTranslations("sandbox");
   return (
     <div>
       <header className="mb-8 space-y-3">
         <h1 className="font-display text-3xl font-bold leading-tight">
-          Design <span className="italic">sandbox</span>.
+          {t.rich("title", {
+            em: (chunks) => <span className="italic">{chunks}</span>,
+          })}
         </h1>
-        <p className="max-w-2xl text-sm text-muted-foreground">
-          Every primitive in the DA — typography, colours, shadows, buttons,
-          pills, inputs, modals, palette, chat bubbles, mascot. If a new
-          pattern doesn&apos;t land cleanly here, it isn&apos;t ready to ship.
-        </p>
+        <p className="max-w-2xl text-sm text-muted-foreground">{t("intro")}</p>
       </header>
 
       <div className="space-y-14">
@@ -620,7 +620,15 @@ function SectionChat() {
 
 function SectionMascot() {
   const [mood, setMood] = useState<AxolotlMood>("idle");
-  const moods: AxolotlMood[] = ["idle", "happy", "curious", "sleepy"];
+  const moods: AxolotlMood[] = [
+    "idle",
+    "listening",
+    "thinking",
+    "searching",
+    "typing",
+    "happy",
+    "confused",
+  ];
   return (
     <Section id="mascot" title="Axolotl mascot">
       <div className="flex flex-col items-start gap-6 md:flex-row md:items-center">

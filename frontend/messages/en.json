@@ -41,7 +41,7 @@
     "email": "Email",
     "emailHelp": "Not editable yet — will require verification.",
     "locality": "Locality",
-    "localityHelp": "Shown in the terminal footer as <code>● LOCAL · &lt;locality&gt;</code>.",
+    "localityHelp": "Shown in the terminal footer as <code>● LOCAL · locality</code>.",
     "timeFormat": "Time format",
     "timeFormatHelp": "Applies to the terminal footer clock.",
     "temperature": "Temperature",
@@ -90,7 +90,68 @@
     "controlsLabel": "Chat controls",
     "sendPlaceholder": "Send a message…",
     "stop": "Stop",
-    "send": "Send"
+    "send": "Send",
+    "drawer": {
+      "title": "Chat <em>controls</em>",
+      "personaSection": "Persona",
+      "modelSection": "Model",
+      "modelPlaceholder": "server default",
+      "modelHelp": "Blank = whatever vLLM is serving. Override per session if you point at a second model.",
+      "reasoningSection": "Reasoning",
+      "samplingSection": "Sampling",
+      "reset": "Reset",
+      "samplingHelp": "Overrides apply to this session only.",
+      "editDefaults": "Edit your defaults →",
+      "toolsSection": "Tools",
+      "toolsBadge": "user-level",
+      "toggleHint": "⌘, to toggle",
+      "apply": "Apply",
+      "applying": "Applying…",
+      "savedToast": "Session controls updated",
+      "errToast": "Could not update session",
+      "personaNone": "None",
+      "personaBuiltIn": "built-in",
+      "reasoning": {
+        "on": "On",
+        "off": "Off",
+        "inheritOn": "inherit · on",
+        "inheritOff": "inherit · off",
+        "inheritServerOn": "inherit · on (server)",
+        "inheritServerOff": "inherit · off (server)"
+      },
+      "userDefaultLabel": "your default",
+      "serverDefaultLabel": "server"
+    }
+  },
+  "params": {
+    "temperature": {
+      "label": "Temperature",
+      "description": "Higher = more creative / random. 0 is deterministic."
+    },
+    "top_p": {
+      "label": "Top-p",
+      "description": "Nucleus sampling cutoff. Keeps the smallest set of tokens whose probability sums to this."
+    },
+    "top_k": {
+      "label": "Top-k",
+      "description": "Consider only the k most likely tokens each step."
+    },
+    "min_p": {
+      "label": "Min-p",
+      "description": "Drop tokens whose probability is below this fraction of the top token."
+    },
+    "presence_penalty": {
+      "label": "Presence penalty",
+      "description": "Positive values push the model toward new topics rather than repeating."
+    },
+    "repetition_penalty": {
+      "label": "Repetition penalty",
+      "description": "Scales down tokens that have already appeared. 1.0 disables."
+    },
+    "max_tokens": {
+      "label": "Max tokens",
+      "description": "Cap the length of the model's reply."
+    }
   },
   "personas": {
     "title": "Your <em>personas</em>.",
@@ -128,6 +189,10 @@
       "errDefault": "Could not update default"
     }
   },
+  "sandbox": {
+    "title": "Design <em>sandbox</em>.",
+    "intro": "Every primitive in the DA — typography, colours, shadows, buttons, pills, inputs, modals, palette, chat bubbles, mascot. If a new pattern doesn't land cleanly here, it isn't ready to ship."
+  },
   "tools": {
     "title": "Pick what the axolotl can <em>reach for</em>.",
     "intro": "Each tool is local-first. Toggle any off and the model will stop calling it.",
@@ -138,10 +203,20 @@
     "notSynced": "Not synced yet.",
     "noTools": "No tools installed.",
     "errToggle": "Could not update the tool",
-    "mcpBadge": "mcp"
+    "mcpBadge": "mcp",
+    "categories": {
+      "search": "search",
+      "general": "general"
+    },
+    "builtIns": {
+      "web_search": {
+        "title": "Web search",
+        "description": "Search the web via DuckDuckGo. Use ONLY when the information needed is recent, specific, or clearly outside your training data. Returns up to N results with URL, title and snippet."
+      }
+    }
   },
   "model": {
-    "title": "Model &amp; <em>generation</em>.",
+    "title": "Model & <em>generation</em>.",
     "intro": "Your baseline sampling parameters. Any value you don't set falls back to the server default. Every new session starts from these, and you can override them per-conversation from the chat drawer (<kbd>⌘,</kbd>).",
     "resetAll": "Reset all",
     "saveDefaults": "Save defaults",
@@ -150,12 +225,12 @@
   },
   "reasoning": {
     "title": "<em>Reasoning</em> phase.",
-    "intro": "Controls the model's <code>&lt;think&gt;</code> block — the internal monologue it writes before committing to an answer. You can still override this per-session from the chat drawer.",
+    "intro": "Controls the model's <code>think</code> block — the internal monologue it writes before committing to an answer. You can still override this per-session from the chat drawer.",
     "explainerTitle": "What's a <em>think</em> phase?",
     "explainerBody": "Models trained with chain-of-thought emit a hidden-style monologue first — the UI shows it in a collapsed block above the reply. Turning it off tends to produce terser, more direct answers but hurts multi-step reasoning.",
     "options": {
       "on": "On",
-      "onSub": "Always emit the &lt;think&gt; phase before the answer.",
+      "onSub": "Always emit the “think” phase before the answer.",
       "off": "Off",
       "offSub": "Skip the inner monologue. Faster, but shallower on hard questions.",
       "default": "Server default",
