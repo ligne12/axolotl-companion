@@ -33,15 +33,24 @@ const TABS: Tab[] = [
 export default function SettingsLayout({ children }: { children: React.ReactNode }) {
   const pathname = usePathname();
   return (
-    <div className="h-full overflow-y-auto">
-      <div className="mx-auto flex w-full max-w-5xl flex-col gap-8 px-4 py-10 md:flex-row md:py-14">
+    <div className="h-full overflow-x-hidden overflow-y-auto">
+      <div className="mx-auto flex w-full max-w-5xl flex-col gap-6 px-4 py-6 md:flex-row md:gap-8 md:py-14">
         {/* Sidebar tabs */}
         <aside className="md:w-52 md:shrink-0">
-          <div className="inline-flex w-fit items-center gap-2 border-2 border-border bg-card px-2.5 py-1 font-pixel text-[12px] uppercase tracking-[0.14em]">
+          <div className="inline-flex w-fit items-center gap-2 border-2 border-border bg-card px-2.5 py-1 font-pixel text-[11px] uppercase tracking-[0.14em] md:text-[12px]">
             <span className="size-2 bg-[color:var(--lime)]" />
             Settings
           </div>
-          <nav className="mt-4 flex flex-row gap-2 overflow-x-auto md:flex-col md:overflow-visible">
+          <nav
+            className={cn(
+              "mt-4 flex flex-row gap-1.5 overflow-x-auto md:flex-col md:gap-2 md:overflow-visible",
+              // Fade out the right edge on mobile so the user *sees* there's
+              // more to scroll. No visual change once at the end.
+              "[mask-image:linear-gradient(to_right,black_calc(100%-24px),transparent)] md:[mask-image:none]",
+              // Hide native scrollbar (mobile only).
+              "[-ms-overflow-style:none] [&::-webkit-scrollbar]:hidden [scrollbar-width:none] md:[scrollbar-width:auto]",
+            )}
+          >
             {TABS.map((t) => {
               const isActive = pathname === t.href;
               const Icon = t.Icon;
@@ -50,7 +59,7 @@ export default function SettingsLayout({ children }: { children: React.ReactNode
                   key={t.href}
                   href={t.href}
                   className={cn(
-                    "group flex items-center gap-2 whitespace-nowrap rounded-md border-2 px-3 py-2 text-sm transition-[transform,box-shadow] duration-100",
+                    "group flex items-center gap-2 whitespace-nowrap rounded-md border-2 px-2.5 py-1.5 text-sm transition-[transform,box-shadow] duration-100 md:px-3 md:py-2",
                     isActive
                       ? "border-border bg-card shadow-[2px_2px_0_0_var(--lime)]"
                       : "border-transparent hover:border-border/40 hover:bg-card/60",

@@ -70,7 +70,7 @@ export function ChatInput({
             onBlur={() => setFocused(false)}
             rows={1}
             disabled={disabled}
-            placeholder="Send a message... (Shift+Enter for newline)"
+            placeholder="Send a message…"
             className="min-h-[40px] max-h-48 flex-1 resize-none bg-transparent px-3 py-2.5 text-sm placeholder:text-muted-foreground focus:outline-none disabled:cursor-not-allowed disabled:opacity-50"
           />
         </div>

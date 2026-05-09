@@ -29,18 +29,21 @@ function WebSearchResults({
 }) {
   return (
     <div className="space-y-2">
-      <div className="flex items-center gap-2 text-xs">
-        <span className="inline-flex items-center gap-1.5 font-pixel uppercase tracking-[0.14em]">
-          <Search className="size-3.5" aria-hidden />
-          Web search
-        </span>
-        <span className="truncate text-muted-foreground">“{query}”</span>
-        <span className="text-muted-foreground">· {results.length} result{results.length > 1 ? "s" : ""}</span>
-        {typeof durationMs === "number" && (
-          <span className="ml-auto font-mono tabular-nums text-[10px] text-muted-foreground">
-            {formatDuration(durationMs)}
+      <div className="space-y-0.5">
+        <div className="flex items-center justify-between gap-2 text-xs">
+          <span className="inline-flex items-center gap-1.5 font-pixel uppercase tracking-[0.14em]">
+            <Search className="size-3.5" aria-hidden />
+            Web search · {results.length} result{results.length > 1 ? "s" : ""}
           </span>
-        )}
+          {typeof durationMs === "number" && (
+            <span className="shrink-0 font-mono tabular-nums text-[10px] text-muted-foreground">
+              {formatDuration(durationMs)}
+            </span>
+          )}
+        </div>
+        <p className="line-clamp-2 text-xs italic text-muted-foreground" title={query}>
+          “{query}”
+        </p>
       </div>
       <ul className="space-y-1.5">
         {results.map((r, i) => (

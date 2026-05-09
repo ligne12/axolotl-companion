@@ -226,36 +226,40 @@ export function WeatherPill({
   const tempRounded = Math.round(temperature_2m);
   const windy = wind_speed_10m >= 35;
 
+  const Icon = isDay ? (
+    DayIcon && <DayIcon className="size-4 shrink-0" aria-hidden />
+  ) : (
+    // Night: cloud in the foreground (the useful weather info), smaller
+    // phase-aware moon peeking from the top-left behind it. Clear skies →
+    // just the moon centred.
+    <span className="relative inline-flex h-4 w-[22px] shrink-0 items-center">
+      <MoonIcon
+        className={kind === "clear" ? "absolute left-1 size-4" : "absolute left-0 top-0 size-[11px]"}
+      />
+      {kind !== "clear" && (
+        <WeatherOverlay
+          kind={kind}
+          className="absolute right-0 top-0.5 size-[15px]"
+        />
+      )}
+    </span>
+  );
+
   return (
     <>
       <span className="text-muted-foreground">·</span>
-      <span className="hidden md:inline-flex items-center gap-1.5 text-foreground">
-        {isDay ? (
-          DayIcon && <DayIcon className="size-4 shrink-0" aria-hidden />
-        ) : (
-          // Night: cloud in the foreground (the useful weather info),
-          // smaller phase-aware moon peeking from the top-left behind it.
-          // Clear skies → just the moon centred.
-          <span className="relative inline-flex h-4 w-[22px] shrink-0 items-center">
-            <MoonIcon
-              className={kind === "clear" ? "absolute left-1 size-4" : "absolute left-0 top-0 size-[11px]"}
-            />
-            {kind !== "clear" && (
-              <WeatherOverlay
-                kind={kind}
-                className="absolute right-0 top-0.5 size-[15px]"
-              />
-            )}
-          </span>
-        )}
+      <span className="inline-flex items-center gap-1.5 text-foreground">
+        {Icon}
         <span className="font-mono tabular-nums normal-case tracking-normal">
           {tempRounded}°{unit}
         </span>
-        <span className="text-muted-foreground">{label}</span>
+        {/* Verbal label + wind hint only on wider screens — too noisy in
+        the narrow mobile terminal bar. */}
+        <span className="hidden md:inline text-muted-foreground">{label}</span>
         {windy && (
           <>
-            <span className="text-muted-foreground">·</span>
-            <Wind className="size-3.5 shrink-0" aria-hidden />
+            <span className="hidden md:inline text-muted-foreground">·</span>
+            <Wind className="hidden md:inline-block size-3.5 shrink-0" aria-hidden />
           </>
         )}
       </span>

@@ -124,6 +124,21 @@
   --pastel-butter: oklch(0.35 0.08 95);
 }
 
+/* Tighten the base font size below the md breakpoint so the whole UI scales
+ * to ~90% on mobile — Tailwind units are rem-based, so spacing, icon sizes
+ * and typography all shrink proportionally without per-component tuning.
+ * This matches what users naturally do (pinch out one notch on iOS Safari).
+ * Pixel-precise borders & shadows are left in px so they stay crisp. */
+html {
+  font-size: 90%;
+  -webkit-text-size-adjust: 100%;
+}
+@media (min-width: 768px) {
+  html {
+    font-size: 100%;
+  }
+}
+
 body {
   background-color: var(--background);
   color: var(--foreground);
@@ -236,9 +251,15 @@ body {
   margin: 0.75rem 0;
 }
 
-/* GFM tables — rendered as strict 2px-border pixel-neubru tables */
+/* GFM tables — strict 2px-border pixel-neubru tables.
+ * `display: block` + `overflow-x: auto` lets long tables scroll inside the
+ * bubble on mobile instead of breaking the layout. Small tables still
+ * shrink to content via `width: max-content`. */
 .markdown-body table {
-  width: 100%;
+  display: block;
+  width: max-content;
+  max-width: 100%;
+  overflow-x: auto;
   border-collapse: collapse;
   border: 2px solid var(--border);
   font-size: 0.8125rem;

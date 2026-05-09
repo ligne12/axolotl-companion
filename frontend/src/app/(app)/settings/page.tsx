@@ -233,12 +233,19 @@ export default function ProfilePage() {
       </div>
 
       {dirty && (
-        <div className="flex max-w-sm justify-end pt-2">
+        <div
+          className={cn(
+            // Mobile: full-width, sticky at bottom of the scroll container
+            // so it stays in reach while filling the form. Desktop: inline,
+            // right-aligned under the input column.
+            "sticky bottom-0 -mx-4 flex justify-stretch border-t-2 border-border bg-background px-4 py-3 md:static md:mx-0 md:max-w-sm md:justify-end md:border-0 md:bg-transparent md:p-0 md:pt-2",
+          )}
+        >
           <button
             type="submit"
             disabled={save.isPending}
             className={cn(
-              "inline-flex items-center gap-2 border-2 border-border bg-primary px-5 py-2.5 text-sm font-semibold text-primary-foreground",
+              "inline-flex w-full items-center justify-center gap-2 border-2 border-border bg-primary px-5 py-2.5 text-sm font-semibold text-primary-foreground md:w-auto",
               "shadow-[3px_3px_0_0_var(--lime)] transition-[transform,box-shadow] duration-100",
               "hover:shadow-[4px_4px_0_0_var(--lime)]",
               "active:translate-x-[2px] active:translate-y-[2px] active:shadow-[1px_1px_0_0_var(--lime)]",

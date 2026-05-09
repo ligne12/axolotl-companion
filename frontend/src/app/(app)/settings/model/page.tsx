@@ -87,13 +87,19 @@ export default function ModelSettingsPage() {
         ))}
       </div>
 
-      <div className="flex flex-wrap items-center gap-3 border-t-2 border-border pt-5">
+      <div
+        className={cn(
+          // Mobile: sticky bottom action bar so the buttons stay in reach
+          // even with all 8 sliders scrolled past. Desktop: inline border-top.
+          "sticky bottom-0 -mx-4 flex flex-col-reverse gap-2 border-t-2 border-border bg-background px-4 py-3 md:static md:mx-0 md:flex-row md:flex-wrap md:items-center md:gap-3 md:bg-transparent md:p-0 md:pt-5",
+        )}
+      >
         <button
           type="button"
           onClick={resetAll}
           disabled={Object.keys(draft).length === 0}
           className={cn(
-            "inline-flex items-center gap-2 border-2 border-border bg-card px-3.5 py-2 text-xs font-pixel uppercase tracking-[0.14em]",
+            "inline-flex w-full items-center justify-center gap-2 border-2 border-border bg-card px-3.5 py-2 text-xs font-pixel uppercase tracking-[0.14em] md:w-auto",
             "shadow-[2px_2px_0_0_var(--border)] transition-[transform,box-shadow] duration-100",
             "hover:shadow-[3px_3px_0_0_var(--border)]",
             "active:translate-x-[1px] active:translate-y-[1px] active:shadow-none",
@@ -109,7 +115,7 @@ export default function ModelSettingsPage() {
             type="submit"
             disabled={save.isPending}
             className={cn(
-              "inline-flex items-center gap-2 border-2 border-border bg-primary px-5 py-2.5 text-sm font-semibold text-primary-foreground",
+              "inline-flex w-full items-center justify-center gap-2 border-2 border-border bg-primary px-5 py-2.5 text-sm font-semibold text-primary-foreground md:w-auto",
               "shadow-[3px_3px_0_0_var(--lime)] transition-[transform,box-shadow] duration-100",
               "hover:shadow-[4px_4px_0_0_var(--lime)]",
               "active:translate-x-[2px] active:translate-y-[2px] active:shadow-[1px_1px_0_0_var(--lime)]",
