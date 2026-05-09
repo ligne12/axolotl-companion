@@ -206,6 +206,57 @@ class Setting(SQLModel, table=True):
 
 
 # -----------------------------------------------------------------------------
+# MCPServer — user-defined Model Context Protocol endpoints whose tools are
+# exposed alongside the built-in registry. The auth token is encrypted at
+# rest via ``core.secrets.encrypt_secret`` (Fernet); ``synced_tools`` is the
+# tool list returned by the last successful sync, persisted so chat
+# completions don't pay the round-trip on every send.
+# -----------------------------------------------------------------------------
+class MCPServer(SQLModel, table=True):
+    __tablename__ = "mcp_servers"
+
+    id: int | None = Field(
+        default=None,
+        sa_column=Column(BigInteger, primary_key=True, autoincrement=True),
+    )
+    user_id: int = Field(
+        sa_column=Column(
+            BigInteger,
+            ForeignKey("users.id", ondelete="CASCADE"),
+            nullable=False,
+            index=True,
+        ),
+    )
+    name: str = Field(max_length=100)
+    url: str = Field(max_length=500)
+    transport: str = Field(default="http", max_length=10)  # "http" | "sse"
+    auth_token_cipher: str | None = Field(
+        default=None,
+        sa_column=Column(SAString(500), nullable=True),
+    )
+    enabled: bool = Field(default=True)
+    synced_tools: list[dict[str, Any]] = Field(
+        default_factory=list,
+        sa_column=Column(JSONB, nullable=False, server_default="[]"),
+    )
+    last_synced_at: datetime | None = Field(
+        default=None,
+        sa_column=Column(DateTime(timezone=True), nullable=True),
+    )
+    last_sync_error: str | None = Field(default=None, max_length=500)
+    created_at: datetime = Field(
+        default_factory=utcnow,
+        sa_column=Column(DateTime(timezone=True), nullable=False),
+    )
+    updated_at: datetime = Field(
+        default_factory=utcnow,
+        sa_column=Column(DateTime(timezone=True), nullable=False),
+    )
+
+    __table_args__ = (UniqueConstraint("user_id", "name", name="uq_mcp_servers_user_name"),)
+
+
+# -----------------------------------------------------------------------------
 # RefreshToken
 # -----------------------------------------------------------------------------
 class RefreshToken(SQLModel, table=True):

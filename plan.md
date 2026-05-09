@@ -285,10 +285,25 @@ unique on `users.username`, `users.email`, `refresh_tokens.token_hash`.
 - ✅ **Mobile polish pass** (out-of-plan addition) — responsive base
   density, sticky save bars on Settings, weather pill compact rendering,
   markdown table horizontal scroll, chat input fits narrow widths
-- 🚧 PWA (Serwist) — manifest + theme colours in place, service worker
-  pending
-- 📋 **MCP servers CRUD** — connected MCP servers (add, edit, remove,
-  toggle), exposing tools through the same registry as the built-in ones
+- ✅ PWA (Serwist) — manifest + theme colours + custom-build service
+  worker (`@serwist/next`) with NetworkOnly bypass on `/api/*`, SVG icons
+  in the design language, installable on home screen
+- 🚧 **MCP servers CRUD** — MVP scope:
+  - per-user records (id, name, url, transport `http`/`sse`,
+    Fernet-encrypted bearer token, enabled flag)
+  - CRUD endpoints + a `POST /sync` that fetches the server's tool list
+    and persists it
+  - tools surface in the existing registry under `mcp:<server>:<name>`,
+    visible in the Tools settings page alongside built-ins, and routed
+    through the same `execute_tool` dispatcher in the orchestrator
+  - Settings → MCP servers page (cards, modal create/edit) + Tools page
+    grouped by provenance
+  - Deferred to a follow-up iteration:
+    - OAuth flows (only static bearer token in MVP)
+    - Auto-reconnect / periodic health-check (sync is manual)
+    - Streaming tool results (MCP tools return one object per call)
+    - `stdio` transport (security risk — server would spawn arbitrary
+      local processes)
 - 📋 Export / import conversations (JSON)
 - 📋 i18n FR / EN
 
