@@ -2,6 +2,7 @@
 
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { Check, Save } from "lucide-react";
+import { useTranslations } from "next-intl";
 import { useEffect, useState } from "react";
 import { toast } from "sonner";
 
@@ -71,6 +72,8 @@ function Segmented<T extends string>({
 export default function ProfilePage() {
   const api = useApi();
   const qc = useQueryClient();
+  const t = useTranslations("profile");
+  const tc = useTranslations("common");
 
   const meQuery = useQuery({
     queryKey: ["auth", "me"],
@@ -105,14 +108,14 @@ export default function ProfilePage() {
       qc.setQueryData<UserPublic>(["auth", "me"], next);
       setDirty(false);
       haptic("success");
-      toast.success("Profile saved");
+      toast.success(t("toasts.saved"));
     },
     onError: (err: unknown) => {
       haptic("error");
       const msg =
         err instanceof ApiError && err.status === 409
-          ? "Username already taken"
-          : "Could not save";
+          ? t("toasts.errUsername")
+          : t("toasts.errSave");
       toast.error(msg);
     },
   });
@@ -142,18 +145,17 @@ export default function ProfilePage() {
     <form onSubmit={onSubmit} className="relative space-y-8">
       <header className="space-y-2">
         <h1 className="font-display text-3xl font-bold leading-tight">
-          Your <span className="italic">profile</span>.
+          {t.rich("title", {
+            em: (chunks) => <span className="italic">{chunks}</span>,
+          })}
         </h1>
-        <p className="text-sm text-muted-foreground">
-          Edit the name the axolotl calls you, the place it reports in the
-          terminal footer, and how times and temperatures are displayed.
-        </p>
+        <p className="text-sm text-muted-foreground">{t("intro")}</p>
       </header>
 
       <div className="space-y-5">
         <div className="space-y-1.5">
           <label htmlFor="username" className={LABEL}>
-            Username
+            {t("username")}
           </label>
           <input
             id="username"
@@ -166,12 +168,16 @@ export default function ProfilePage() {
             required
             disabled={meQuery.isPending}
           />
-          <p className="text-xs text-muted-foreground">3–50 chars. letters / digits / <code>_</code> / <code>-</code>.</p>
+          <p className="text-xs text-muted-foreground">
+            {t.rich("usernameHelp", {
+              code: (chunks) => <code>{chunks}</code>,
+            })}
+          </p>
         </div>
 
         <div className="space-y-1.5">
           <label htmlFor="email" className={LABEL}>
-            Email
+            {t("email")}
           </label>
           <input
             id="email"
@@ -180,14 +186,12 @@ export default function ProfilePage() {
             disabled
             readOnly
           />
-          <p className="text-xs text-muted-foreground">
-            Not editable yet — will require verification.
-          </p>
+          <p className="text-xs text-muted-foreground">{t("emailHelp")}</p>
         </div>
 
         <div className="space-y-1.5">
           <label htmlFor="locality" className={LABEL}>
-            Locality
+            {t("locality")}
           </label>
           <input
             id="locality"
@@ -199,14 +203,16 @@ export default function ProfilePage() {
             disabled={meQuery.isPending}
           />
           <p className="text-xs text-muted-foreground">
-            Shown in the terminal footer as <code>● LOCAL · &lt;locality&gt;</code>.
+            {t.rich("localityHelp", {
+              code: (chunks) => <code>{chunks}</code>,
+            })}
           </p>
         </div>
 
         <div className="space-y-1.5">
-          <div className={LABEL}>Time format</div>
+          <div className={LABEL}>{t("timeFormat")}</div>
           <Segmented
-            ariaLabel="Time format"
+            ariaLabel={t("timeFormat")}
             value={form.time_format}
             onChange={(v) => update({ time_format: v })}
             options={[
@@ -214,15 +220,13 @@ export default function ProfilePage() {
               { value: "12h", label: "AM / PM" },
             ]}
           />
-          <p className="text-xs text-muted-foreground">
-            Applies to the terminal footer clock.
-          </p>
+          <p className="text-xs text-muted-foreground">{t("timeFormatHelp")}</p>
         </div>
 
         <div className="space-y-1.5">
-          <div className={LABEL}>Temperature</div>
+          <div className={LABEL}>{t("temperature")}</div>
           <Segmented
-            ariaLabel="Temperature unit"
+            ariaLabel={t("temperature")}
             value={form.temperature_unit}
             onChange={(v) => update({ temperature_unit: v })}
             options={[
@@ -230,9 +234,7 @@ export default function ProfilePage() {
               { value: "F", label: "°F" },
             ]}
           />
-          <p className="text-xs text-muted-foreground">
-            Applies to the terminal footer weather.
-          </p>
+          <p className="text-xs text-muted-foreground">{t("temperatureHelp")}</p>
         </div>
       </div>
 
@@ -257,7 +259,7 @@ export default function ProfilePage() {
             )}
           >
             {save.isPending ? <Check className="size-4 animate-pulse" /> : <Save className="size-4" />}
-            {save.isPending ? "Saving…" : "Save changes"}
+            {save.isPending ? tc("saving") : tc("saveChanges")}
           </button>
         </div>
       )}

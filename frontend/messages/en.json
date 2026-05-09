@@ -6,13 +6,51 @@
     "edit": "Edit",
     "remove": "Remove",
     "add": "Add",
+    "rename": "Rename",
     "loading": "Loading…",
     "saving": "Saving…",
+    "saveChanges": "Save changes",
     "retry": "Retry",
     "close": "Close",
     "language": "Language",
     "english": "English",
     "french": "Français"
+  },
+  "nav": {
+    "home": "Home",
+    "settings": "Settings",
+    "signOut": "Sign out",
+    "newChat": "New chat",
+    "filterPlaceholder": "Filter…",
+    "filterLabel": "Filter conversations",
+    "noConversations": "No conversations yet.",
+    "noMatch": "No match for “{query}”",
+    "newConversation": "New conversation",
+    "session": {
+      "deleteTitle": "Delete *conversation*?",
+      "deleteDescription": "“{title}” will be permanently removed along with its messages. This can't be undone.",
+      "errCreate": "Could not create a session",
+      "errRename": "Could not rename"
+    }
+  },
+  "profile": {
+    "title": "Your <em>profile</em>.",
+    "intro": "Edit the name the axolotl calls you, the place it reports in the terminal footer, and how times and temperatures are displayed.",
+    "username": "Username",
+    "usernameHelp": "3–50 chars. letters / digits / <code>_</code> / <code>-</code>.",
+    "email": "Email",
+    "emailHelp": "Not editable yet — will require verification.",
+    "locality": "Locality",
+    "localityHelp": "Shown in the terminal footer as <code>● LOCAL · &lt;locality&gt;</code>.",
+    "timeFormat": "Time format",
+    "timeFormatHelp": "Applies to the terminal footer clock.",
+    "temperature": "Temperature",
+    "temperatureHelp": "Applies to the terminal footer weather.",
+    "toasts": {
+      "saved": "Profile saved",
+      "errSave": "Could not save",
+      "errUsername": "Username already taken"
+    }
   },
   "settings": {
     "tabs": {
@@ -25,6 +63,43 @@
       "sandbox": "Sandbox"
     },
     "tag": "Settings"
+  },
+  "tools": {
+    "title": "Pick what the axolotl can <em>reach for</em>.",
+    "intro": "Each tool is local-first. Toggle any off and the model will stop calling it.",
+    "builtIn": "Built-in",
+    "mcpServer": "MCP · {name}",
+    "manage": "Manage",
+    "syncFailed": "Last sync failed — see MCP settings.",
+    "notSynced": "Not synced yet.",
+    "noTools": "No tools installed.",
+    "errToggle": "Could not update the tool",
+    "mcpBadge": "mcp"
+  },
+  "model": {
+    "title": "Model &amp; <em>generation</em>.",
+    "intro": "Your baseline sampling parameters. Any value you don't set falls back to the server default. Every new session starts from these, and you can override them per-conversation from the chat drawer (<kbd>⌘,</kbd>).",
+    "resetAll": "Reset all",
+    "saveDefaults": "Save defaults",
+    "errSave": "Could not save",
+    "saved": "Defaults saved"
+  },
+  "reasoning": {
+    "title": "<em>Reasoning</em> phase.",
+    "intro": "Controls the model's <code>&lt;think&gt;</code> block — the internal monologue it writes before committing to an answer. You can still override this per-session from the chat drawer.",
+    "explainerTitle": "What's a <em>think</em> phase?",
+    "explainerBody": "Models trained with chain-of-thought emit a hidden-style monologue first — the UI shows it in a collapsed block above the reply. Turning it off tends to produce terser, more direct answers but hurts multi-step reasoning.",
+    "options": {
+      "on": "On",
+      "onSub": "Always emit the &lt;think&gt; phase before the answer.",
+      "off": "Off",
+      "offSub": "Skip the inner monologue. Faster, but shallower on hard questions.",
+      "default": "Server default",
+      "defaultSubOn": "Whatever the backend is configured for (currently on).",
+      "defaultSubOff": "Whatever the backend is configured for (currently off)."
+    },
+    "saved": "Reasoning preference saved",
+    "errSave": "Could not save"
   },
   "mcp": {
     "title": "MCP <em>servers</em>.",

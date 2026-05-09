@@ -2,6 +2,7 @@
 
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { Brain, RotateCcw } from "lucide-react";
+import { useTranslations } from "next-intl";
 import { toast } from "sonner";
 
 import { useApi } from "@/hooks/use-api";
@@ -21,6 +22,7 @@ function choiceFromDefaults(defaults: HyperParams | null | undefined): Choice {
 export default function ReasoningSettingsPage() {
   const api = useApi();
   const qc = useQueryClient();
+  const t = useTranslations("reasoning");
 
   const meQuery = useQuery({
     queryKey: ["auth", "me"],
@@ -42,26 +44,20 @@ export default function ReasoningSettingsPage() {
     },
     onSuccess: (next) => {
       qc.setQueryData<UserPublic>(["auth", "me"], next);
-      toast.success("Reasoning preference saved");
+      toast.success(t("saved"));
     },
-    onError: () => toast.error("Could not save"),
+    onError: () => toast.error(t("errSave")),
   });
 
   const OPTIONS: { value: Choice; label: string; sub: string }[] = [
-    {
-      value: "on",
-      label: "On",
-      sub: "Always emit the <think> phase before the answer.",
-    },
-    {
-      value: "off",
-      label: "Off",
-      sub: "Skip the inner monologue. Faster, but shallower on hard questions.",
-    },
+    { value: "on", label: t("options.on"), sub: t("options.onSub") },
+    { value: "off", label: t("options.off"), sub: t("options.offSub") },
     {
       value: "default",
-      label: "Server default",
-      sub: `Whatever the backend is configured for (currently ${SAMPLING_DEFAULTS.enable_thinking ? "on" : "off"}).`,
+      label: t("options.default"),
+      sub: SAMPLING_DEFAULTS.enable_thinking
+        ? t("options.defaultSubOn")
+        : t("options.defaultSubOff"),
     },
   ];
 
@@ -69,12 +65,14 @@ export default function ReasoningSettingsPage() {
     <div className="space-y-8">
       <header className="space-y-2">
         <h1 className="font-display text-3xl font-bold leading-tight">
-          <span className="italic">Reasoning</span> phase.
+          {t.rich("title", {
+            em: (chunks) => <span className="italic">{chunks}</span>,
+          })}
         </h1>
         <p className="text-sm text-muted-foreground">
-          Controls the model&apos;s <code>&lt;think&gt;</code> block — the
-          internal monologue it writes before committing to an answer. You can
-          still override this per-session from the chat drawer.
+          {t.rich("intro", {
+            code: (chunks) => <code>{chunks}</code>,
+          })}
         </p>
       </header>
 
@@ -82,14 +80,11 @@ export default function ReasoningSettingsPage() {
         <Brain className="mt-0.5 size-5 shrink-0 text-[color:var(--lime)]" />
         <div className="space-y-0.5 text-xs">
           <p className="font-display text-sm font-semibold">
-            What&apos;s a <span className="italic">think</span> phase?
+            {t.rich("explainerTitle", {
+              em: (chunks) => <span className="italic">{chunks}</span>,
+            })}
           </p>
-          <p className="text-muted-foreground">
-            Models trained with chain-of-thought emit a hidden-style
-            monologue first — the UI shows it in a collapsed block above the
-            reply. Turning it off tends to produce terser, more direct
-            answers but hurts multi-step reasoning.
-          </p>
+          <p className="text-muted-foreground">{t("explainerBody")}</p>
         </div>
       </div>
 

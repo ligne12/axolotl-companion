@@ -2,6 +2,7 @@
 
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { Plug, Wrench } from "lucide-react";
+import { useTranslations } from "next-intl";
 import Link from "next/link";
 import { toast } from "sonner";
 
@@ -76,6 +77,8 @@ function SectionHeading({
 export function ToolsList({ compact = false }: { compact?: boolean }) {
   const api = useApi();
   const qc = useQueryClient();
+  const t = useTranslations("tools");
+  const tc = useTranslations("common");
 
   const tools = useQuery({
     queryKey: ["tools"],
@@ -103,13 +106,13 @@ export function ToolsList({ compact = false }: { compact?: boolean }) {
     },
     onError: (_err, _vars, ctx) => {
       if (ctx?.previous) qc.setQueryData(["tools"], ctx.previous);
-      toast.error("Could not update the tool");
+      toast.error(t("errToggle"));
     },
     onSettled: () => qc.invalidateQueries({ queryKey: ["tools"] }),
   });
 
   if (tools.isPending) {
-    return <p className="text-sm text-muted-foreground">Loading…</p>;
+    return <p className="text-sm text-muted-foreground">{tc("loading")}</p>;
   }
 
   const builtIns = tools.data ?? [];
@@ -118,7 +121,7 @@ export function ToolsList({ compact = false }: { compact?: boolean }) {
   if (builtIns.length === 0 && enabledServers.length === 0) {
     return (
       <p className="font-pixel text-[11px] uppercase tracking-wider text-muted-foreground">
-        No tools installed.
+        {t("noTools")}
       </p>
     );
   }
@@ -127,7 +130,7 @@ export function ToolsList({ compact = false }: { compact?: boolean }) {
     <div className={compact ? "space-y-5" : "space-y-7"}>
       {builtIns.length > 0 && (
         <section className="space-y-3">
-          <SectionHeading Icon={Wrench} label="Built-in" count={builtIns.length} />
+          <SectionHeading Icon={Wrench} label={t("builtIn")} count={builtIns.length} />
           <ul className={compact ? "space-y-2" : "space-y-3"}>
             {builtIns.map((tool) => (
               <li
@@ -179,21 +182,26 @@ function McpServerSection({
   server: MCPServerPublic;
   compact: boolean;
 }) {
+  const t = useTranslations("tools");
   const synced = server.synced_tools ?? [];
   return (
     <section className="space-y-3">
       <div className="flex items-center justify-between gap-3">
-        <SectionHeading Icon={Plug} label={`MCP · ${server.name}`} count={synced.length} />
+        <SectionHeading
+          Icon={Plug}
+          label={t("mcpServer", { name: server.name })}
+          count={synced.length}
+        />
         <Link
           href="/settings/mcp"
           className="border-2 border-transparent px-2 py-1 font-pixel text-[10px] uppercase tracking-wider text-muted-foreground hover:border-border/40 hover:bg-card/60"
         >
-          Manage
+          {t("manage")}
         </Link>
       </div>
       {synced.length === 0 ? (
         <p className="font-pixel text-[11px] uppercase tracking-wider text-muted-foreground">
-          {server.last_sync_error ? "Last sync failed — see MCP settings." : "Not synced yet."}
+          {server.last_sync_error ? t("syncFailed") : t("notSynced")}
         </p>
       ) : (
         <ul className={compact ? "space-y-2" : "space-y-3"}>
@@ -216,7 +224,7 @@ function McpServerSection({
                     {tool.name}
                   </h3>
                   <span className="border-2 border-border bg-background px-1.5 py-0.5 font-pixel text-[11px] uppercase tracking-wider text-muted-foreground">
-                    mcp
+                    {t("mcpBadge")}
                   </span>
                 </div>
                 {tool.description && (

@@ -6,13 +6,51 @@
     "edit": "Modifier",
     "remove": "Retirer",
     "add": "Ajouter",
+    "rename": "Renommer",
     "loading": "Chargement…",
     "saving": "Enregistrement…",
+    "saveChanges": "Enregistrer les modifications",
     "retry": "Réessayer",
     "close": "Fermer",
     "language": "Langue",
     "english": "English",
     "french": "Français"
+  },
+  "nav": {
+    "home": "Accueil",
+    "settings": "Réglages",
+    "signOut": "Se déconnecter",
+    "newChat": "Nouveau chat",
+    "filterPlaceholder": "Filtrer…",
+    "filterLabel": "Filtrer les conversations",
+    "noConversations": "Aucune conversation pour l'instant.",
+    "noMatch": "Aucun résultat pour « {query} »",
+    "newConversation": "Nouvelle conversation",
+    "session": {
+      "deleteTitle": "Supprimer la *conversation* ?",
+      "deleteDescription": "« {title} » sera supprimée définitivement avec ses messages. Action irréversible.",
+      "errCreate": "Impossible de créer une conversation",
+      "errRename": "Impossible de renommer"
+    }
+  },
+  "profile": {
+    "title": "Votre <em>profil</em>.",
+    "intro": "Modifiez le nom que l'axolotl utilise pour vous, le lieu affiché dans le terminal et le format des heures et températures.",
+    "username": "Nom d'utilisateur",
+    "usernameHelp": "3 à 50 caractères. lettres / chiffres / <code>_</code> / <code>-</code>.",
+    "email": "Email",
+    "emailHelp": "Non modifiable pour l'instant — nécessitera une vérification.",
+    "locality": "Localité",
+    "localityHelp": "Affichée dans le terminal sous la forme <code>● LOCAL · &lt;localité&gt;</code>.",
+    "timeFormat": "Format d'heure",
+    "timeFormatHelp": "Appliqué à l'horloge du terminal.",
+    "temperature": "Température",
+    "temperatureHelp": "Appliqué à la météo du terminal.",
+    "toasts": {
+      "saved": "Profil enregistré",
+      "errSave": "Impossible d'enregistrer",
+      "errUsername": "Nom d'utilisateur déjà utilisé"
+    }
   },
   "settings": {
     "tabs": {
@@ -25,6 +63,43 @@
       "sandbox": "Sandbox"
     },
     "tag": "Réglages"
+  },
+  "tools": {
+    "title": "Choisissez ce que l'axolotl peut <em>solliciter</em>.",
+    "intro": "Chaque outil est local-first. Désactivez-en un et le modèle cessera de l'appeler.",
+    "builtIn": "Intégrés",
+    "mcpServer": "MCP · {name}",
+    "manage": "Gérer",
+    "syncFailed": "Dernière sync échouée — voir les réglages MCP.",
+    "notSynced": "Pas encore synchronisé.",
+    "noTools": "Aucun outil installé.",
+    "errToggle": "Impossible de modifier l'outil",
+    "mcpBadge": "mcp"
+  },
+  "model": {
+    "title": "Modèle &amp; <em>génération</em>.",
+    "intro": "Vos paramètres d'échantillonnage par défaut. Toute valeur non définie retombe sur le défaut serveur. Chaque nouvelle session part de ces valeurs ; vous pouvez les surcharger conversation par conversation depuis le tiroir du chat (<kbd>⌘,</kbd>).",
+    "resetAll": "Tout réinitialiser",
+    "saveDefaults": "Enregistrer les défauts",
+    "errSave": "Impossible d'enregistrer",
+    "saved": "Défauts enregistrés"
+  },
+  "reasoning": {
+    "title": "Phase de <em>raisonnement</em>.",
+    "intro": "Contrôle le bloc <code>&lt;think&gt;</code> du modèle — le monologue interne qu'il écrit avant de répondre. Surchargeable par session depuis le tiroir du chat.",
+    "explainerTitle": "C'est quoi une phase <em>think</em> ?",
+    "explainerBody": "Les modèles entraînés en chain-of-thought émettent d'abord un monologue caché — l'UI l'affiche dans un bloc replié au-dessus de la réponse. Le désactiver donne des réponses plus brèves et directes, mais nuit au raisonnement multi-étapes.",
+    "options": {
+      "on": "Activé",
+      "onSub": "Émet toujours la phase &lt;think&gt; avant la réponse.",
+      "off": "Désactivé",
+      "offSub": "Saute le monologue interne. Plus rapide, mais moins profond sur les questions difficiles.",
+      "default": "Défaut serveur",
+      "defaultSubOn": "Suit la configuration du backend (actuellement activé).",
+      "defaultSubOff": "Suit la configuration du backend (actuellement désactivé)."
+    },
+    "saved": "Préférence enregistrée",
+    "errSave": "Impossible d'enregistrer"
   },
   "mcp": {
     "title": "Serveurs <em>MCP</em>.",

@@ -3,6 +3,7 @@
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { Check, Home, LogOut, MessageSquarePlus, Pencil, Search, Settings, Trash2, X } from "lucide-react";
 import { AnimatePresence, motion } from "motion/react";
+import { useTranslations } from "next-intl";
 import Link from "next/link";
 import { usePathname, useRouter } from "next/navigation";
 import { signOut, useSession } from "next-auth/react";
@@ -27,6 +28,8 @@ function SessionRow({
   onDelete: (id: string) => void;
   onRename: (id: string, title: string) => Promise<void>;
 }) {
+  const t = useTranslations("nav");
+  const tc = useTranslations("common");
   const [editing, setEditing] = useState(false);
   const [value, setValue] = useState(session.title);
   const [confirmOpen, setConfirmOpen] = useState(false);
@@ -79,7 +82,7 @@ function SessionRow({
           />
           <button
             type="button"
-            aria-label="Save"
+            aria-label={tc("save")}
             className="text-muted-foreground hover:text-foreground"
             onMouseDown={(e) => {
               e.preventDefault();
@@ -90,7 +93,7 @@ function SessionRow({
           </button>
           <button
             type="button"
-            aria-label="Cancel"
+            aria-label={tc("cancel")}
             className="text-muted-foreground hover:text-destructive"
             onMouseDown={(e) => {
               e.preventDefault();
@@ -116,7 +119,7 @@ function SessionRow({
           </Link>
           <button
             type="button"
-            aria-label="Rename"
+            aria-label={tc("rename")}
             className="opacity-0 transition group-hover:opacity-100 hover:text-foreground"
             onClick={(e) => {
               e.preventDefault();
@@ -127,7 +130,7 @@ function SessionRow({
           </button>
           <button
             type="button"
-            aria-label="Delete"
+            aria-label={tc("delete")}
             className="opacity-0 transition group-hover:opacity-100 hover:text-destructive"
             onClick={(e) => {
               e.preventDefault();
@@ -139,9 +142,9 @@ function SessionRow({
           <ConfirmDialog
             open={confirmOpen}
             onOpenChange={setConfirmOpen}
-            title="Delete *conversation*?"
-            description={`“${session.title}” will be permanently removed along with its messages. This can't be undone.`}
-            confirmLabel="Delete"
+            title={t("session.deleteTitle")}
+            description={t("session.deleteDescription", { title: session.title })}
+            confirmLabel={tc("delete")}
             variant="destructive"
             onConfirm={() => onDelete(session.id)}
           />
@@ -157,6 +160,7 @@ export function AppSidebar() {
   const pathname = usePathname();
   const qc = useQueryClient();
   const { data: user } = useSession();
+  const t = useTranslations("nav");
   const [filter, setFilter] = useState("");
   const filterRef = useRef<HTMLInputElement>(null);
 
@@ -194,13 +198,13 @@ export function AppSidebar() {
     mutationFn: () =>
       api<SessionPublic>("/v1/sessions", {
         method: "POST",
-        body: { title: "New conversation" },
+        body: { title: t("newConversation") },
       }),
     onSuccess: (session) => {
       qc.invalidateQueries({ queryKey: ["sessions"] });
       router.push(`/chat/${session.id}`);
     },
-    onError: () => toast.error("Could not create a session"),
+    onError: () => toast.error(t("session.errCreate")),
   });
 
   const deleteSession = useMutation({
@@ -227,7 +231,7 @@ export function AppSidebar() {
     },
     onError: (_err, _vars, ctx) => {
       if (ctx?.prev) qc.setQueryData(["sessions"], ctx.prev);
-      toast.error("Could not rename");
+      toast.error(t("session.errRename"));
     },
     onSettled: () => qc.invalidateQueries({ queryKey: ["sessions"] }),
   });
@@ -255,7 +259,7 @@ export function AppSidebar() {
             "disabled:cursor-not-allowed disabled:opacity-60",
           )}
         >
-          <MessageSquarePlus className="size-4" /> New chat
+          <MessageSquarePlus className="size-4" /> {t("newChat")}
         </button>
       </div>
 
@@ -267,9 +271,9 @@ export function AppSidebar() {
             ref={filterRef}
             value={filter}
             onChange={(e) => setFilter(e.target.value)}
-            placeholder="Filter…"
+            placeholder={t("filterPlaceholder")}
             className="h-8 w-full border-2 border-border bg-card pl-7 pr-8 text-[13px] outline-none transition-[box-shadow] duration-100 focus:shadow-[3px_3px_0_0_var(--lime)] placeholder:text-muted-foreground"
-            aria-label="Filter conversations"
+            aria-label={t("filterLabel")}
           />
           <span
             aria-hidden
@@ -314,12 +318,12 @@ export function AppSidebar() {
               </ul>
               {all.length === 0 && (
                 <p className="px-2 py-3 text-xs text-muted-foreground">
-                  No conversations yet.
+                  {t("noConversations")}
                 </p>
               )}
               {q && filtered.length === 0 && all.length > 0 && (
                 <p className="px-2 py-3 font-pixel text-[11px] uppercase tracking-wider text-muted-foreground">
-                  No match for “{filter}”
+                  {t("noMatch", { query: filter })}
                 </p>
               )}
               {q && filtered.length > 0 && (
@@ -342,7 +346,7 @@ export function AppSidebar() {
               : "border-transparent hover:border-border/40 hover:bg-card/60",
           )}
         >
-          <Home className="size-4" /> Home
+          <Home className="size-4" /> {t("home")}
         </Link>
         <Link
           href="/settings"
@@ -353,7 +357,7 @@ export function AppSidebar() {
               : "border-transparent hover:border-border/40 hover:bg-card/60",
           )}
         >
-          <Settings className="size-4" /> Settings
+          <Settings className="size-4" /> {t("settings")}
         </Link>
         <div className="flex items-center justify-between gap-2 px-2 py-1.5 text-sm">
           <ThemeToggle />
@@ -365,7 +369,7 @@ export function AppSidebar() {
             type="button"
             onClick={() => signOut({ callbackUrl: "/login" })}
             className="text-muted-foreground transition hover:text-foreground"
-            aria-label="Sign out"
+            aria-label={t("signOut")}
           >
             <LogOut className="size-4" />
           </button>

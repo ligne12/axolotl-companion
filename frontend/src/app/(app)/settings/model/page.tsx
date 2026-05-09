@@ -2,6 +2,7 @@
 
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { Check, RotateCcw, Save } from "lucide-react";
+import { useTranslations } from "next-intl";
 import { useEffect, useState } from "react";
 import { toast } from "sonner";
 
@@ -14,6 +15,8 @@ import type { HyperParams, UserPublic } from "@/types/api";
 export default function ModelSettingsPage() {
   const api = useApi();
   const qc = useQueryClient();
+  const t = useTranslations("model");
+  const tc = useTranslations("common");
 
   const meQuery = useQuery({
     queryKey: ["auth", "me"],
@@ -37,9 +40,9 @@ export default function ModelSettingsPage() {
       api<UserPublic>("/auth/me", { method: "PATCH", body: { defaults: body } }),
     onSuccess: (next) => {
       qc.setQueryData<UserPublic>(["auth", "me"], next);
-      toast.success("Defaults saved");
+      toast.success(t("saved"));
     },
-    onError: () => toast.error("Could not save"),
+    onError: () => toast.error(t("errSave")),
   });
 
   const setValue = (key: keyof HyperParams, value: number | boolean) => {
@@ -64,13 +67,14 @@ export default function ModelSettingsPage() {
     <form onSubmit={onSubmit} className="space-y-8">
       <header className="space-y-2">
         <h1 className="font-display text-3xl font-bold leading-tight">
-          Model &amp; <span className="italic">generation</span>.
+          {t.rich("title", {
+            em: (chunks) => <span className="italic">{chunks}</span>,
+          })}
         </h1>
         <p className="text-sm text-muted-foreground">
-          Your baseline sampling parameters. Any value you don&apos;t set
-          falls back to the server default. Every new session starts from
-          these, and you can override them per-conversation from the chat
-          drawer (<kbd className="font-pixel text-[11px]">⌘,</kbd>).
+          {t.rich("intro", {
+            kbd: (chunks) => <kbd className="font-pixel text-[11px]">{chunks}</kbd>,
+          })}
         </p>
       </header>
 
@@ -107,7 +111,7 @@ export default function ModelSettingsPage() {
           )}
         >
           <RotateCcw className="size-3.5" />
-          Reset all
+          {t("resetAll")}
         </button>
 
         {dirty && (
@@ -127,7 +131,7 @@ export default function ModelSettingsPage() {
             ) : (
               <Save className="size-4" />
             )}
-            {save.isPending ? "Saving…" : "Save defaults"}
+            {save.isPending ? tc("saving") : t("saveDefaults")}
           </button>
         )}
       </div>
