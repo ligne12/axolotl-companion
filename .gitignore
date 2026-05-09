@@ -89,6 +89,14 @@ out/
 *.tsbuildinfo
 next-env.d.ts
 
+# Serwist — generated service worker (built from src/app/sw.ts at build time)
+frontend/public/sw.js
+frontend/public/sw.js.map
+frontend/public/swe-worker-*.js
+frontend/public/swe-worker-*.js.map
+frontend/public/workbox-*.js
+frontend/public/workbox-*.js.map
+
 # Testing / coverage
 coverage/
 .nyc_output/

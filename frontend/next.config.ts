@@ -1,4 +1,17 @@
 import type { NextConfig } from "next";
+import withSerwistInit from "@serwist/next";
+
+// Serwist compiles the service worker from src/app/sw.ts and emits it to
+// public/sw.js (gitignored). Disabled in dev so HMR isn't shadowed by a
+// stale precache; enabled in prod / production-mode `make dev` builds so
+// the PWA is installable.
+const withSerwist = withSerwistInit({
+  swSrc: "src/app/sw.ts",
+  swDest: "public/sw.js",
+  disable: process.env.NODE_ENV === "development",
+  cacheOnNavigation: true,
+  reloadOnOnline: true,
+});
 
 const nextConfig: NextConfig = {
   reactStrictMode: true,
@@ -21,8 +34,17 @@ const nextConfig: NextConfig = {
           },
         ],
       },
+      {
+        // Service worker must be served with no caching so a new build
+        // takes effect on next page load.
+        source: "/sw.js",
+        headers: [
+          { key: "Content-Type", value: "application/javascript; charset=utf-8" },
+          { key: "Cache-Control", value: "no-cache, no-store, must-revalidate" },
+        ],
+      },
     ];
   },
 };
 
-export default nextConfig;
+export default withSerwist(nextConfig);

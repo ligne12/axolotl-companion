@@ -1,0 +1,7 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 32 32" width="32" height="32">
+  <!-- Tab favicon — a tighter version of the home-screen icon for browser tabs. -->
+  <rect width="32" height="32" rx="6" fill="#f6f2e6"/>
+  <rect x="2" y="2" width="28" height="28" rx="4" fill="none" stroke="#1a1610" stroke-width="2"/>
+  <rect x="11" y="12" width="14" height="14" rx="2" fill="#1a1610"/>
+  <rect x="9" y="10" width="14" height="14" rx="2" fill="#baff39" stroke="#1a1610" stroke-width="2"/>
+</svg>

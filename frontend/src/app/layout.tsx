@@ -29,6 +29,19 @@ export const metadata: Metadata = {
   description: "Local-first AI companion with an animated mascot",
   applicationName: "Axolotl Companion",
   manifest: "/manifest.json",
+  // Browser tab favicon + iOS home-screen icon. iOS Safari only honours
+  // PNG apple-touch-icons reliably; the SVG is a graceful fallback that
+  // works on Android Chrome / desktop Safari and lets the install land
+  // before a proper PNG is generated.
+  icons: {
+    icon: [{ url: "/favicon.svg", type: "image/svg+xml" }],
+    apple: [{ url: "/icon.svg", type: "image/svg+xml" }],
+  },
+  appleWebApp: {
+    capable: true,
+    statusBarStyle: "default",
+    title: "Axolotl",
+  },
 };
 
 export const viewport: Viewport = {
