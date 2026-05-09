@@ -45,6 +45,7 @@
   --shadow-pixel-sm: 2px 2px 0 0 var(--border);
   --shadow-pixel-lg: 6px 6px 0 0 var(--border);
   --shadow-pixel-lime: 4px 4px 0 0 var(--lime);
+  --animate-axo-bounce: axo-bounce 1.1s ease-in-out infinite;
 }
 
 :root {
@@ -213,6 +214,18 @@ body {
 @keyframes axo-slide-in-up {
   from { transform: translateY(100%); }
   to { transform: translateY(0); }
+}
+/* Three-dot "thinking" indicator. Each dot uses the same keyframes; the
+ * stagger comes from per-dot ``[animation-delay:Nms]`` in the JSX. */
+@keyframes axo-bounce {
+  0%, 60%, 100% {
+    transform: translateY(0);
+    opacity: 0.45;
+  }
+  30% {
+    transform: translateY(-4px);
+    opacity: 1;
+  }
 }
 @keyframes axo-slide-out-down {
   from { transform: translateY(0); }

@@ -155,6 +155,72 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/v1/mcp/servers": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * List Servers
+         * @description List the current user's MCP servers, oldest first (insertion order).
+         */
+        get: operations["list_servers_v1_mcp_servers_get"];
+        put?: never;
+        /**
+         * Create Server
+         * @description Register a new MCP server. ``auth_token`` (if provided) is Fernet-encrypted
+         *     before persisting and never echoed back.
+         */
+        post: operations["create_server_v1_mcp_servers_post"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/v1/mcp/servers/{server_id}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Get Server */
+        get: operations["get_server_v1_mcp_servers__server_id__get"];
+        put?: never;
+        post?: never;
+        /** Delete Server */
+        delete: operations["delete_server_v1_mcp_servers__server_id__delete"];
+        options?: never;
+        head?: never;
+        /**
+         * Update Server
+         * @description Partial update. ``auth_token`` semantics: omit to leave the existing
+         *     cipher in place; pass empty string to clear; pass any non-empty value
+         *     to replace.
+         */
+        patch: operations["update_server_v1_mcp_servers__server_id__patch"];
+        trace?: never;
+    };
+    "/v1/mcp/servers/{server_id}/sync": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** Sync Server */
+        post: operations["sync_server_v1_mcp_servers__server_id__sync_post"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/v1/personas": {
         parameters: {
             query?: never;
@@ -360,6 +426,120 @@ export interface components {
             password: string;
             /** Username */
             username: string;
+        };
+        /**
+         * MCPServerCreate
+         * @description Body for ``POST /v1/mcp/servers``. ``auth_token`` is the raw bearer
+         *     token typed by the user; the API endpoint encrypts it at rest before
+         *     persisting.
+         */
+        MCPServerCreate: {
+            /** Auth Token */
+            auth_token?: string | null;
+            /**
+             * Enabled
+             * @default true
+             */
+            enabled: boolean;
+            /** Name */
+            name: string;
+            /**
+             * Transport
+             * @default http
+             * @constant
+             */
+            transport: "http";
+            /**
+             * Url
+             * Format: uri
+             */
+            url: string;
+        };
+        /**
+         * MCPServerPublic
+         * @description Read shape — never includes the auth token. ``has_auth_token`` is a
+         *     boolean hint so the frontend can show 'token configured' vs an empty
+         *     field without ever surfacing the secret.
+         */
+        MCPServerPublic: {
+            /**
+             * Created At
+             * Format: date-time
+             */
+            created_at: string;
+            /** Enabled */
+            enabled: boolean;
+            /** Has Auth Token */
+            has_auth_token: boolean;
+            /** Id */
+            id: number;
+            /** Last Sync Error */
+            last_sync_error: string | null;
+            /** Last Synced At */
+            last_synced_at: string | null;
+            /** Name */
+            name: string;
+            /** Synced Tools */
+            synced_tools?: components["schemas"]["MCPToolInfo"][];
+            /**
+             * Transport
+             * @constant
+             */
+            transport: "http";
+            /**
+             * Updated At
+             * Format: date-time
+             */
+            updated_at: string;
+            /** Url */
+            url: string;
+        };
+        /**
+         * MCPServerUpdate
+         * @description Partial update. Each field is optional; only present keys are
+         *     applied. Pass ``auth_token: ""`` to clear the stored token, omit it to
+         *     leave the existing token in place.
+         */
+        MCPServerUpdate: {
+            /** Auth Token */
+            auth_token?: string | null;
+            /** Enabled */
+            enabled?: boolean | null;
+            /** Name */
+            name?: string | null;
+            /** Transport */
+            transport?: "http" | null;
+            /** Url */
+            url?: string | null;
+        };
+        /**
+         * MCPSyncResult
+         * @description Returned by ``POST /v1/mcp/servers/{id}/sync``. Mirrors what gets
+         *     persisted on the row plus a friendly count for the toast.
+         */
+        MCPSyncResult: {
+            server: components["schemas"]["MCPServerPublic"];
+            /** Tools Count */
+            tools_count: number;
+        };
+        /**
+         * MCPToolInfo
+         * @description Snapshot of one tool advertised by an MCP server, persisted in
+         *     ``mcp_servers.synced_tools`` so chat completions don't pay the
+         *     round-trip on every send.
+         */
+        MCPToolInfo: {
+            /**
+             * Description
+             * @default
+             */
+            description: string;
+            /** Name */
+            name: string;
+            /** Parameters Schema */
+            parameters_schema?: {
+                [key: string]: unknown;
+            };
         };
         /** MessageCreate */
         MessageCreate: {
@@ -893,6 +1073,185 @@ export interface operations {
                 };
                 content: {
                     "application/json": components["schemas"]["RuntimeConfig"];
+                };
+            };
+        };
+    };
+    list_servers_v1_mcp_servers_get: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["MCPServerPublic"][];
+                };
+            };
+        };
+    };
+    create_server_v1_mcp_servers_post: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["MCPServerCreate"];
+            };
+        };
+        responses: {
+            /** @description Successful Response */
+            201: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["MCPServerPublic"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    get_server_v1_mcp_servers__server_id__get: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                server_id: number;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["MCPServerPublic"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    delete_server_v1_mcp_servers__server_id__delete: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                server_id: number;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            204: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    update_server_v1_mcp_servers__server_id__patch: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                server_id: number;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["MCPServerUpdate"];
+            };
+        };
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["MCPServerPublic"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    sync_server_v1_mcp_servers__server_id__sync_post: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                server_id: number;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["MCPSyncResult"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
                 };
             };
         };

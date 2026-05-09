@@ -155,6 +155,40 @@ async def _load_mcp_tool_context(
     return specs, by_id
 
 
+_MCP_TEXT_BLOCK_MAX_CHARS = 12_000
+
+
+def _cap_mcp_result(result: dict[str, Any]) -> dict[str, Any]:
+    """Trim oversized text in MCP ``content`` blocks before they re-enter
+    the prompt. Servers like Context7 routinely return tens of thousands
+    of characters of documentation; injected verbatim, that blows the KV
+    cache and OOMs the GPU. We cap each text block at
+    ``_MCP_TEXT_BLOCK_MAX_CHARS`` and let the model ask for a follow-up
+    if it needs more."""
+    blocks = result.get("content")
+    if not isinstance(blocks, list):
+        return result
+    capped: list[Any] = []
+    for b in blocks:
+        if isinstance(b, dict) and b.get("type") == "text":
+            text = b.get("text")
+            if isinstance(text, str) and len(text) > _MCP_TEXT_BLOCK_MAX_CHARS:
+                truncated = text[:_MCP_TEXT_BLOCK_MAX_CHARS]
+                capped.append(
+                    {
+                        **b,
+                        "text": (
+                            f"{truncated}\n\n[truncated — original was "
+                            f"{len(text)} chars; ask for a narrower query "
+                            "to see more]"
+                        ),
+                    }
+                )
+                continue
+        capped.append(b)
+    return {**result, "content": capped}
+
+
 async def _dispatch_tool(
     name: str,
     arguments: dict[str, Any],
@@ -172,9 +206,10 @@ async def _dispatch_tool(
         return {"error": f"MCP server {server_id} not enabled"}
     token = decrypt_secret(server.auth_token_cipher) if server.auth_token_cipher else None
     try:
-        return await mcp_call_tool(server.url, token, original_name, arguments)
+        result = await mcp_call_tool(server.url, token, original_name, arguments)
     except MCPError as exc:
         return {"error": f"MCP call failed: {exc}"}
+    return _cap_mcp_result(result)
 
 
 def _merge_sampling_params(

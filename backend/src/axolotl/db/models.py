@@ -48,7 +48,16 @@ class User(SQLModel, table=True):
         default=None,
         sa_column=Column(
             BigInteger,
-            ForeignKey("personas.id", ondelete="SET NULL"),
+            # use_alter=True breaks the users ↔ personas cycle for SQLAlchemy's
+            # CREATE / DROP ordering: the FK is added (and dropped) via ALTER
+            # TABLE after both tables exist. The matching name is shared with
+            # the Alembic migration so they refer to the same constraint.
+            ForeignKey(
+                "personas.id",
+                ondelete="SET NULL",
+                use_alter=True,
+                name="fk_users_default_persona_id",
+            ),
             nullable=True,
         ),
     )

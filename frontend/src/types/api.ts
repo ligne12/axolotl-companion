@@ -35,6 +35,11 @@ export type PersonaPublic = components["schemas"]["PersonaPublic"];
 export type PersonaCreate = components["schemas"]["PersonaCreate"];
 export type PersonaUpdate = components["schemas"]["PersonaUpdate"];
 export type HyperParams = components["schemas"]["HyperParams"];
+export type MCPServerPublic = components["schemas"]["MCPServerPublic"];
+export type MCPServerCreate = components["schemas"]["MCPServerCreate"];
+export type MCPServerUpdate = components["schemas"]["MCPServerUpdate"];
+export type MCPSyncResult = components["schemas"]["MCPSyncResult"];
+export type MCPToolInfo = components["schemas"]["MCPToolInfo"];
 
 // -----------------------------------------------------------------------------
 // Domain-refined types — OpenAPI sees these as ``dict[str, Any]`` / raw JSON

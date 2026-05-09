@@ -1,11 +1,13 @@
 "use client";
 
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
+import { Plug, Wrench } from "lucide-react";
+import Link from "next/link";
 import { toast } from "sonner";
 
 import { useApi } from "@/hooks/use-api";
 import { cn } from "@/lib/utils";
-import type { ToolInfo } from "@/types/api";
+import type { MCPServerPublic, ToolInfo } from "@/types/api";
 
 function ToolToggle({
   enabled,
@@ -35,12 +37,41 @@ function ToolToggle({
   );
 }
 
+function SectionHeading({
+  Icon,
+  label,
+  count,
+}: {
+  Icon: React.ComponentType<{ className?: string }>;
+  label: string;
+  count?: number;
+}) {
+  return (
+    <div className="flex items-center gap-2">
+      <Icon className="size-4 shrink-0" />
+      <h2 className="font-pixel text-[11px] uppercase tracking-[0.14em]">{label}</h2>
+      {typeof count === "number" && (
+        <span className="border-2 border-border bg-background px-1.5 py-0.5 font-pixel text-[10px] uppercase tracking-wider text-muted-foreground">
+          {count}
+        </span>
+      )}
+    </div>
+  );
+}
+
 /**
- * Live list of available tools with per-tool on/off toggles. Reused both
- * by the Settings → Tools tab and the in-chat controls drawer.
+ * Live list of available tools, grouped by provenance.
  *
- * Writes go to ``PUT /v1/tools/{name}`` and are optimistically reflected
- * in the ``["tools"]`` query cache so the UI stays responsive.
+ *  - **Built-in** tools come from ``GET /v1/tools`` and are individually
+ *    toggleable; writes go to ``PUT /v1/tools/{name}`` and are
+ *    optimistically reflected in the ``["tools"]`` query cache.
+ *  - **MCP** tools are sourced from each user-defined MCP server's last
+ *    sync (``GET /v1/mcp/servers``). They render read-only here — the
+ *    on/off granularity for MCP is at the *server* level, managed in
+ *    Settings → MCP.
+ *
+ * Reused both by the Settings → Tools tab and the in-chat controls
+ * drawer.
  */
 export function ToolsList({ compact = false }: { compact?: boolean }) {
   const api = useApi();
@@ -49,6 +80,11 @@ export function ToolsList({ compact = false }: { compact?: boolean }) {
   const tools = useQuery({
     queryKey: ["tools"],
     queryFn: () => api<ToolInfo[]>("/v1/tools"),
+  });
+
+  const mcpServers = useQuery({
+    queryKey: ["mcp-servers"],
+    queryFn: () => api<MCPServerPublic[]>("/v1/mcp/servers"),
   });
 
   const toggle = useMutation({
@@ -76,7 +112,10 @@ export function ToolsList({ compact = false }: { compact?: boolean }) {
     return <p className="text-sm text-muted-foreground">Loading…</p>;
   }
 
-  if (!tools.data || tools.data.length === 0) {
+  const builtIns = tools.data ?? [];
+  const enabledServers = (mcpServers.data ?? []).filter((s) => s.enabled);
+
+  if (builtIns.length === 0 && enabledServers.length === 0) {
     return (
       <p className="font-pixel text-[11px] uppercase tracking-wider text-muted-foreground">
         No tools installed.
@@ -85,34 +124,111 @@ export function ToolsList({ compact = false }: { compact?: boolean }) {
   }
 
   return (
-    <ul className={compact ? "space-y-2" : "space-y-3"}>
-      {tools.data.map((tool) => (
-        <li
-          key={tool.name}
-          className={cn(
-            "flex items-start justify-between gap-4 border-2 border-border bg-card shadow-[3px_3px_0_0_var(--border)]",
-            compact ? "p-3" : "p-4",
-          )}
-        >
-          <div className="min-w-0 space-y-1">
-            <div className="flex items-center gap-2">
-              <h3 className={cn("font-display font-semibold", compact ? "text-sm" : "text-base")}>
-                {tool.title}
-              </h3>
-              <span className="border-2 border-border bg-background px-1.5 py-0.5 font-pixel text-[11px] uppercase tracking-wider text-muted-foreground">
-                {tool.category}
-              </span>
-            </div>
-            <p className={cn("text-muted-foreground", compact ? "text-xs" : "text-sm")}>
-              {tool.description}
-            </p>
-          </div>
-          <ToolToggle
-            enabled={tool.enabled}
-            onChange={(checked) => toggle.mutate({ name: tool.name, enabled: checked })}
-          />
-        </li>
+    <div className={compact ? "space-y-5" : "space-y-7"}>
+      {builtIns.length > 0 && (
+        <section className="space-y-3">
+          <SectionHeading Icon={Wrench} label="Built-in" count={builtIns.length} />
+          <ul className={compact ? "space-y-2" : "space-y-3"}>
+            {builtIns.map((tool) => (
+              <li
+                key={tool.name}
+                className={cn(
+                  "flex items-start justify-between gap-4 border-2 border-border bg-card shadow-[3px_3px_0_0_var(--border)]",
+                  compact ? "p-3" : "p-4",
+                )}
+              >
+                <div className="min-w-0 space-y-1">
+                  <div className="flex items-center gap-2">
+                    <h3
+                      className={cn(
+                        "font-display font-semibold",
+                        compact ? "text-sm" : "text-base",
+                      )}
+                    >
+                      {tool.title}
+                    </h3>
+                    <span className="border-2 border-border bg-background px-1.5 py-0.5 font-pixel text-[11px] uppercase tracking-wider text-muted-foreground">
+                      {tool.category}
+                    </span>
+                  </div>
+                  <p className={cn("text-muted-foreground", compact ? "text-xs" : "text-sm")}>
+                    {tool.description}
+                  </p>
+                </div>
+                <ToolToggle
+                  enabled={tool.enabled}
+                  onChange={(checked) => toggle.mutate({ name: tool.name, enabled: checked })}
+                />
+              </li>
+            ))}
+          </ul>
+        </section>
+      )}
+
+      {enabledServers.map((server) => (
+        <McpServerSection key={server.id} server={server} compact={compact} />
       ))}
-    </ul>
+    </div>
+  );
+}
+
+function McpServerSection({
+  server,
+  compact,
+}: {
+  server: MCPServerPublic;
+  compact: boolean;
+}) {
+  const synced = server.synced_tools ?? [];
+  return (
+    <section className="space-y-3">
+      <div className="flex items-center justify-between gap-3">
+        <SectionHeading Icon={Plug} label={`MCP · ${server.name}`} count={synced.length} />
+        <Link
+          href="/settings/mcp"
+          className="border-2 border-transparent px-2 py-1 font-pixel text-[10px] uppercase tracking-wider text-muted-foreground hover:border-border/40 hover:bg-card/60"
+        >
+          Manage
+        </Link>
+      </div>
+      {synced.length === 0 ? (
+        <p className="font-pixel text-[11px] uppercase tracking-wider text-muted-foreground">
+          {server.last_sync_error ? "Last sync failed — see MCP settings." : "Not synced yet."}
+        </p>
+      ) : (
+        <ul className={compact ? "space-y-2" : "space-y-3"}>
+          {synced.map((tool) => (
+            <li
+              key={tool.name}
+              className={cn(
+                "flex items-start justify-between gap-4 border-2 border-border bg-card shadow-[3px_3px_0_0_var(--border)]",
+                compact ? "p-3" : "p-4",
+              )}
+            >
+              <div className="min-w-0 space-y-1">
+                <div className="flex items-center gap-2">
+                  <h3
+                    className={cn(
+                      "truncate font-display font-semibold",
+                      compact ? "text-sm" : "text-base",
+                    )}
+                  >
+                    {tool.name}
+                  </h3>
+                  <span className="border-2 border-border bg-background px-1.5 py-0.5 font-pixel text-[11px] uppercase tracking-wider text-muted-foreground">
+                    mcp
+                  </span>
+                </div>
+                {tool.description && (
+                  <p className={cn("text-muted-foreground", compact ? "text-xs" : "text-sm")}>
+                    {tool.description}
+                  </p>
+                )}
+              </div>
+            </li>
+          ))}
+        </ul>
+      )}
+    </section>
   );
 }

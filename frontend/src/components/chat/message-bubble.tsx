@@ -1,6 +1,6 @@
 "use client";
 
-import { Check, Copy, RotateCw, Search, Wrench } from "lucide-react";
+import { Check, Copy, Plug, RotateCw, Search, Wrench } from "lucide-react";
 import { useState } from "react";
 
 import DecryptedText from "@/components/reactbits/decrypted-text";
@@ -103,6 +103,144 @@ function isWebSearchResult(
   );
 }
 
+type MCPNameParts = { serverId: number; toolName: string };
+
+function parseMcpName(name: string): MCPNameParts | null {
+  if (!name.startsWith("mcp__")) return null;
+  const body = name.slice("mcp__".length);
+  const sep = body.indexOf("__");
+  if (sep <= 0) return null;
+  const serverId = Number(body.slice(0, sep));
+  if (!Number.isInteger(serverId)) return null;
+  return { serverId, toolName: body.slice(sep + 2) };
+}
+
+type MCPContentBlock =
+  | { type: "text"; text: string }
+  | { type: "image"; data: string; mimeType?: string }
+  | { type: "resource"; resource: { uri?: string; text?: string } };
+
+function isMcpResult(
+  result: unknown,
+): result is { content: MCPContentBlock[]; isError?: boolean } {
+  if (typeof result !== "object" || result === null) return false;
+  const r = result as { content?: unknown };
+  return Array.isArray(r.content);
+}
+
+function MCPToolCard({
+  parts,
+  args,
+  result,
+  durationMs,
+}: {
+  parts: MCPNameParts;
+  args: unknown;
+  result?: unknown;
+  durationMs?: number;
+}) {
+  const isErrored =
+    isMcpResult(result) && result.isError === true;
+  const blocks = isMcpResult(result) ? result.content : null;
+
+  return (
+    <div
+      className={cn(
+        "rounded-md border-2 bg-card p-2.5 text-xs shadow-[2px_2px_0_0_var(--border)]",
+        isErrored ? "border-destructive/60" : "border-border",
+      )}
+    >
+      <div className="flex flex-wrap items-center gap-1.5">
+        <span className="inline-flex items-center gap-1.5 font-pixel uppercase tracking-[0.14em]">
+          <Plug className="size-3.5" aria-hidden />
+          MCP
+        </span>
+        <span className="text-muted-foreground">·</span>
+        <span className="font-mono normal-case tracking-normal" title={`server #${parts.serverId}`}>
+          #{parts.serverId}
+        </span>
+        <span className="text-muted-foreground">·</span>
+        <span className="truncate font-mono normal-case tracking-normal text-foreground">
+          {parts.toolName}
+        </span>
+        {typeof durationMs === "number" && (
+          <span className="ml-auto font-mono tabular-nums text-[10px] text-muted-foreground">
+            {formatDuration(durationMs)}
+          </span>
+        )}
+      </div>
+
+      {/* Args — single-line preview, expand for full payload */}
+      <details className="mt-1.5 border-t border-border/60 pt-1.5">
+        <summary className="cursor-pointer text-[10px] uppercase tracking-[0.14em] text-muted-foreground">
+          Args
+        </summary>
+        <pre className="mt-1 whitespace-pre-wrap break-words text-muted-foreground">
+          {typeof args === "string" ? args : JSON.stringify(args, null, 2)}
+        </pre>
+      </details>
+
+      {/* Result — render text blocks inline, JSON-fall back for the rest */}
+      {result !== undefined && (
+        <div className="mt-1.5 border-t border-border/60 pt-1.5">
+          {blocks ? (
+            <div className="space-y-1.5">
+              {blocks.map((b, i) => {
+                if (b.type === "text") {
+                  return (
+                    <pre
+                      key={i}
+                      className={cn(
+                        "whitespace-pre-wrap break-words leading-relaxed",
+                        isErrored ? "text-[color:var(--destructive)]" : "text-foreground",
+                      )}
+                    >
+                      {b.text}
+                    </pre>
+                  );
+                }
+                if (b.type === "image") {
+                  return (
+                    // eslint-disable-next-line @next/next/no-img-element
+                    <img
+                      key={i}
+                      src={`data:${b.mimeType ?? "image/png"};base64,${b.data}`}
+                      alt={`MCP result ${i}`}
+                      className="max-h-64 rounded-sm border-2 border-border"
+                    />
+                  );
+                }
+                if (b.type === "resource") {
+                  return (
+                    <div key={i} className="text-muted-foreground">
+                      <span className="font-pixel text-[9px] uppercase tracking-[0.14em]">
+                        resource
+                      </span>
+                      {b.resource.uri && (
+                        <span className="ml-2 font-mono normal-case">{b.resource.uri}</span>
+                      )}
+                      {b.resource.text && (
+                        <pre className="mt-1 whitespace-pre-wrap break-words">
+                          {b.resource.text}
+                        </pre>
+                      )}
+                    </div>
+                  );
+                }
+                return null;
+              })}
+            </div>
+          ) : (
+            <pre className="whitespace-pre-wrap break-words text-muted-foreground">
+              {JSON.stringify(result, null, 2).slice(0, 1500)}
+            </pre>
+          )}
+        </div>
+      )}
+    </div>
+  );
+}
+
 function ToolCallCard({
   name,
   args,
@@ -115,6 +253,13 @@ function ToolCallCard({
   durationMs?: number;
 }) {
   const isWebSearch = name === "web_search" && result !== undefined && isWebSearchResult(result);
+  const mcpParts = parseMcpName(name);
+
+  if (mcpParts) {
+    return (
+      <MCPToolCard parts={mcpParts} args={args} result={result} durationMs={durationMs} />
+    );
+  }
 
   return (
     <div className="rounded-md border-2 border-border bg-card p-2.5 text-xs shadow-[2px_2px_0_0_var(--border)]">
@@ -330,7 +475,11 @@ export function StreamingBubble({
           />
         ))}
         {content && <Markdown text={content} />}
-        <span className="inline-block animate-pulse text-xs text-muted-foreground">●</span>
+        <span aria-label="Assistant is thinking" className="inline-flex items-end gap-1 py-1">
+          <span className="size-1.5 animate-axo-bounce rounded-full bg-muted-foreground" />
+          <span className="size-1.5 animate-axo-bounce rounded-full bg-muted-foreground [animation-delay:150ms]" />
+          <span className="size-1.5 animate-axo-bounce rounded-full bg-muted-foreground [animation-delay:300ms]" />
+        </span>
       </div>
       <div className="mt-1 w-full">
         <span className="ml-auto block w-fit font-mono tabular-nums text-[10px] text-muted-foreground">
