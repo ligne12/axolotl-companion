@@ -4,6 +4,7 @@ import * as Dialog from "@radix-ui/react-dialog";
 import { X } from "lucide-react";
 import type { ReactNode } from "react";
 
+import { useHaptic } from "@/hooks/use-haptic";
 import { cn } from "@/lib/utils";
 
 /**
@@ -46,24 +47,36 @@ function ModalRoot({
         />
         <Dialog.Content
           className={cn(
-            // Mobile: centered on viewport. Desktop: shift right by half the
-            // sidebar width (w-64 = 16rem) so the modal is optically centred
-            // inside the main column, not under the sidebar's edge.
-            "fixed left-1/2 md:left-[calc(50%+8rem)] top-1/2 z-50 -translate-x-1/2 -translate-y-1/2",
-            "w-[min(90vw,28rem)] max-w-md",
-            "border-2 border-border bg-card rounded-xl p-6",
-            "shadow-[4px_4px_0_0_var(--border)]",
-            "focus:outline-none will-change-[opacity]",
-            "data-[state=open]:animate-[axo-fade-in_200ms_ease-out]",
-            "data-[state=closed]:animate-[axo-fade-out_180ms_ease-in]",
+            // Mobile (< md): bottom-anchored sheet — full width, rounded
+            // top corners, slide up from the bottom. The iOS keyboard no
+            // longer eats the centred panel; the sheet sits above it.
+            "fixed inset-x-0 bottom-0 z-50 w-full max-h-[90dvh] overflow-y-auto",
+            "border-x-0 border-b-0 border-t-2 border-border bg-card rounded-t-xl px-5 pt-5 pb-[max(1.5rem,env(safe-area-inset-bottom))]",
+            "data-[state=open]:animate-[axo-slide-in-up_220ms_ease-out]",
+            "data-[state=closed]:animate-[axo-slide-out-down_180ms_ease-in]",
+            // Desktop (md+): centered on viewport, shifted right by half
+            // the sidebar width (w-64 = 16rem) so the modal is optically
+            // centred inside the main column rather than under the sidebar.
+            "md:fixed md:inset-x-auto md:bottom-auto md:left-1/2 md:lg:left-[calc(50%+8rem)] md:top-1/2 md:max-h-[unset] md:overflow-visible md:-translate-x-1/2 md:-translate-y-1/2",
+            "md:w-[min(90vw,28rem)] md:max-w-md md:border-2 md:rounded-xl md:p-6 md:shadow-[4px_4px_0_0_var(--border)]",
+            "md:data-[state=open]:animate-[axo-fade-in_200ms_ease-out]",
+            "md:data-[state=closed]:animate-[axo-fade-out_180ms_ease-in]",
+            "focus:outline-none will-change-[opacity,transform]",
             className,
           )}
         >
+          {/* Bottom-sheet drag handle — visual affordance only on mobile.
+              Hidden on md+ where the modal is centred. */}
+          <div
+            aria-hidden
+            className="mx-auto mb-3 h-1 w-10 rounded-full bg-border/50 md:hidden"
+          />
+
           <Dialog.Close asChild>
             <button
               type="button"
               aria-label="Close"
-              className="absolute right-3 top-3 text-muted-foreground transition-colors hover:text-destructive focus:outline-none focus-visible:text-foreground"
+              className="absolute right-3 top-3 inline-flex size-9 items-center justify-center text-muted-foreground transition-[transform,colors] duration-75 hover:text-destructive focus:outline-none focus-visible:text-foreground active:scale-90"
             >
               <X className="size-5" />
             </button>
@@ -114,11 +127,13 @@ function ModalFooter({ children }: { children: ReactNode }) {
 }
 
 function ModalCancel({ children }: { children: ReactNode }) {
+  const haptic = useHaptic();
   return (
     <Dialog.Close asChild>
       <button
         type="button"
-        className="inline-flex items-center justify-center border-2 border-border bg-card px-4 py-2 text-sm font-semibold shadow-[3px_3px_0_0_var(--border)] transition-[transform,box-shadow] duration-100 hover:shadow-[4px_4px_0_0_var(--border)] active:translate-x-[2px] active:translate-y-[2px] active:shadow-[1px_1px_0_0_var(--border)]"
+        onClick={() => haptic("tap")}
+        className="inline-flex min-h-11 items-center justify-center border-2 border-border bg-card px-4 py-2 text-sm font-semibold shadow-[3px_3px_0_0_var(--border)] transition-[transform,box-shadow] duration-100 hover:shadow-[4px_4px_0_0_var(--border)] active:translate-x-[2px] active:translate-y-[2px] active:shadow-[1px_1px_0_0_var(--border)]"
       >
         {children}
       </button>
@@ -138,13 +153,17 @@ function ModalConfirm({
   disabled?: boolean;
 }) {
   const isDestructive = variant === "destructive";
+  const haptic = useHaptic();
   return (
     <button
       type="button"
-      onClick={onClick}
+      onClick={() => {
+        haptic(isDestructive ? "error" : "success");
+        onClick?.();
+      }}
       disabled={disabled}
       className={cn(
-        "inline-flex items-center justify-center border-2 border-border px-4 py-2 text-sm font-semibold transition-[transform,box-shadow] duration-100",
+        "inline-flex min-h-11 items-center justify-center border-2 border-border px-4 py-2 text-sm font-semibold transition-[transform,box-shadow] duration-100",
         isDestructive
           ? "bg-destructive text-destructive-foreground shadow-[3px_3px_0_0_var(--border)] hover:shadow-[4px_4px_0_0_var(--border)] active:translate-x-[2px] active:translate-y-[2px] active:shadow-[1px_1px_0_0_var(--border)]"
           : "bg-primary text-primary-foreground shadow-[3px_3px_0_0_var(--lime)] hover:shadow-[4px_4px_0_0_var(--lime)] active:translate-x-[2px] active:translate-y-[2px] active:shadow-[1px_1px_0_0_var(--lime)]",

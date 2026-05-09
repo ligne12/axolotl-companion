@@ -59,7 +59,7 @@ export default function SettingsLayout({ children }: { children: React.ReactNode
                   key={t.href}
                   href={t.href}
                   className={cn(
-                    "group flex items-center gap-2 whitespace-nowrap rounded-md border-2 px-2.5 py-1.5 text-sm transition-[transform,box-shadow] duration-100 md:px-3 md:py-2",
+                    "group flex min-h-11 items-center gap-2 whitespace-nowrap rounded-md border-2 px-3 py-2 text-sm transition-[transform,box-shadow] duration-100 active:scale-[0.97] md:min-h-0 md:px-3 md:py-2",
                     isActive
                       ? "border-border bg-card shadow-[2px_2px_0_0_var(--lime)]"
                       : "border-transparent hover:border-border/40 hover:bg-card/60",

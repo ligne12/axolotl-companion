@@ -3,6 +3,7 @@
 import { Send, SlidersHorizontal, Square } from "lucide-react";
 import { useRef, useState } from "react";
 
+import { useHaptic } from "@/hooks/use-haptic";
 import { cn } from "@/lib/utils";
 
 export function ChatInput({
@@ -21,10 +22,12 @@ export function ChatInput({
   const [text, setText] = useState("");
   const [focused, setFocused] = useState(false);
   const textareaRef = useRef<HTMLTextAreaElement>(null);
+  const haptic = useHaptic();
 
   const submit = () => {
     const value = text.trim();
     if (!value || isSending || disabled) return;
+    haptic("tap");
     onSend(value);
     setText("");
     requestAnimationFrame(() => textareaRef.current?.focus());
@@ -42,7 +45,10 @@ export function ChatInput({
         {onOpenControls && (
           <button
             type="button"
-            onClick={onOpenControls}
+            onClick={() => {
+              haptic("select");
+              onOpenControls();
+            }}
             aria-label="Chat controls"
             title="Chat controls (⌘,)"
             className="inline-flex h-11 w-11 items-center justify-center rounded-xl border-2 border-border bg-card text-muted-foreground shadow-[3px_3px_0_0_var(--border)] transition-[transform,box-shadow,color] duration-100 hover:-translate-x-[1px] hover:-translate-y-[1px] hover:text-foreground hover:shadow-[4px_4px_0_0_var(--border)] active:translate-x-[1px] active:translate-y-[1px] active:shadow-[1px_1px_0_0_var(--border)]"
@@ -77,7 +83,10 @@ export function ChatInput({
         {isSending ? (
           <button
             type="button"
-            onClick={onStop}
+            onClick={() => {
+              haptic("error");
+              onStop();
+            }}
             aria-label="Stop"
             className="inline-flex h-11 w-11 items-center justify-center rounded-xl border-2 border-border bg-destructive text-destructive-foreground shadow-[3px_3px_0_0_var(--border)] transition-[transform,box-shadow] duration-100 hover:-translate-x-[1px] hover:-translate-y-[1px] hover:shadow-[4px_4px_0_0_var(--border)] active:translate-x-[1px] active:translate-y-[1px] active:shadow-[1px_1px_0_0_var(--border)]"
           >

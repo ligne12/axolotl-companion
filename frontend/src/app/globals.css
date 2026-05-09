@@ -124,25 +124,57 @@
   --pastel-butter: oklch(0.35 0.08 95);
 }
 
-/* Tighten the base font size below the md breakpoint so the whole UI scales
- * to ~90% on mobile — Tailwind units are rem-based, so spacing, icon sizes
- * and typography all shrink proportionally without per-component tuning.
- * This matches what users naturally do (pinch out one notch on iOS Safari).
- * Pixel-precise borders & shadows are left in px so they stay crisp. */
+/* Honour the platform's preferred reading size. Apple HIG and Material
+ * both recommend ≥ 16 px body text and ≥ 44 px touch targets on mobile —
+ * the previous 90 % global shrink violated both. Density is now recovered
+ * per-component (tighter padding/gaps on mobile breakpoints) without
+ * starving the type or the touch zones. */
 html {
-  font-size: 90%;
+  font-size: 100%;
   -webkit-text-size-adjust: 100%;
-}
-@media (min-width: 768px) {
-  html {
-    font-size: 100%;
-  }
 }
 
 body {
   background-color: var(--background);
   color: var(--foreground);
   font-family: var(--font-sans);
+  /* Kill the 300 ms tap delay on iOS and prevent double-tap zoom on
+   * interactive elements — the in-app interactions are designed for a
+   * single tap, the browser-level pinch-to-zoom still works. */
+  touch-action: manipulation;
+}
+
+/* Make :active fire reliably on iOS Safari — by default it's only
+ * triggered when the element looks "tappable" to the OS heuristic. A
+ * cursor: pointer is the canonical workaround on touch-only platforms. */
+@media (hover: none) and (pointer: coarse) {
+  button,
+  a,
+  [role="button"],
+  [role="radio"],
+  [role="tab"],
+  label[for],
+  summary {
+    cursor: pointer;
+  }
+
+  /* Kill the iOS Safari focus-zoom on text inputs. iOS zooms in on any
+   * input whose computed font-size is below 16 px to "help readability";
+   * the result on a chat input or login form is a jarring jump every
+   * tap. Pinning the minimum to 16 px on coarse pointers preserves the
+   * desktop sizing while disabling the zoom. !important is required to
+   * override Tailwind text-sm / text-xs utilities applied per-component. */
+  input[type="text"],
+  input[type="email"],
+  input[type="password"],
+  input[type="search"],
+  input[type="tel"],
+  input[type="url"],
+  input[type="number"],
+  input:not([type]),
+  textarea {
+    font-size: 16px !important;
+  }
 }
 
 /* Display font for hero/section headings. We opt-in via ``.font-display``
@@ -175,6 +207,16 @@ body {
 @keyframes axo-slide-out-right {
   from { transform: translateX(0); }
   to { transform: translateX(100%); }
+}
+/* Bottom-sheet variant of the modal (mobile only). Pairs with the
+ * .axo-bottom-sheet positional override below. */
+@keyframes axo-slide-in-up {
+  from { transform: translateY(100%); }
+  to { transform: translateY(0); }
+}
+@keyframes axo-slide-out-down {
+  from { transform: translateY(0); }
+  to { transform: translateY(100%); }
 }
 
 /* Chat markdown body — inline prose + GFM tables in the pixel-neubru DA */
@@ -344,6 +386,30 @@ body {
 }
 .axo-range:focus-visible::-moz-range-thumb {
   box-shadow: 2px 2px 0 0 var(--border);
+}
+
+/* Touch-device override: a 14 px thumb is impossible to drag with a
+ * fingertip, so bump it to 24 px on coarse pointers (phones, tablets).
+ * The track also gets a touch beefier so the proportions stay right. */
+@media (hover: none) and (pointer: coarse) {
+  .axo-range {
+    height: 32px;
+  }
+  .axo-range::-webkit-slider-runnable-track {
+    height: 8px;
+  }
+  .axo-range::-moz-range-track {
+    height: 8px;
+  }
+  .axo-range::-webkit-slider-thumb {
+    width: 24px;
+    height: 24px;
+    margin-top: -10px;
+  }
+  .axo-range::-moz-range-thumb {
+    width: 24px;
+    height: 24px;
+  }
 }
 
 /* Pixel-neubru button/card: strict 2px border + offset shadow that settles

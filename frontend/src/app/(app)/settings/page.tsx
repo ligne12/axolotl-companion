@@ -6,6 +6,7 @@ import { useEffect, useState } from "react";
 import { toast } from "sonner";
 
 import { useApi } from "@/hooks/use-api";
+import { useHaptic } from "@/hooks/use-haptic";
 import { ApiError } from "@/lib/api";
 import { cn } from "@/lib/utils";
 import type { UserPublic } from "@/types/api";
@@ -96,15 +97,18 @@ export default function ProfilePage() {
     }
   }, [meQuery.data]);
 
+  const haptic = useHaptic();
   const save = useMutation({
     mutationFn: (body: Partial<ProfileFields>) =>
       api<UserPublic>("/auth/me", { method: "PATCH", body }),
     onSuccess: (next) => {
       qc.setQueryData<UserPublic>(["auth", "me"], next);
       setDirty(false);
+      haptic("success");
       toast.success("Profile saved");
     },
     onError: (err: unknown) => {
+      haptic("error");
       const msg =
         err instanceof ApiError && err.status === 409
           ? "Username already taken"

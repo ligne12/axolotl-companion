@@ -2,14 +2,15 @@
 
 import * as Dialog from "@radix-ui/react-dialog";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
-import { IdCard, RotateCcw, Save, X } from "lucide-react";
+import { ChevronRight, IdCard, RotateCcw, Save, X } from "lucide-react";
 import Link from "next/link";
-import { useEffect, useMemo, useState } from "react";
+import { useEffect, useMemo, useState, type ReactNode } from "react";
 import { toast } from "sonner";
 
 import { ParamSlider } from "@/components/hyperparams/param-slider";
 import { ToolsList } from "@/components/tools/tools-list";
 import { useApi } from "@/hooks/use-api";
+import { useHaptic } from "@/hooks/use-haptic";
 import {
   hyperParamsEqual,
   pruneHyperParams,
@@ -42,6 +43,11 @@ type Draft = {
  * Slide-in side drawer anchored to the right of the main column. Gives
  * the chat fast access to per-session knobs without leaving the conversation.
  *
+ * On mobile the drawer can grow tall (8 sliders + persona list), so each
+ * section is a collapsible <details> accordion. Frequently-tweaked sections
+ * (persona, reasoning) open by default; the heavy ones (sampling, tools)
+ * stay closed until the user taps in.
+ *
  * Per-session layering: slider values fall back to ``user.defaults`` (set in
  * Settings → Model), which fall back to the server defaults. Clearing an
  * override restores the user default; the pill next to each slider says so.
@@ -57,6 +63,7 @@ export function ChatControlsDrawer({
 }) {
   const api = useApi();
   const qc = useQueryClient();
+  const haptic = useHaptic();
 
   const sessionQuery = useQuery({
     queryKey: ["session", sessionId],
@@ -110,9 +117,13 @@ export function ChatControlsDrawer({
     onSuccess: (next) => {
       qc.setQueryData<SessionPublic>(["session", sessionId], next);
       qc.invalidateQueries({ queryKey: ["sessions"] });
+      haptic("success");
       toast.success("Session controls updated");
     },
-    onError: () => toast.error("Could not update session"),
+    onError: () => {
+      haptic("error");
+      toast.error("Could not update session");
+    },
   });
 
   const setOverride = (key: keyof HyperParams, value: number | boolean) => {
@@ -127,9 +138,11 @@ export function ChatControlsDrawer({
     });
   };
   const resetAll = () => {
+    haptic("tap");
     setDraft((d) => (d ? { ...d, overrides: {} } : d));
   };
   const setPersona = (id: number | null) => {
+    haptic("tap");
     setDraft((d) => (d ? { ...d, persona_id: id } : d));
   };
   const setModel = (m: string) => {
@@ -159,52 +172,69 @@ export function ChatControlsDrawer({
               <button
                 type="button"
                 aria-label="Close"
-                className="text-muted-foreground transition-colors hover:text-destructive"
+                className="inline-flex size-9 items-center justify-center text-muted-foreground transition-[transform,colors] duration-75 hover:text-destructive active:scale-90"
               >
                 <X className="size-5" />
               </button>
             </Dialog.Close>
           </div>
 
-          <div className="flex-1 overflow-y-auto px-4 py-5">
-            <PersonaSection
-              personas={personasQuery.data ?? []}
-              selected={draft?.persona_id ?? null}
-              onChange={setPersona}
-              disabled={!draft}
-            />
+          <div className="flex-1 overflow-y-auto px-4 py-3">
+            <DrawerSection title="Persona" defaultOpen>
+              <PersonaList
+                personas={personasQuery.data ?? []}
+                selected={draft?.persona_id ?? null}
+                onChange={setPersona}
+                disabled={!draft}
+              />
+            </DrawerSection>
 
-            <ModelSection
-              value={draft?.model ?? ""}
-              onChange={setModel}
-              disabled={!draft}
-            />
+            <DrawerSection title="Model">
+              <input
+                type="text"
+                value={draft?.model ?? ""}
+                onChange={(e) => setModel(e.target.value)}
+                placeholder="server default"
+                disabled={!draft}
+                className="w-full border-2 border-border bg-card px-3 py-2 text-sm outline-none transition-[box-shadow] duration-100 focus:shadow-[2px_2px_0_0_var(--lime)] placeholder:text-muted-foreground disabled:cursor-not-allowed disabled:opacity-60"
+              />
+              <p className="mt-2 text-[11px] leading-relaxed text-muted-foreground">
+                Blank = whatever vLLM is serving. Override per session if you point at
+                a second model.
+              </p>
+            </DrawerSection>
 
-            <ReasoningSection
-              value={thinkingChoice(draft?.overrides.enable_thinking)}
-              userDefault={userDefaults.enable_thinking}
-              onChange={(choice) => {
-                if (choice === "inherit") clearOverride("enable_thinking");
-                else setOverride("enable_thinking", choice === "on");
-              }}
-              disabled={!draft}
-            />
+            <DrawerSection title="Reasoning" defaultOpen>
+              <ReasoningRadios
+                value={thinkingChoice(draft?.overrides.enable_thinking)}
+                userDefault={userDefaults.enable_thinking}
+                onChange={(choice) => {
+                  haptic("tap");
+                  if (choice === "inherit") clearOverride("enable_thinking");
+                  else setOverride("enable_thinking", choice === "on");
+                }}
+                disabled={!draft}
+              />
+            </DrawerSection>
 
-            <section className="mt-8 space-y-3">
-              <div className="flex items-center justify-between gap-2">
-                <h3 className="font-pixel text-[11px] uppercase tracking-[0.14em] text-muted-foreground">
-                  Sampling
-                </h3>
+            <DrawerSection
+              title="Sampling"
+              action={
                 <button
                   type="button"
-                  onClick={resetAll}
+                  onClick={(e) => {
+                    e.stopPropagation();
+                    e.preventDefault();
+                    resetAll();
+                  }}
                   disabled={!draft || Object.keys(draft.overrides).length === 0}
                   className="inline-flex items-center gap-1 font-pixel text-[10px] uppercase tracking-[0.14em] text-muted-foreground transition-colors hover:text-foreground disabled:opacity-40"
                 >
                   <RotateCcw className="size-3" />
                   Reset
                 </button>
-              </div>
+              }
+            >
               <div className="space-y-5">
                 {SAMPLING_FIELDS.map((field) => {
                   const userValue = userDefaults[field.key];
@@ -228,7 +258,7 @@ export function ChatControlsDrawer({
                   );
                 })}
               </div>
-              <p className="pt-1 text-[11px] leading-relaxed text-muted-foreground">
+              <p className="pt-3 text-[11px] leading-relaxed text-muted-foreground">
                 Overrides apply to this session only.{" "}
                 <Link
                   href="/settings/model"
@@ -238,19 +268,18 @@ export function ChatControlsDrawer({
                   Edit your defaults →
                 </Link>
               </p>
-            </section>
+            </DrawerSection>
 
-            <section className="mt-8 space-y-3">
-              <div className="flex items-center gap-2">
-                <h3 className="font-pixel text-[11px] uppercase tracking-[0.14em] text-muted-foreground">
-                  Tools
-                </h3>
+            <DrawerSection
+              title="Tools"
+              badge={
                 <span className="border-2 border-border bg-background px-1.5 py-0.5 font-pixel text-[9px] uppercase tracking-widest text-muted-foreground">
                   user-level
                 </span>
-              </div>
+              }
+            >
               <ToolsList compact />
-            </section>
+            </DrawerSection>
           </div>
 
           <div className="flex items-center justify-between gap-3 border-t-2 border-border px-4 py-3">
@@ -262,7 +291,7 @@ export function ChatControlsDrawer({
               onClick={onApply}
               disabled={!dirty || apply.isPending}
               className={cn(
-                "inline-flex items-center gap-2 border-2 border-border bg-primary px-4 py-2 text-xs font-pixel uppercase tracking-[0.14em] text-primary-foreground",
+                "inline-flex min-h-11 items-center gap-2 border-2 border-border bg-primary px-4 py-2 text-xs font-pixel uppercase tracking-[0.14em] text-primary-foreground",
                 "shadow-[2px_2px_0_0_var(--lime)] transition-[transform,box-shadow] duration-100",
                 "hover:shadow-[3px_3px_0_0_var(--lime)]",
                 "active:translate-x-[1px] active:translate-y-[1px] active:shadow-none",
@@ -282,7 +311,40 @@ export function ChatControlsDrawer({
 // -----------------------------------------------------------------------------
 // Sub-sections
 // -----------------------------------------------------------------------------
-function PersonaSection({
+
+/** Collapsible section, native <details> for free a11y + keyboard support. */
+function DrawerSection({
+  title,
+  badge,
+  action,
+  defaultOpen = false,
+  children,
+}: {
+  title: string;
+  badge?: ReactNode;
+  action?: ReactNode;
+  defaultOpen?: boolean;
+  children: ReactNode;
+}) {
+  return (
+    <details
+      open={defaultOpen}
+      className="group border-b-2 border-border/30 py-3 first:pt-0 last:border-b-0"
+    >
+      <summary className="flex min-h-11 cursor-pointer select-none items-center gap-2 list-none [&::-webkit-details-marker]:hidden">
+        <ChevronRight className="size-4 shrink-0 text-muted-foreground transition-transform duration-150 group-open:rotate-90" />
+        <h3 className="flex-1 font-pixel text-[12px] uppercase tracking-[0.14em] text-muted-foreground">
+          {title}
+        </h3>
+        {badge}
+        {action}
+      </summary>
+      <div className="mt-3">{children}</div>
+    </details>
+  );
+}
+
+function PersonaList({
   personas,
   selected,
   onChange,
@@ -294,91 +356,71 @@ function PersonaSection({
   disabled?: boolean;
 }) {
   return (
-    <section className="space-y-3">
-      <h3 className="font-pixel text-[11px] uppercase tracking-[0.14em] text-muted-foreground">
-        Persona
-      </h3>
-      <div className="space-y-1.5">
-        <button
-          type="button"
-          onClick={() => onChange(null)}
-          disabled={disabled}
+    <div className="space-y-1.5">
+      <PersonaRow
+        active={selected === null}
+        onClick={() => onChange(null)}
+        disabled={disabled}
+      >
+        <span
+          aria-hidden
           className={cn(
-            "flex w-full items-center gap-3 border-2 px-3 py-2 text-left text-sm",
-            selected === null
-              ? "border-border bg-card shadow-[2px_2px_0_0_var(--lime)]"
-              : "border-border bg-card/60 hover:shadow-[2px_2px_0_0_var(--border)]",
-            "disabled:cursor-not-allowed disabled:opacity-60",
+            "size-2 shrink-0 border-2 border-border",
+            selected === null ? "bg-[color:var(--lime)]" : "bg-background",
           )}
+        />
+        <span className="flex-1 truncate">None</span>
+      </PersonaRow>
+      {personas.map((p) => (
+        <PersonaRow
+          key={p.id}
+          active={selected === p.id}
+          onClick={() => onChange(p.id)}
+          disabled={disabled}
         >
-          <span
-            aria-hidden
-            className={cn(
-              "size-2 shrink-0 border-2 border-border",
-              selected === null ? "bg-[color:var(--lime)]" : "bg-background",
-            )}
-          />
-          <span className="flex-1 truncate">None</span>
-        </button>
-        {personas.map((p) => (
-          <button
-            key={p.id}
-            type="button"
-            onClick={() => onChange(p.id)}
-            disabled={disabled}
-            className={cn(
-              "flex w-full items-center gap-3 border-2 px-3 py-2 text-left text-sm",
-              selected === p.id
-                ? "border-border bg-card shadow-[2px_2px_0_0_var(--lime)]"
-                : "border-border bg-card/60 hover:shadow-[2px_2px_0_0_var(--border)]",
-              "disabled:cursor-not-allowed disabled:opacity-60",
-            )}
-          >
-            <IdCard className="size-4 shrink-0 text-muted-foreground" />
-            <span className="flex-1 truncate">{p.name}</span>
-            {p.is_builtin && (
-              <span className="border-2 border-border bg-background px-1.5 py-0.5 font-pixel text-[9px] uppercase tracking-widest text-muted-foreground">
-                built-in
-              </span>
-            )}
-          </button>
-        ))}
-      </div>
-    </section>
+          <IdCard className="size-4 shrink-0 text-muted-foreground" />
+          <span className="flex-1 truncate">{p.name}</span>
+          {p.is_builtin && (
+            <span className="border-2 border-border bg-background px-1.5 py-0.5 font-pixel text-[9px] uppercase tracking-widest text-muted-foreground">
+              built-in
+            </span>
+          )}
+        </PersonaRow>
+      ))}
+    </div>
   );
 }
 
-function ModelSection({
-  value,
-  onChange,
+function PersonaRow({
+  active,
+  onClick,
   disabled,
+  children,
 }: {
-  value: string;
-  onChange: (next: string) => void;
+  active: boolean;
+  onClick: () => void;
   disabled?: boolean;
+  children: ReactNode;
 }) {
   return (
-    <section className="mt-8 space-y-3">
-      <h3 className="font-pixel text-[11px] uppercase tracking-[0.14em] text-muted-foreground">
-        Model
-      </h3>
-      <input
-        type="text"
-        value={value}
-        onChange={(e) => onChange(e.target.value)}
-        placeholder="server default"
-        disabled={disabled}
-        className="w-full border-2 border-border bg-card px-3 py-2 text-sm outline-none transition-[box-shadow] duration-100 focus:shadow-[2px_2px_0_0_var(--lime)] placeholder:text-muted-foreground disabled:cursor-not-allowed disabled:opacity-60"
-      />
-      <p className="text-[11px] leading-relaxed text-muted-foreground">
-        Blank = whatever vLLM is serving. Override per session if you point at
-        a second model.
-      </p>
-    </section>
+    <button
+      type="button"
+      onClick={onClick}
+      disabled={disabled}
+      className={cn(
+        "flex min-h-11 w-full items-center gap-3 border-2 px-3 py-2 text-left text-sm transition-transform duration-75 active:scale-[0.99]",
+        active
+          ? "border-border bg-card shadow-[2px_2px_0_0_var(--lime)]"
+          : "border-border bg-card/60 hover:shadow-[2px_2px_0_0_var(--border)]",
+        "disabled:cursor-not-allowed disabled:opacity-60",
+      )}
+    >
+      {children}
+    </button>
   );
 }
 
-function ReasoningSection({
+function ReasoningRadios({
   value,
   userDefault,
   onChange,
@@ -403,41 +445,36 @@ function ReasoningSection({
   ];
 
   return (
-    <section className="mt-8 space-y-3">
-      <h3 className="font-pixel text-[11px] uppercase tracking-[0.14em] text-muted-foreground">
-        Reasoning
-      </h3>
-      <div className="flex flex-col gap-1.5">
-        {OPTS.map((opt) => {
-          const active = value === opt.value;
-          return (
-            <button
-              key={opt.value}
-              type="button"
-              onClick={() => onChange(opt.value)}
-              disabled={disabled}
+    <div className="flex flex-col gap-1.5">
+      {OPTS.map((opt) => {
+        const active = value === opt.value;
+        return (
+          <button
+            key={opt.value}
+            type="button"
+            onClick={() => onChange(opt.value)}
+            disabled={disabled}
+            className={cn(
+              "flex min-h-11 items-center gap-3 border-2 px-3 py-2 text-left text-sm transition-transform duration-75 active:scale-[0.99]",
+              active
+                ? "border-border bg-card shadow-[2px_2px_0_0_var(--lime)]"
+                : "border-border bg-card/60 hover:shadow-[2px_2px_0_0_var(--border)]",
+              "disabled:cursor-not-allowed disabled:opacity-60",
+            )}
+          >
+            <span
+              aria-hidden
               className={cn(
-                "flex items-center gap-3 border-2 px-3 py-2 text-left text-sm",
-                active
-                  ? "border-border bg-card shadow-[2px_2px_0_0_var(--lime)]"
-                  : "border-border bg-card/60 hover:shadow-[2px_2px_0_0_var(--border)]",
-                "disabled:cursor-not-allowed disabled:opacity-60",
+                "size-2 shrink-0 border-2 border-border",
+                active ? "bg-[color:var(--lime)]" : "bg-background",
               )}
-            >
-              <span
-                aria-hidden
-                className={cn(
-                  "size-2 shrink-0 border-2 border-border",
-                  active ? "bg-[color:var(--lime)]" : "bg-background",
-                )}
-              />
-              <span className="flex-1 truncate font-pixel text-[12px] uppercase tracking-[0.12em]">
-                {opt.label}
-              </span>
-            </button>
-          );
-        })}
-      </div>
-    </section>
+            />
+            <span className="flex-1 truncate font-pixel text-[12px] uppercase tracking-[0.12em]">
+              {opt.label}
+            </span>
+          </button>
+        );
+      })}
+    </div>
   );
 }

@@ -181,7 +181,7 @@ export default function PersonasPage() {
                 className="line-clamp-3 overflow-hidden text-xs text-muted-foreground [&_*]:!m-0 [&_*+*]:!mt-0 [&>*]:inline"
               />
 
-              <div className="mt-auto flex justify-end gap-1 pt-2 opacity-0 transition-opacity group-hover:opacity-100 focus-within:opacity-100">
+              <div className="mt-auto flex justify-end gap-1 pt-2 transition-opacity md:opacity-0 md:group-hover:opacity-100 md:focus-within:opacity-100">
                 <button
                   type="button"
                   aria-label={isDefault ? "Clear default" : "Set as default"}
@@ -189,13 +189,13 @@ export default function PersonasPage() {
                   onClick={() => setDefaultMut.mutate(isDefault ? null : p.id)}
                   disabled={setDefaultMut.isPending}
                   className={cn(
-                    "inline-flex size-7 items-center justify-center transition-colors",
+                    "inline-flex size-11 items-center justify-center transition-[transform,colors] duration-75 active:scale-90 md:size-7",
                     isDefault
                       ? "text-[color:var(--lime-foreground)] bg-[color:var(--lime)] border-2 border-border"
                       : "text-muted-foreground hover:text-foreground",
                   )}
                 >
-                  {isDefault ? <PinOff className="size-3.5" /> : <Pin className="size-3.5" />}
+                  {isDefault ? <PinOff className="size-4 md:size-3.5" /> : <Pin className="size-4 md:size-3.5" />}
                 </button>
                 {!p.is_builtin && (
                   <>
@@ -203,17 +203,17 @@ export default function PersonasPage() {
                       type="button"
                       aria-label="Edit"
                       onClick={() => startEdit(p)}
-                      className="inline-flex size-7 items-center justify-center text-muted-foreground hover:text-foreground"
+                      className="inline-flex size-11 items-center justify-center text-muted-foreground transition-transform duration-75 hover:text-foreground active:scale-90 md:size-7"
                     >
-                      <Pencil className="size-3.5" />
+                      <Pencil className="size-4 md:size-3.5" />
                     </button>
                     <button
                       type="button"
                       aria-label="Delete"
                       onClick={() => setPendingDelete(p)}
-                      className="inline-flex size-7 items-center justify-center text-muted-foreground hover:text-destructive"
+                      className="inline-flex size-11 items-center justify-center text-muted-foreground transition-transform duration-75 hover:text-destructive active:scale-90 md:size-7"
                     >
-                      <Trash2 className="size-3.5" />
+                      <Trash2 className="size-4 md:size-3.5" />
                     </button>
                   </>
                 )}

@@ -35,6 +35,11 @@ function formatClock(d: Date, format: "12h" | "24h" = "24h"): string {
 /**
  * Vim/tmux-style status line pinned to the bottom of the AppShell main
  * column. Always visible, desktop + mobile. See DESIGN.md §5.
+ *
+ * Layout:
+ *  - Mobile: two rows (LOCAL · locality · weather  /  clock · stream · model)
+ *    at 12 px pixel font, ~36 px each → 72 px total
+ *  - sm+: single row at 11 px pixel font, ~28 px
  */
 export function TerminalBar() {
   const api = useApi();
@@ -72,72 +77,86 @@ export function TerminalBar() {
   }, [timeFormat]);
 
   const Dot = ({ className }: { className?: string }) => (
-    <span
-      aria-hidden
-      className={cn("inline-block size-1.5 shrink-0", className)}
-    />
+    <span aria-hidden className={cn("inline-block size-1.5 shrink-0", className)} />
+  );
+
+  const StreamState = isSending ? (
+    <span className="inline-flex items-center gap-1.5 text-foreground">
+      <Dot className="animate-pulse bg-[color:var(--lime)]" />
+      Streaming
+      {typeof tokensPerSec === "number" && (
+        <span className="ml-1 font-mono normal-case tracking-normal text-muted-foreground">
+          {tokensPerSec}&thinsp;t/s
+        </span>
+      )}
+    </span>
+  ) : (
+    <span className="inline-flex items-center gap-1.5 text-muted-foreground">
+      <Dot className="bg-[color:var(--muted-foreground)] opacity-60" />
+      Idle
+    </span>
   );
 
   return (
-    <div className="flex h-7 shrink-0 items-center gap-3 border-t-2 border-border bg-card px-4 font-pixel text-[10px] uppercase tracking-[0.14em]">
-      {/* LOCAL · <locality> · <weather> */}
-      <span className="inline-flex items-center gap-1.5">
-        <Dot className="bg-[color:var(--lime)]" />
-        Local
-        {locality && (
-          <span className="text-muted-foreground">
-            · <span className="text-foreground">{truncate(locality, 24)}</span>
-          </span>
-        )}
-      </span>
-      <WeatherPill locality={locality} unit={tempUnit} />
-
-      <Sep />
-
-      {/* Clock */}
-      <span className="font-mono tabular-nums text-foreground/80">{clock}</span>
-
-      <Sep />
-
-      {/* Model — fetched live from /v1/config (proxies vLLM /v1/models) */}
-      <span className="hidden sm:inline-flex items-center gap-1.5 text-muted-foreground">
-        <span className="text-foreground">Model</span>
-        <span className="font-mono normal-case tracking-normal text-foreground/80">
-          {truncate(modelName, 32)}
-        </span>
-      </span>
-
-      <span className="hidden sm:inline"><Sep /></span>
-
-      {/* Stream state */}
-      {isSending ? (
-        <span className="inline-flex items-center gap-1.5 text-foreground">
-          <Dot className="animate-pulse bg-[color:var(--lime)]" />
-          Streaming
-          {typeof tokensPerSec === "number" && (
-            <span className="ml-1 font-mono normal-case tracking-normal text-muted-foreground">
-              {tokensPerSec}&thinsp;t/s
+    <div className="shrink-0 border-t-2 border-border bg-card font-pixel uppercase">
+      {/* Row 1 — locality + weather (always visible). On sm+ this single row
+          carries the entire bar. */}
+      <div className="flex h-9 items-center gap-2 overflow-hidden px-3 text-[12px] tracking-[0.1em] sm:h-7 sm:gap-3 sm:px-4 sm:text-[11px] sm:tracking-[0.14em]">
+        <span className="inline-flex min-w-0 items-center gap-1.5">
+          <Dot className="bg-[color:var(--lime)]" />
+          <span className="shrink-0">Local</span>
+          {locality && (
+            <span className="min-w-0 text-muted-foreground">
+              <span className="text-muted-foreground">· </span>
+              <span className="text-foreground">{truncate(locality, 24)}</span>
             </span>
           )}
         </span>
-      ) : (
-        <span className="inline-flex items-center gap-1.5 text-muted-foreground">
-          <Dot className="bg-[color:var(--muted-foreground)] opacity-60" />
-          Idle
-        </span>
-      )}
+        <WeatherPill locality={locality} unit={tempUnit} />
 
-      {/* Right-side */}
-      {appVersion && (
-        <span className="ml-auto hidden sm:inline-flex items-center gap-3 text-muted-foreground">
+        {/* Desktop continuation — clock, model, stream, version on the
+            same line. Hidden on mobile (rendered as row 2 below). */}
+        <span className="hidden sm:contents">
           <Sep />
-          <span className="font-mono normal-case tracking-normal">{appVersion}</span>
+          <span className="font-mono tabular-nums text-foreground/80">{clock}</span>
+          <Sep />
+          <span className="inline-flex items-center gap-1.5 text-muted-foreground">
+            <span className="text-foreground">Model</span>
+            <span className="font-mono normal-case tracking-normal text-foreground/80">
+              {truncate(modelName, 32)}
+            </span>
+          </span>
+          <Sep />
+          {StreamState}
+          {appVersion && (
+            <span className="ml-auto inline-flex items-center gap-3 text-muted-foreground">
+              <Sep />
+              <span className="font-mono normal-case tracking-normal">{appVersion}</span>
+            </span>
+          )}
         </span>
-      )}
+      </div>
+
+      {/* Row 2 — mobile only. Clock + stream state + model.  */}
+      <div className="flex h-9 items-center gap-2 overflow-hidden border-t border-border/40 px-3 text-[12px] tracking-[0.1em] sm:hidden">
+        <span className="font-mono tabular-nums text-foreground/80">{clock}</span>
+        <Sep />
+        {StreamState}
+        <span className="ml-auto inline-flex min-w-0 items-center gap-1.5 text-muted-foreground">
+          <span className="shrink-0 text-foreground">Model</span>
+          <span className="min-w-0 truncate font-mono normal-case tracking-normal text-foreground/80">
+            {truncate(modelName, 18)}
+          </span>
+        </span>
+      </div>
     </div>
   );
 }
 
 function Sep() {
-  return <span aria-hidden className="text-muted-foreground">·</span>;
+  return (
+    <span aria-hidden className="text-muted-foreground">
+      ·
+    </span>
+  );
 }
