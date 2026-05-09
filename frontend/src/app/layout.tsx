@@ -1,6 +1,8 @@
 import { AlertCircle, Check, Info, TriangleAlert } from "lucide-react";
 import type { Metadata, Viewport } from "next";
 import { Inter, Pixelify_Sans } from "next/font/google";
+import { NextIntlClientProvider } from "next-intl";
+import { getLocale, getMessages } from "next-intl/server";
 import { Toaster } from "sonner";
 
 import { AppBackground } from "@/components/layout/app-background";
@@ -51,14 +53,20 @@ export const viewport: Viewport = {
   ],
 };
 
-export default function RootLayout({
+export default async function RootLayout({
   children,
 }: {
   readonly children: React.ReactNode;
 }) {
+  // ``next-intl`` reads the locale from the cookie / Accept-Language via
+  // the per-request config in ``src/i18n/request.ts``; both helpers
+  // resolve through that, so adding a new locale only touches that file
+  // and ``messages/<code>.json``.
+  const locale = await getLocale();
+  const messages = await getMessages();
   return (
     <html
-      lang="en"
+      lang={locale}
       suppressHydrationWarning
       className={`h-dvh ${inter.variable} ${pixelify.variable}`}
     >
@@ -71,6 +79,7 @@ export default function RootLayout({
         />
       </head>
       <body className="h-dvh overflow-hidden bg-background text-foreground antialiased">
+       <NextIntlClientProvider locale={locale} messages={messages}>
         <ThemeProvider
           attribute="class"
           defaultTheme="system"
@@ -123,6 +132,7 @@ export default function RootLayout({
             </QueryProvider>
           </SessionProvider>
         </ThemeProvider>
+       </NextIntlClientProvider>
       </body>
     </html>
   );

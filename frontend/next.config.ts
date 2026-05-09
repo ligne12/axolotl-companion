@@ -1,5 +1,8 @@
 import type { NextConfig } from "next";
 import withSerwistInit from "@serwist/next";
+import createNextIntlPlugin from "next-intl/plugin";
+
+const withNextIntl = createNextIntlPlugin("./src/i18n/request.ts");
 
 // Serwist compiles the service worker from src/app/sw.ts and emits it to
 // public/sw.js (gitignored). Disabled in dev so HMR isn't shadowed by a
@@ -47,4 +50,4 @@ const nextConfig: NextConfig = {
   },
 };
 
-export default withSerwist(nextConfig);
+export default withSerwist(withNextIntl(nextConfig));

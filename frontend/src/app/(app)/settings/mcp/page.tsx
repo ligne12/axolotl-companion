@@ -10,6 +10,7 @@ import {
   RefreshCw,
   Trash2,
 } from "lucide-react";
+import { useLocale, useTranslations } from "next-intl";
 import { useState } from "react";
 import { toast } from "sonner";
 
@@ -51,20 +52,23 @@ const blankDraft = (): Draft => ({
   authTokenDirty: true,
 });
 
-function relativeTime(iso: string | null | undefined): string | null {
+function relativeTime(iso: string | null | undefined, locale: string): string | null {
   if (!iso) return null;
-  const d = new Date(iso).getTime();
-  const diff = Date.now() - d;
-  if (diff < 60_000) return "just now";
-  if (diff < 3_600_000) return `${Math.floor(diff / 60_000)} min ago`;
-  if (diff < 86_400_000) return `${Math.floor(diff / 3_600_000)} h ago`;
-  return `${Math.floor(diff / 86_400_000)} d ago`;
+  const diff = Date.now() - new Date(iso).getTime();
+  const rtf = new Intl.RelativeTimeFormat(locale, { numeric: "auto" });
+  if (diff < 60_000) return rtf.format(0, "second");
+  if (diff < 3_600_000) return rtf.format(-Math.floor(diff / 60_000), "minute");
+  if (diff < 86_400_000) return rtf.format(-Math.floor(diff / 3_600_000), "hour");
+  return rtf.format(-Math.floor(diff / 86_400_000), "day");
 }
 
 export default function McpPage() {
   const api = useApi();
   const qc = useQueryClient();
   const haptic = useHaptic();
+  const t = useTranslations("mcp");
+  const tc = useTranslations("common");
+  const locale = useLocale();
 
   const servers = useQuery({
     queryKey: ["mcp", "servers"],
@@ -81,14 +85,14 @@ export default function McpPage() {
       qc.invalidateQueries({ queryKey: ["mcp", "servers"] });
       setEditor(null);
       haptic("success");
-      toast.success("MCP server added");
+      toast.success(t("toasts.added"));
     },
     onError: (err: unknown) => {
       haptic("error");
       const msg =
         err instanceof ApiError && err.status === 409
-          ? "Name already used"
-          : "Could not add server";
+          ? t("toasts.errNameTaken")
+          : t("toasts.errAdd");
       toast.error(msg);
     },
   });
@@ -100,14 +104,14 @@ export default function McpPage() {
       qc.invalidateQueries({ queryKey: ["mcp", "servers"] });
       setEditor(null);
       haptic("success");
-      toast.success("Server updated");
+      toast.success(t("toasts.updated"));
     },
     onError: (err: unknown) => {
       haptic("error");
       const msg =
         err instanceof ApiError && err.status === 409
-          ? "Name already used"
-          : "Could not update";
+          ? t("toasts.errNameTaken")
+          : t("toasts.errUpdate");
       toast.error(msg);
     },
   });
@@ -119,11 +123,11 @@ export default function McpPage() {
       qc.invalidateQueries({ queryKey: ["mcp", "servers"] });
       qc.invalidateQueries({ queryKey: ["tools"] });
       haptic("success");
-      toast.success("Server removed");
+      toast.success(t("toasts.removed"));
     },
     onError: () => {
       haptic("error");
-      toast.error("Could not delete");
+      toast.error(t("toasts.errDelete"));
     },
   });
 
@@ -134,7 +138,7 @@ export default function McpPage() {
       qc.invalidateQueries({ queryKey: ["mcp", "servers"] });
       qc.invalidateQueries({ queryKey: ["tools"] });
       haptic("success");
-      toast.success(`${data.tools_count} tool${data.tools_count === 1 ? "" : "s"} synced`);
+      toast.success(t("toasts.syncedCount", { count: data.tools_count }));
     },
     onError: (err: unknown) => {
       // The backend persists ``last_sync_error`` on the row even when the
@@ -143,7 +147,7 @@ export default function McpPage() {
       qc.invalidateQueries({ queryKey: ["mcp", "servers"] });
       haptic("error");
       const detail = err instanceof ApiError ? String(err.body) : null;
-      toast.error(detail?.replace(/^Sync failed: /, "") ?? "Sync failed");
+      toast.error(detail?.replace(/^Sync failed: /, "") ?? t("toasts.errSync"));
     },
   });
 
@@ -157,7 +161,7 @@ export default function McpPage() {
       qc.invalidateQueries({ queryKey: ["mcp", "servers"] });
       qc.invalidateQueries({ queryKey: ["tools"] });
     },
-    onError: () => toast.error("Could not toggle"),
+    onError: () => toast.error(t("toasts.errToggle")),
   });
 
   const startCreate = () => setEditor(blankDraft());
@@ -199,39 +203,40 @@ export default function McpPage() {
       <header className="flex flex-wrap items-end justify-between gap-4">
         <div className="space-y-2">
           <h1 className="font-display text-3xl font-bold leading-tight">
-            MCP <span className="italic">servers</span>.
+            {t.rich("title", {
+              em: (chunks) => <span className="italic">{chunks}</span>,
+            })}
           </h1>
           <p className="max-w-xl text-sm text-muted-foreground">
-            Connect Model Context Protocol servers to plug their tools into the
-            chat. Sync to fetch the tool list; toggle individual tools on the{" "}
-            <a className="underline underline-offset-2" href="/settings/tools">
-              Tools
-            </a>{" "}
-            page.
+            {t.rich("intro", {
+              link: (chunks) => (
+                <a className="underline underline-offset-2" href="/settings/tools">
+                  {chunks}
+                </a>
+              ),
+            })}
           </p>
         </div>
         <button className={PRIMARY} onClick={startCreate} type="button">
           <Plus className="size-4" />
-          Add server
+          {t("addServer")}
         </button>
       </header>
 
       {servers.isPending && (
-        <p className="text-sm text-muted-foreground">Loading…</p>
+        <p className="text-sm text-muted-foreground">{tc("loading")}</p>
       )}
 
       {!servers.isPending && list.length === 0 && (
         <div className="rounded-xl border-2 border-dashed border-border p-8 text-center">
           <Plug className="mx-auto size-6 text-muted-foreground" aria-hidden />
-          <p className="mt-3 text-sm text-muted-foreground">
-            No MCP servers yet. Add one to start connecting external tools.
-          </p>
+          <p className="mt-3 text-sm text-muted-foreground">{t("empty")}</p>
         </div>
       )}
 
       <ul className="grid gap-3 sm:grid-cols-2">
         {list.map((s) => {
-          const synced = relativeTime(s.last_synced_at);
+          const synced = relativeTime(s.last_synced_at, locale);
           const isSyncing = syncMut.isPending && syncMut.variables === s.id;
           const isToggling =
             toggleMut.isPending && toggleMut.variables?.id === s.id;
@@ -250,9 +255,9 @@ export default function McpPage() {
                 {s.has_auth_token && (
                   <span
                     className="border-2 border-border bg-background px-1.5 py-0.5 font-pixel text-[9px] uppercase tracking-widest text-muted-foreground"
-                    title="Authenticated"
+                    title={t("auth")}
                   >
-                    auth
+                    {t("auth")}
                   </span>
                 )}
                 <button
@@ -269,7 +274,7 @@ export default function McpPage() {
                       : "bg-card text-muted-foreground",
                   )}
                 >
-                  {s.enabled ? "on" : "off"}
+                  {s.enabled ? t("on") : t("off")}
                 </button>
               </div>
 
@@ -285,7 +290,7 @@ export default function McpPage() {
                       title={s.last_sync_error}
                     >
                       <AlertCircle className="size-3.5" />
-                      sync failed
+                      {t("syncFailed")}
                     </span>
                     <button
                       type="button"
@@ -299,19 +304,18 @@ export default function McpPage() {
                       <RefreshCw
                         className={cn("size-3", isSyncing && "animate-spin")}
                       />
-                      retry
+                      {tc("retry")}
                     </button>
                   </>
                 ) : s.last_synced_at ? (
                   <span className="inline-flex items-center gap-1 text-muted-foreground">
                     <CheckCircle2 className="size-3.5" />
-                    {s.synced_tools?.length ?? 0} tool
-                    {(s.synced_tools?.length ?? 0) === 1 ? "" : "s"}
+                    {t("syncedTools", { count: s.synced_tools?.length ?? 0 })}
                     {synced ? ` · ${synced}` : ""}
                   </span>
                 ) : (
                   <>
-                    <span className="text-muted-foreground">never synced</span>
+                    <span className="text-muted-foreground">{t("neverSynced")}</span>
                     <button
                       type="button"
                       onClick={() => {
@@ -324,7 +328,7 @@ export default function McpPage() {
                       <RefreshCw
                         className={cn("size-3", isSyncing && "animate-spin")}
                       />
-                      sync now
+                      {t("syncNow")}
                     </button>
                   </>
                 )}
@@ -333,8 +337,8 @@ export default function McpPage() {
               <div className="mt-auto flex justify-end gap-1 pt-2 transition-opacity md:opacity-0 md:group-hover:opacity-100 md:focus-within:opacity-100">
                 <button
                   type="button"
-                  aria-label="Sync"
-                  title="Sync"
+                  aria-label={t("syncNow")}
+                  title={t("syncNow")}
                   onClick={() => {
                     haptic("select");
                     syncMut.mutate(s.id);
@@ -348,7 +352,7 @@ export default function McpPage() {
                 </button>
                 <button
                   type="button"
-                  aria-label="Edit"
+                  aria-label={tc("edit")}
                   onClick={() => startEdit(s)}
                   className="inline-flex size-11 items-center justify-center text-muted-foreground transition-transform duration-75 hover:text-foreground active:scale-90 md:size-7"
                 >
@@ -356,7 +360,7 @@ export default function McpPage() {
                 </button>
                 <button
                   type="button"
-                  aria-label="Delete"
+                  aria-label={tc("delete")}
                   onClick={() => setPendingDelete(s)}
                   className="inline-flex size-11 items-center justify-center text-muted-foreground transition-transform duration-75 hover:text-destructive active:scale-90 md:size-7"
                 >
@@ -373,13 +377,13 @@ export default function McpPage() {
         onOpenChange={(o) => {
           if (!o) setEditor(null);
         }}
-        title={editor?.id === null ? "New *MCP server*" : "Edit *MCP server*"}
+        title={editor?.id === null ? t("modal.newTitle") : t("modal.editTitle")}
       >
         {editor && (
           <form onSubmit={onSubmit} className="space-y-4">
             <div className="space-y-1.5">
               <label htmlFor="mcp-name" className={LABEL}>
-                Name
+                {t("modal.name")}
               </label>
               <input
                 id="mcp-name"
@@ -393,13 +397,13 @@ export default function McpPage() {
                 autoFocus
               />
               <p className="text-xs text-muted-foreground">
-                Letters, digits, dashes, underscores. Used to namespace the tools.
+                {t("modal.nameHelp")}
               </p>
             </div>
 
             <div className="space-y-1.5">
               <label htmlFor="mcp-url" className={LABEL}>
-                URL
+                {t("modal.url")}
               </label>
               <input
                 id="mcp-url"
@@ -411,15 +415,14 @@ export default function McpPage() {
                 required
               />
               <p className="text-xs text-muted-foreground">
-                Streamable-HTTP MCP endpoint. SSE-only servers aren&apos;t
-                supported in this iteration.
+                {t("modal.urlHelp")}
               </p>
             </div>
 
             <div className="space-y-1.5">
               <label htmlFor="mcp-token" className={LABEL}>
-                Auth token{" "}
-                <span className="ml-1 text-muted-foreground">(optional)</span>
+                {t("modal.authToken")}{" "}
+                <span className="ml-1 text-muted-foreground">{t("modal.optional")}</span>
               </label>
               <input
                 id="mcp-token"
@@ -435,24 +438,23 @@ export default function McpPage() {
                 }
                 placeholder={
                   editor.id !== null && !editor.authTokenDirty
-                    ? "(unchanged)"
-                    : "Bearer token"
+                    ? t("modal.tokenUnchanged")
+                    : t("modal.tokenPlaceholder")
                 }
                 autoComplete="off"
               />
               <p className="text-xs text-muted-foreground">
-                Stored encrypted at rest (Fernet). Sent as{" "}
-                <code>Authorization: Bearer …</code> on every call to the server.
+                {t("modal.tokenHelp")}
               </p>
             </div>
 
             <Modal.Footer>
-              <Modal.Cancel>Cancel</Modal.Cancel>
+              <Modal.Cancel>{tc("cancel")}</Modal.Cancel>
               <Modal.Confirm
                 onClick={() => onSubmit({ preventDefault() {} } as React.FormEvent)}
                 disabled={createMut.isPending || updateMut.isPending}
               >
-                {editor.id === null ? "Add" : "Save"}
+                {editor.id === null ? tc("add") : tc("save")}
               </Modal.Confirm>
             </Modal.Footer>
           </form>
@@ -464,13 +466,11 @@ export default function McpPage() {
         onOpenChange={(o) => {
           if (!o) setPendingDelete(null);
         }}
-        title="Remove *MCP server*?"
+        title={t("delete.title")}
         description={
-          pendingDelete
-            ? `“${pendingDelete.name}” will be unregistered. Its tools stop appearing in the registry. Past tool calls in conversations are preserved.`
-            : ""
+          pendingDelete ? t("delete.description", { name: pendingDelete.name }) : ""
         }
-        confirmLabel="Remove"
+        confirmLabel={t("delete.confirm")}
         variant="destructive"
         onConfirm={() => {
           if (pendingDelete) {

@@ -1,0 +1,72 @@
+{
+  "common": {
+    "save": "Save",
+    "cancel": "Cancel",
+    "delete": "Delete",
+    "edit": "Edit",
+    "remove": "Remove",
+    "add": "Add",
+    "loading": "Loading…",
+    "saving": "Saving…",
+    "retry": "Retry",
+    "close": "Close",
+    "language": "Language",
+    "english": "English",
+    "french": "Français"
+  },
+  "settings": {
+    "tabs": {
+      "profile": "Profile",
+      "personas": "Personas",
+      "tools": "Tools",
+      "mcp": "MCP",
+      "model": "Model",
+      "reasoning": "Reasoning",
+      "sandbox": "Sandbox"
+    },
+    "tag": "Settings"
+  },
+  "mcp": {
+    "title": "MCP <em>servers</em>.",
+    "intro": "Connect Model Context Protocol servers to plug their tools into the chat. Sync to fetch the tool list; toggle individual tools on the <link>Tools</link> page.",
+    "addServer": "Add server",
+    "empty": "No MCP servers yet. Add one to start connecting external tools.",
+    "neverSynced": "never synced",
+    "syncNow": "sync now",
+    "syncFailed": "sync failed",
+    "syncedTools": "{count, plural, =0 {no tools} one {# tool} other {# tools}}",
+    "auth": "auth",
+    "on": "on",
+    "off": "off",
+    "modal": {
+      "newTitle": "New *MCP server*",
+      "editTitle": "Edit *MCP server*",
+      "name": "Name",
+      "nameHelp": "Letters, digits, dashes, underscores. Used to namespace the tools.",
+      "url": "URL",
+      "urlHelp": "Streamable-HTTP MCP endpoint. SSE-only servers aren't supported in this iteration.",
+      "authToken": "Auth token",
+      "optional": "(optional)",
+      "tokenHelp": "Stored encrypted at rest (Fernet). Sent as `Authorization: Bearer …` on every call.",
+      "tokenUnchanged": "(unchanged)",
+      "tokenPlaceholder": "Bearer token"
+    },
+    "delete": {
+      "title": "Remove *MCP server*?",
+      "description": "“{name}” will be unregistered. Its tools stop appearing in the registry. Past tool calls in conversations are preserved.",
+      "confirm": "Remove"
+    },
+    "toasts": {
+      "added": "MCP server added",
+      "updated": "Server updated",
+      "removed": "Server removed",
+      "syncedCount": "{count, plural, =0 {no tools synced} one {# tool synced} other {# tools synced}}",
+      "errAdd": "Could not add server",
+      "errUpdate": "Could not update",
+      "errDelete": "Could not delete",
+      "errToggle": "Could not toggle",
+      "errSync": "Sync failed",
+      "errNameTaken": "Name already used"
+    }
+  }
+}

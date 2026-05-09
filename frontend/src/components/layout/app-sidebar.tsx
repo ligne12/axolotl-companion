@@ -9,6 +9,7 @@ import { signOut, useSession } from "next-auth/react";
 import { useEffect, useRef, useState } from "react";
 import { toast } from "sonner";
 
+import { LocaleSwitcher } from "@/components/layout/locale-switcher";
 import { ThemeToggle } from "@/components/layout/theme-toggle";
 import { ConfirmDialog } from "@/components/ui/confirm-dialog";
 import { useApi } from "@/hooks/use-api";
@@ -354,8 +355,9 @@ export function AppSidebar() {
         >
           <Settings className="size-4" /> Settings
         </Link>
-        <div className="flex items-center justify-between px-2 py-1.5 text-sm">
+        <div className="flex items-center justify-between gap-2 px-2 py-1.5 text-sm">
           <ThemeToggle />
+          <LocaleSwitcher />
         </div>
         <div className="flex items-center justify-between px-2 py-1.5 text-sm">
           <span className="truncate text-muted-foreground">{user?.user?.name}</span>

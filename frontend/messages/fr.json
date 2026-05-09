@@ -1,0 +1,72 @@
+{
+  "common": {
+    "save": "Enregistrer",
+    "cancel": "Annuler",
+    "delete": "Supprimer",
+    "edit": "Modifier",
+    "remove": "Retirer",
+    "add": "Ajouter",
+    "loading": "Chargement…",
+    "saving": "Enregistrement…",
+    "retry": "Réessayer",
+    "close": "Fermer",
+    "language": "Langue",
+    "english": "English",
+    "french": "Français"
+  },
+  "settings": {
+    "tabs": {
+      "profile": "Profil",
+      "personas": "Personas",
+      "tools": "Outils",
+      "mcp": "MCP",
+      "model": "Modèle",
+      "reasoning": "Raisonnement",
+      "sandbox": "Sandbox"
+    },
+    "tag": "Réglages"
+  },
+  "mcp": {
+    "title": "Serveurs <em>MCP</em>.",
+    "intro": "Connectez des serveurs Model Context Protocol pour exposer leurs outils dans le chat. Synchronisez pour récupérer la liste, puis activez/désactivez les outils sur la page <link>Outils</link>.",
+    "addServer": "Ajouter un serveur",
+    "empty": "Aucun serveur MCP pour l'instant. Ajoutez-en un pour commencer à brancher des outils externes.",
+    "neverSynced": "jamais synchronisé",
+    "syncNow": "synchroniser",
+    "syncFailed": "synchronisation échouée",
+    "syncedTools": "{count, plural, =0 {aucun outil} one {# outil} other {# outils}}",
+    "auth": "auth",
+    "on": "on",
+    "off": "off",
+    "modal": {
+      "newTitle": "Nouveau *serveur MCP*",
+      "editTitle": "Modifier le *serveur MCP*",
+      "name": "Nom",
+      "nameHelp": "Lettres, chiffres, tirets, underscores. Sert à nommer les outils.",
+      "url": "URL",
+      "urlHelp": "Endpoint MCP en Streamable HTTP. Les serveurs SSE seuls ne sont pas pris en charge dans cette itération.",
+      "authToken": "Jeton d'authentification",
+      "optional": "(optionnel)",
+      "tokenHelp": "Stocké chiffré au repos (Fernet). Envoyé en `Authorization: Bearer …` à chaque appel.",
+      "tokenUnchanged": "(inchangé)",
+      "tokenPlaceholder": "Bearer token"
+    },
+    "delete": {
+      "title": "Retirer le *serveur MCP* ?",
+      "description": "« {name} » sera désinscrit. Ses outils ne seront plus exposés. Les anciens appels restent dans les conversations.",
+      "confirm": "Retirer"
+    },
+    "toasts": {
+      "added": "Serveur MCP ajouté",
+      "updated": "Serveur mis à jour",
+      "removed": "Serveur retiré",
+      "syncedCount": "{count, plural, =0 {aucun outil synchronisé} one {# outil synchronisé} other {# outils synchronisés}}",
+      "errAdd": "Impossible d'ajouter le serveur",
+      "errUpdate": "Impossible de mettre à jour",
+      "errDelete": "Impossible de supprimer",
+      "errToggle": "Impossible de basculer",
+      "errSync": "Synchronisation échouée",
+      "errNameTaken": "Ce nom est déjà utilisé"
+    }
+  }
+}
