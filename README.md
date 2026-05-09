@@ -2,15 +2,13 @@
 
 # 🪷 Axolotl Companion
 
-**Local-first AI companion** with an animated mascot, private LLM inference, and a full-stack web interface.
+**Local-first AI companion** with a private LLM, a streaming chat UI, and an animated mascot.
 
-[![CI Backend](https://github.com/USER/axolotl-companion/actions/workflows/backend-ci.yml/badge.svg)](https://github.com/USER/axolotl-companion/actions)
-[![CI Frontend](https://github.com/USER/axolotl-companion/actions/workflows/frontend-ci.yml/badge.svg)](https://github.com/USER/axolotl-companion/actions)
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](LICENSE)
 [![Python 3.12+](https://img.shields.io/badge/python-3.12+-blue.svg)](https://www.python.org/)
-[![TypeScript](https://img.shields.io/badge/TypeScript-5.x-blue.svg)](https://www.typescriptlang.org/)
-
-![Demo](docs/screenshots/demo.gif)
+[![TypeScript](https://img.shields.io/badge/TypeScript-strict-blue.svg)](https://www.typescriptlang.org/)
+[![Caddy](https://img.shields.io/badge/proxy-Caddy%202-1f88c0.svg)](https://caddyserver.com/)
+[![Let's Encrypt](https://img.shields.io/badge/TLS-Let's%20Encrypt-003a70.svg)](https://letsencrypt.org/)
 
 </div>
 
@@ -18,139 +16,194 @@
 
 ## ✨ Features
 
-- 🤖 **Private LLM inference** — served via [vLLM](https://github.com/vllm-project/vllm) on your own GPU (model configurable)
-- 🎭 **Animated axolotl companion** — sprite reacts to thinking, searching, typing, idle states
-- 🔍 **Tool calling** — web search (DuckDuckGo), weather, date/time, extensible
-- 💬 **Multi-session chat** — persistent conversations with full history
-- 🔐 **Auth** — Auth.js v5 + JWT, bcrypt passwords, refresh token rotation
-- 📱 **PWA** — installable on mobile & desktop, responsive
-- 🎨 **Themes** — dark/light/system + custom personas
-- 🌍 **i18n** — French / English (extensible)
-- 📊 **Observability** — Prometheus metrics, Grafana dashboards, Langfuse LLM traces
+> ✅ shipped &nbsp;·&nbsp; 🚧 in progress &nbsp;·&nbsp; 📋 planned
+
+- ✅ **Private LLM inference** — [vLLM](https://github.com/vllm-project/vllm) in Docker on your own GPU, model configurable via env vars (any vLLM-compatible repo).
+- ✅ **Streaming chat** — SSE pipeline emits `reasoning.delta`, `message.delta`, `tool.call`, `tool.result` events; the UI renders reasoning blocks, web-search result cards and tool-call traces in real time.
+- ✅ **Tool calling** — extensible registry, `web_search` (DuckDuckGo) shipped, per-user enable/disable.
+- ✅ **Personas** — named system prompts with full markdown bodies, default-per-user pin, per-session attach via the command palette.
+- ✅ **Granular controls** — global hyperparam defaults on the user (temperature, top_p, top_k, min_p, presence_penalty, repetition_penalty, max_tokens, `enable_thinking`), overridable per-session from a `Cmd+,` drawer.
+- ✅ **Auth** — Auth.js v5 (credentials provider) → FastAPI JWT, bcrypt hashes, rotating refresh tokens.
+- ✅ **Custom design language** — pixel-neubru (warm cream paper, 2 px ink borders, electric-lime accent), dark/light theming, command palette (`Cmd+K`), keyboard-shortcut overlay.
+- ✅ **Real HTTPS, opt-in** — public hostname served with a Let's Encrypt cert via the **DNS-01** challenge (Cloudflare DNS plugin) — works behind NAT, no public IP, no port forwarding, no client-side CA install.
+- ✅ **OpenAPI → TS types pipeline** — backend schema is the single source of truth; frontend types are regenerated, drift is enforced in CI.
+- 🚧 **Animated axolotl companion** — mood is reactive on the home hero; the full sprite state-machine bound to chat events is the next phase.
+- 🚧 **PWA** — manifest + theme colours in place, service worker (Serwist) pending.
+- 📋 **MCP servers CRUD**, **conversation export/import**, **i18n FR/EN**, **observability dashboards** (Prometheus + Grafana + Langfuse).
 
 ## 🏗️ Stack
 
-<table>
-<tr>
-<td><b>Frontend</b></td>
-<td>Next.js 15 (App Router, RSC) · React 19 · TypeScript strict · Tailwind v4 · shadcn/ui · Framer Motion · Zustand · TanStack Query · Zod · Auth.js v5 · Serwist (PWA)</td>
-</tr>
-<tr>
-<td><b>Backend</b></td>
-<td>FastAPI · Python 3.12 · SQLModel · Alembic · Pydantic v2 · structlog · OpenTelemetry · TaskIQ · uv</td>
-</tr>
-<tr>
-<td><b>LLM</b></td>
-<td>vLLM (configurable model via env vars)</td>
-</tr>
-<tr>
-<td><b>Data</b></td>
-<td>PostgreSQL 16 · Redis 7</td>
-</tr>
-<tr>
-<td><b>Infra</b></td>
-<td>Docker Compose (profiles) · Caddy (auto TLS) · GitHub Actions · Trivy</td>
-</tr>
-<tr>
-<td><b>Observability</b></td>
-<td>Prometheus · Grafana · Langfuse</td>
-</tr>
-</table>
+| Layer | Tech |
+|---|---|
+| LLM serving | **vLLM** (Docker, GPU), model configurable via `VLLM_MODEL` |
+| Backend | **FastAPI** · Python 3.12 · **SQLModel** + Alembic · Pydantic v2 · structlog · uv |
+| LLM client | OpenAI-compatible HTTP, SSE streaming, tool-calling rounds |
+| Frontend | **Next.js 15** (App Router, RSC) · React 19 · TS strict · **Tailwind v4** · Radix UI · TanStack Query · Zod · Auth.js v5 |
+| Data | **PostgreSQL 16** (citext, pgcrypto, pg_trgm) · **Redis 7** |
+| Reverse proxy | **Caddy 2** (custom build with `caddy-dns/cloudflare` for DNS-01) |
+| Orchestration | Docker Compose · `make`-driven workflows |
+| Quality | Ruff · mypy strict · ESLint · `tsc --noEmit` · pytest · vitest · playwright |
 
 ## 🚀 Quick start
 
 ### Prerequisites
 
-- **NVIDIA GPU** with sufficient VRAM for the model you plan to load
-- **Docker** + **NVIDIA Container Toolkit**
-- Enough system RAM for WSL/Linux + Docker overhead
-- Linux / WSL2
+- NVIDIA GPU with enough VRAM for the model you plan to load
+- Docker + NVIDIA Container Toolkit
+- Linux or WSL2
 
-### Launch in one command
+### Launch
 
 ```bash
-git clone https://github.com/USER/axolotl-companion.git
+git clone <this-repo>
 cd axolotl-companion
 cp .env.example .env
-# Edit .env: set HF_TOKEN, JWT_SECRET, and your chosen model
+# Edit .env: set HF_TOKEN, JWT_SECRET, FERNET_KEY, AUTH_SECRET, your model
 make dev
 ```
 
-Then open <https://chat.localhost>.
+Then open <https://chat.localhost> (Caddy serves a self-signed cert in dev — accept once).
 
 ### Configuring the model
 
-The LLM is configurable via environment variables in `.env`. Any model compatible with
-vLLM works, from small 3B models up to large quantized ones, as long as it fits in your
-VRAM. See [`docs/models.md`](docs/models.md) for recommended configurations depending on
-your GPU budget and use case (chat, long context, tool use, etc.).
+Any vLLM-compatible model works. Edit `VLLM_MODEL` in `.env` (HuggingFace repo id or local path) plus the related knobs:
 
-Example configurable options:
+- Context window (`VLLM_MAX_MODEL_LEN`)
+- KV cache dtype (`VLLM_KV_CACHE_DTYPE` — `fp8` / `auto`)
+- Concurrent sequences (`VLLM_MAX_NUM_SEQS`)
+- GPU memory utilisation (`VLLM_GPU_MEMORY_UTILIZATION`)
+- Quantization passthrough (`VLLM_QUANTIZATION` — AWQ / GPTQ / NVFP4 / FP8)
 
-- Model path / HuggingFace repo
-- Context window (`max-model-len`)
-- KV cache dtype (fp8 / fp16)
-- Concurrent sequences (`max-num-seqs`)
-- GPU memory utilization
-- Quantization backend (AWQ Marlin / GPTQ / NVFP4 / FP8 / BF16)
+See [`docs/models.md`](docs/models.md) for recommended profiles by GPU budget.
 
-### Individual commands
+### Make targets
 
 ```bash
-make dev              # Start the whole stack in dev mode (HMR)
-make prod             # Build and start in production mode
-make test             # Run all tests (backend + frontend + e2e)
-make lint             # Lint and type-check everything
-make backup           # Snapshot the database
-make obs              # Start Prometheus + Grafana + Langfuse
-make clean            # Stop and remove containers & volumes
+make dev              # Build + start the full stack with HMR
+make prod             # Build + start with the prod overrides
+make test             # Backend pytest + frontend vitest + e2e
+make lint             # Lint + type-check both sides
+make db-migrate       # Run pending Alembic migrations
+make backup           # Snapshot the Postgres DB to ./backups/
+make obs              # Add Prometheus + Grafana + Langfuse on top
+make clean            # Stop + remove containers AND volumes (destructive)
 ```
 
-## 📂 Structure
+## 🌐 Remote access (optional)
+
+Out of the box, the stack only listens on `chat.localhost` from the host. To expose it to other devices on your Wi-Fi (or to your phone), point a public DNS A record at the host's LAN IP and let Caddy obtain a real Let's Encrypt cert via the **DNS-01** challenge — no NAT traversal, no port forwarding, no homemade CA install on the client.
+
+Full walk-through in [`docs/deployment.md`](docs/deployment.md), including the optional Cloudflare Tunnel path for Internet-wide demo access.
+
+TL;DR — set `APP_HOSTNAMES` and `CF_API_TOKEN` (Cloudflare DNS Zone:Edit) in `.env`, point an A record at your LAN IP in the Cloudflare dashboard (DNS-only, gray cloud), and `make dev` does the rest.
+
+## 📚 Documentation
+
+The repo ships with a structured docs tree under [`docs/`](docs/):
+
+| File | Covers |
+|---|---|
+| [`docs/architecture.md`](docs/architecture.md) | Services, request routing, code layout |
+| [`docs/auth.md`](docs/auth.md) | Auth.js v5 ↔ FastAPI JWT, refresh rotation, cookies |
+| [`docs/database.md`](docs/database.md) | Postgres schema table-by-table, indexes, FK behaviour |
+| [`docs/api.md`](docs/api.md) | REST + SSE reference with curl examples |
+| [`docs/chat.md`](docs/chat.md) | Streaming chat pipeline, tool calling, reasoning |
+| [`docs/features.md`](docs/features.md) | Personas, layered hyperparams, palette, drawer, tools |
+| [`docs/deployment.md`](docs/deployment.md) | Local dev → public HTTPS → Cloudflare Tunnel |
+| [`docs/models.md`](docs/models.md) | vLLM tuning per GPU tier |
+| [`docs/adr/`](docs/adr/) | Architectural decision records |
+
+## 📂 Repo layout
 
 ```
 axolotl-companion/
-├── backend/              FastAPI + SQLModel + Alembic
-├── frontend/             Next.js 15 + Auth.js + shadcn/ui
-├── docker/               Dockerfiles (vLLM, proxy)
-├── compose.yaml          Base Compose (dev-friendly)
-├── compose.prod.yaml     Prod overrides
-├── compose.observability.yaml
-├── docs/                 Architecture docs, ADRs, screenshots
-├── scripts/              Backup, seed, migration helpers
-└── Makefile              Unified commands
+├── backend/                 FastAPI + SQLModel + Alembic + uv
+│   ├── src/axolotl/         FastAPI app: api/, db/, llm/, schemas/, services/
+│   └── alembic/             Migrations
+├── frontend/                Next.js 15 + Auth.js v5
+│   └── src/
+│       ├── app/             App Router routes (login, register, home, chat, settings)
+│       ├── components/      chat/, hyperparams/, layout/, palette/, settings/, ui/
+│       ├── hooks/           useApi, useChat
+│       └── types/           API types (auto-generated from OpenAPI)
+├── docker/
+│   ├── proxy/               Caddy custom build (DNS-01 plugin)
+│   └── vllm.Dockerfile
+├── compose.yaml             Base Compose (dev-friendly, HMR)
+├── compose.prod.yaml        Production overrides
+├── docs/                    Reference docs (architecture, auth, database, api, chat, features, deployment, models) + ADRs
+└── Makefile                 Unified workflow targets
 ```
 
-Full architecture breakdown → [docs/architecture/README.md](docs/architecture/README.md)
+## 🗺️ Architecture
 
-## 🎮 The Axolotl
+### Request routing
 
-The axolotl reacts in real-time to the LLM's internal state:
+```mermaid
+flowchart LR
+    Client[Browser / PWA]
+    Caddy[Caddy 2<br/>tls internal · dev<br/>Let's Encrypt + DNS-01 · prod]
+    Next[Next.js 15<br/>RSC + NextAuth]
+    FastAPI[FastAPI<br/>SSE · auth · sessions · personas · tools]
+    PG[(PostgreSQL 16)]
+    Redis[(Redis 7)]
+    vLLM[vLLM<br/>GPU inference]
 
-| State | Trigger | Animation |
-|---|---|---|
-| `idle` | No activity | Slow blinking, gentle float |
-| `listening` | User is typing | Ears perked up |
-| `thinking` | Model is reasoning | Thought bubbles above head |
-| `searching` | Tool call (web_search) | Magnifying glass, spinning |
-| `typing` | Response streaming | Mouth moving |
-| `happy` | User says thanks / positive | Jump + hearts |
-| `confused` | Error / hallucination detected | Question mark |
+    Client -->|https| Caddy
+    Caddy -->|/api/auth/*| Next
+    Caddy -->|/api/*| FastAPI
+    Caddy -->|/| Next
+    Next -.JWT.-> FastAPI
+    FastAPI --> PG
+    FastAPI --> Redis
+    FastAPI -->|OpenAI-compatible<br/>SSE| vLLM
+```
 
-## 📸 Screenshots
+The `/api/*` split is same-origin, so the Next.js bundle uses a relative `NEXT_PUBLIC_API_URL=/api` and the **same build** serves any entry point (`chat.localhost`, public hostname, LAN IP) without per-deployment rebuilds.
 
-*Coming soon.*
+### Streaming chat flow
+
+```mermaid
+sequenceDiagram
+    participant U as User
+    participant N as Next.js
+    participant F as FastAPI
+    participant V as vLLM
+
+    U->>N: POST /api/v1/sessions/{id}/messages
+    N->>F: forward (Authorization: Bearer …)
+    F->>V: chat.completions (stream)
+    loop while streaming
+        V-->>F: token chunk
+        alt reasoning token
+            F-->>N: SSE reasoning.delta
+        else content token
+            F-->>N: SSE message.delta
+        end
+        N-->>U: useChat updates UI
+    end
+    opt tool call
+        V-->>F: tool_call
+        F-->>N: SSE tool.call
+        F->>F: execute (web_search, …)
+        F-->>N: SSE tool.result
+        F->>V: continuation (with tool result)
+    end
+    V-->>F: finish
+    F-->>N: SSE message.done
+```
 
 ## 🛣️ Roadmap
 
-See [plan.md](plan.md) for the full phased roadmap.
+Full phased roadmap in [`plan.md`](plan.md). Current state:
 
-Current status: **Phase 2 — Frontend MVP** ⬅️ (Phase 0 + Phase 1 done)
-
-## 🤝 Contributing
-
-Contributions welcome. See [CONTRIBUTING.md](CONTRIBUTING.md).
+- Phase 0 — Repo setup ✅
+- Phase 1 — Backend MVP ✅
+- Phase 2 — Frontend MVP ✅
+- Phase 3 — Animated axolotl 🚧 (mood reactivity shipped, state-machine binding next)
+- Phase 4 — Polish 🚧 (settings UI ✅, hyperparam controls ✅, public HTTPS ✅; PWA, MCP CRUD, export/import, i18n pending)
+- Phase 5 — Observability + docs polish 📋
 
 ## 📄 License
 
-MIT — see [LICENSE](LICENSE)
+MIT — see [LICENSE](LICENSE).

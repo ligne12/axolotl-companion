@@ -20,7 +20,7 @@ A local-first chatbot companion featuring:
 | Cache | Redis 7 |
 | Frontend | Next.js 15 (App Router, RSC) + TypeScript strict |
 | Auth | **Auth.js v5** (credentials provider → JWT to FastAPI) |
-| UI | Tailwind v4 + shadcn/ui + Framer Motion |
+| UI | Tailwind v4 + Radix UI primitives + custom design system (pixel-neubru) + Framer Motion |
 | State | Zustand (client) + TanStack Query (server) |
 | Validation | Zod (front) + Pydantic v2 (back) |
 | Observability | Prometheus + Grafana + Langfuse (LLM traces) |
@@ -31,64 +31,161 @@ A local-first chatbot companion featuring:
 
 ## 3. Architecture
 
-```
-Client (browser / PWA)
-      │
-      ▼
-  Caddy  ────────── chat.localhost (frontend)
-   (reverse         api.localhost (backend)
-    proxy)
-      │
-   ┌──┴────────┬────────────┬──────────┐
-   ▼           ▼            ▼          ▼
- Next.js   FastAPI      Postgres    Redis
-  :3000    :8001         :5432      :6379
-              │
-              ▼
-           vLLM :8000 (GPU)
+```mermaid
+flowchart LR
+    Client[Browser / PWA]
+    Caddy[Caddy 2<br/>same-origin /api split]
+    Next[Next.js 15<br/>RSC + NextAuth]
+    FastAPI[FastAPI<br/>SSE · auth · sessions · personas · tools]
+    PG[(PostgreSQL 16)]
+    Redis[(Redis 7)]
+    vLLM[vLLM<br/>GPU]
+
+    Client -->|chat.localhost / public host| Caddy
+    Caddy -->|/api/auth/*| Next
+    Caddy -->|/api/*| FastAPI
+    Caddy -->|/| Next
+    Next -.JWT.-> FastAPI
+    FastAPI --> PG
+    FastAPI --> Redis
+    FastAPI -->|OpenAI-compatible| vLLM
 ```
 
-**Auth flow:**
-1. User signs up → Next.js `/api/auth/register` → FastAPI `/auth/register` → bcrypt hash stored in DB
-2. User logs in → Auth.js credentials provider → FastAPI `/auth/login` → JWT returned
-3. Auth.js stores the JWT in an encrypted session cookie (HttpOnly, SameSite=Lax)
-4. Protected requests: Next.js reads the session, forwards the JWT to FastAPI as `Authorization: Bearer`
-5. FastAPI validates the JWT (signature + expiration) → authorizes the user
+### Auth flow
 
-**Streaming chat flow:**
-1. User sends a message → POST `/api/v1/chat/{session_id}/messages`
-2. Backend opens an SSE stream → emits events `message.delta`, `tool.call`, `tool.result`, `message.done`
-3. Frontend consumes via `EventSource` → updates the Zustand store
-4. Axolotl state machine listens to those events → changes the animation
+```mermaid
+sequenceDiagram
+    participant U as User
+    participant N as Next.js
+    participant A as Auth.js v5
+    participant F as FastAPI
+
+    U->>N: POST /login (username, password)
+    N->>A: signIn("credentials")
+    A->>F: POST /auth/login
+    F-->>A: { access_token, refresh_token }
+    A->>A: store in encrypted session cookie<br/>(HttpOnly, SameSite=Lax)
+    A-->>U: 302 → /home
+
+    Note over U,F: Subsequent protected request
+    U->>N: GET /api/v1/sessions
+    N->>A: read session
+    N->>F: GET /v1/sessions<br/>Authorization: Bearer <access_token>
+    F->>F: verify JWT signature + expiry
+    F-->>N: 200 + payload
+    N-->>U: render
+```
+
+### Streaming chat flow
+
+```mermaid
+sequenceDiagram
+    participant U as User
+    participant F as FastAPI
+    participant V as vLLM
+    participant Axo as Axolotl mood
+
+    U->>F: POST /v1/sessions/{id}/messages
+    F->>V: chat.completions (stream)
+    loop while streaming
+        V-->>F: token chunk
+        alt reasoning token
+            F-->>U: SSE reasoning.delta
+            F-->>Axo: thinking
+        else content token
+            F-->>U: SSE message.delta
+            F-->>Axo: typing
+        end
+    end
+    opt tool call
+        V-->>F: tool_call
+        F-->>U: SSE tool.call
+        F-->>Axo: searching
+        F->>F: execute (web_search · …)
+        F-->>U: SSE tool.result
+        F->>V: continuation (with tool result)
+    end
+    V-->>F: finish
+    F-->>U: SSE message.done
+    F-->>Axo: idle
+```
 
 ## 4. Database schema (Postgres)
 
-```sql
--- users
-id BIGSERIAL PK, username UNIQUE, email UNIQUE, password_hash,
-avatar_url, created_at, updated_at
+```mermaid
+erDiagram
+    users ||--o{ sessions : owns
+    users ||--o{ personas : owns
+    users ||--o{ refresh_tokens : has
+    users ||--o{ settings : has
+    users }o--|| personas : "default_persona_id"
+    sessions ||--o{ messages : contains
+    sessions }o--|| personas : "uses (optional)"
 
--- sessions
-id BIGSERIAL PK, user_id FK, title, persona_id FK, model,
-created_at, updated_at, archived BOOL
-
--- messages
-id BIGSERIAL PK, session_id FK, role (user/assistant/tool/system),
-content, reasoning, tool_calls JSONB, tool_call_id, metadata JSONB,
-created_at, token_count
-
--- personas
-id BIGSERIAL PK, user_id FK, name, system_prompt, params JSONB,
-is_builtin BOOL
-
--- settings (per-user key-value)
-user_id FK, key, value JSONB, PK (user_id, key)
-
--- refresh_tokens
-id, user_id FK, token_hash, expires_at, revoked_at
-
--- Key indexes: sessions(user_id, updated_at DESC), messages(session_id, created_at)
+    users {
+        bigserial id PK
+        citext username UK
+        citext email UK
+        text password_hash
+        text avatar_url
+        text locality
+        text time_format "12h | 24h"
+        text temperature_unit "C | F"
+        jsonb defaults "hyperparam overrides"
+        bigint default_persona_id FK "nullable"
+        timestamptz created_at
+        timestamptz updated_at
+    }
+    sessions {
+        uuid id PK
+        bigint user_id FK
+        bigint persona_id FK "nullable"
+        text title
+        text model "nullable"
+        jsonb overrides "per-session hyperparams"
+        boolean archived
+        timestamptz created_at
+        timestamptz updated_at
+    }
+    messages {
+        uuid id PK
+        uuid session_id FK
+        text role "user | assistant | tool | system"
+        text content "nullable"
+        text reasoning "nullable"
+        jsonb tool_calls "nullable"
+        text tool_call_id "nullable"
+        jsonb metadata "timings · usage"
+        int token_count "nullable"
+        timestamptz created_at
+    }
+    personas {
+        bigserial id PK
+        bigint user_id FK "nullable for built-ins"
+        text name
+        text system_prompt
+        jsonb params
+        boolean is_builtin
+        timestamptz created_at
+    }
+    settings {
+        bigint user_id PK,FK
+        text key PK
+        jsonb value
+        timestamptz updated_at
+    }
+    refresh_tokens {
+        bigserial id PK
+        bigint user_id FK
+        text token_hash UK
+        timestamptz expires_at
+        timestamptz revoked_at "nullable"
+        timestamptz created_at
+    }
 ```
+
+Key indexes: `sessions(user_id, updated_at DESC)`, `messages(session_id, created_at)`,
+unique on `users.username`, `users.email`, `refresh_tokens.token_hash`.
 
 ## 5. API endpoints
 
@@ -130,51 +227,77 @@ id, user_id FK, token_hash, expires_at, revoked_at
 
 ### Phase 1 — Backend MVP ✅ done
 - FastAPI + Pydantic Settings config
-- Postgres + Alembic + SQLModel (initial migration committed)
+- Postgres + Alembic + SQLModel (multiple migrations shipped)
 - Auth: JWT + bcrypt + rotating refresh tokens
 - Sessions CRUD + authz
 - Chat SSE endpoint wrapping vLLM with tool calling
 - Extensible tool registry + per-user enable/disable via `/v1/tools`
+- Personas CRUD (`/v1/personas`)
+- User profile CRUD (`/auth/me` PATCH) with locality + display preferences
+- User-level hyperparam defaults + per-session overrides (JSONB)
+- Default persona pin per user (`users.default_persona_id`)
 - Unit + integration tests (pytest, NullPool for asyncio stability)
 
-### Phase 2 — Frontend MVP ⬅️ current
-- Next.js 15 + Tailwind v4 + shadcn/ui
-- Auth.js v5 credentials provider
-- Login / register pages
-- Chat UI (messages, input, tool-call cards)
-- `useChat` hook with SSE
-- Types auto-generated from OpenAPI
+### Phase 2 — Frontend MVP ✅ done
+- Next.js 15 (App Router, RSC) + Tailwind v4 + Radix UI primitives
+- Auth.js v5 credentials provider, login / register pages
+- Chat UI: messages, input, tool-call cards (web search rendered with
+  result thumbnails + duration), reasoning blocks, `useChat` hook over SSE
+- Cmd+K command palette + keyboard-shortcut overlay
+- Cmd+, in-conversation controls drawer (persona / model / hyperparams /
+  reasoning, all per-session)
+- Types auto-generated from OpenAPI; `make check-api-types` enforces drift in CI
+- Custom design language (pixel-neubru) — warm cream paper, 2 px ink
+  borders, electric-lime accent, ClashDisplay italic accents, Pixelify
+  Sans labels
+- `/dev/components` living sandbox to preview every primitive
+- Sonner toasts retailored to the design language
+- Mobile polish pass — responsive base font-size, sticky save bars,
+  weather pill compacted, markdown tables scroll horizontally instead of
+  pushing the bubble past the viewport
 
-### Phase 3 — Axolotl companion
-- Sprite sheet (pixel art or animated SVG)
-- State machine (XState or custom)
-- Framer Motion animations
-- Binding to chat events
+### Phase 3 — Animated axolotl 🚧 partial
+- ✅ Mood reactivity on the home hero
+- 🚧 Sprite sheet (pixel art or animated SVG)
+- 🚧 State machine (XState or custom) — bound to SSE chat events
+  (`thinking`, `searching`, `typing`, `idle`, …)
+- 🚧 Framer Motion animations
 
-### Phase 4 — Polish
-- PWA (Serwist)
-- Dark / light theming (toggle shipped; palette refinement pending)
-- Settings UI:
-  - **Personas** CRUD — name + system prompt + per-persona defaults
-  - **Profile** — edit username, avatar, locality (locality feeds the
-    terminal footer's `LOCAL` tag, e.g. `● LOCAL · MONTPELLIER`)
-  - **Model** — per-session model picker + generation hyperparameters
-    (temperature, top_p, top_k, min_p, presence_penalty, repetition_penalty,
-    max_tokens) with a reset-to-defaults button
-  - **Reasoning** — toggle `enable_thinking` off per-session so the model
-    skips the `<think>` phase when the user wants a straight answer
-  - **MCP servers** — CRUD on connected MCP servers (add, edit, remove,
-    toggle). Each server exposes a set of tools that plug into the same
-    registry as the built-in ones; per-user enable/disable lands on the
-    existing Tools page alongside `web_search`.
-- Export / import conversations
-- i18n FR / EN
+### Phase 4 — Polish 🚧 in progress
+- ✅ Settings UI:
+  - **Profile** — username, locality (feeds the terminal footer's `LOCAL`
+    tag, e.g. `● LOCAL · MONTPELLIER`), time format (12h / 24h),
+    temperature unit (°C / °F)
+  - **Personas** — full CRUD, markdown system-prompt bodies, default-pin,
+    "Start as persona" entry in the command palette
+  - **Model** — global hyperparam defaults via DA-styled range sliders
+    (temperature, top_p, top_k, min_p, presence_penalty,
+    repetition_penalty, max_tokens), per-slider clear-override + global
+    reset
+  - **Reasoning** — three-choice radio (on / off / server default) for
+    `enable_thinking`
+  - **Tools** — per-user enable/disable (foundation for MCP later)
+- ✅ Dark / light theming (system follow + manual toggle)
+- ✅ **Real HTTPS, opt-in** (out-of-plan addition) — public hostname
+  served with a Let's Encrypt cert via DNS-01 (Cloudflare DNS plugin),
+  works behind NAT, no public IP, no client-side CA install. Activated
+  by `APP_HOSTNAMES` + `CF_API_TOKEN` in `.env`.
+- ✅ **Mobile polish pass** (out-of-plan addition) — responsive base
+  density, sticky save bars on Settings, weather pill compact rendering,
+  markdown table horizontal scroll, chat input fits narrow widths
+- 🚧 PWA (Serwist) — manifest + theme colours in place, service worker
+  pending
+- 📋 **MCP servers CRUD** — connected MCP servers (add, edit, remove,
+  toggle), exposing tools through the same registry as the built-in ones
+- 📋 Export / import conversations (JSON)
+- 📋 i18n FR / EN
 
-### Phase 5 — Observability + README polish
-- Prometheus + Grafana dashboards
+### Phase 5 — Observability + docs polish 📋
+- Prometheus + Grafana dashboards (services scaffolded in compose, dashboards
+  pending)
 - Langfuse LLM traces
-- Polished README (demo GIF, diagrams, badges)
-- Deployment guides (local, VPS, Vercel)
+- Polished README (demo GIF, diagrams, badges) — partially shipped
+- Deployment guides (local, Cloudflare Tunnel, VPS)
 
 ## 7. Hosting
 
@@ -193,7 +316,8 @@ id, user_id FK, token_hash, expires_at, revoked_at
 - **Conventional Commits** (`feat:`, `fix:`, `docs:`, `chore:`, ...)
 - **Branches**: `main` (prod), `dev` (integration), `feat/*`, `fix/*`
 - **PRs**: template with CI checklist and UI screenshots
-- **ADRs** live in `docs/architecture/adr-*.md`
+- **ADRs** live in `docs/adr/`. Reference docs (auth, database, api,
+  chat, features, deployment, models) live in `docs/` root
 - **SemVer** + generated `CHANGELOG.md`
 
 ## 9. Security checklist

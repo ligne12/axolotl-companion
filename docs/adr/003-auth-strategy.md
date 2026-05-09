@@ -15,26 +15,16 @@ We need authentication that:
 
 **Two-layer auth: Auth.js v5 (frontend session) + FastAPI JWT (backend authorization).**
 
-```
-┌─────────────────────────────────────────────┐
-│                 Browser                     │
-│                                             │
-│   Auth.js session cookie (HttpOnly)          │
-│   └─ stores: user id, access_token (JWT)    │
-└──────────────┬──────────────────────────────┘
-               │
-               ▼
-      Next.js API route / Server Action
-               │
-    (reads session → forwards Bearer token)
-               │
-               ▼
-      FastAPI  /v1/*  endpoints
-               │
-     Validates JWT (HS256 signature + expiry)
-               │
-               ▼
-               DB
+```mermaid
+flowchart TD
+    Browser[Browser<br/>Auth.js session cookie · HttpOnly · SameSite=Lax<br/>stores: user id + access_token JWT + refresh token]
+    Next[Next.js<br/>RSC / route handler<br/>reads session via auth&#40;&#41;]
+    FastAPI[FastAPI /v1/*<br/>verifies JWT signature + expiry]
+    DB[(PostgreSQL)]
+
+    Browser -->|cookie| Next
+    Next -->|Authorization: Bearer …| FastAPI
+    FastAPI --> DB
 ```
 
 ### Flow details

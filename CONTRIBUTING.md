@@ -5,12 +5,17 @@ Thanks for your interest in Axolotl Companion!
 ## Setup
 
 ```bash
-git clone https://github.com/USER/axolotl-companion.git
+git clone https://github.com/ligne12/axolotl-companion.git
 cd axolotl-companion
 cp .env.example .env   # Fill in your secrets
-make install-hooks     # Install pre-commit hooks
+make install-hooks     # Install pre-commit hooks (optional)
 make dev               # Launch the full stack
 ```
+
+Open <https://chat.localhost> once everything is up. See the
+[README](README.md#-quick-start) for prerequisites and
+[`docs/deployment.md`](docs/deployment.md) if you want to expose the
+stack on a phone over the LAN.
 
 ## Branching
 
@@ -60,6 +65,11 @@ The commit-msg hook enforces this locally.
 
 Run all tests: `make test`
 
-## Architecture decisions
+## Documentation & ADRs
 
-Significant design choices live as ADRs under [docs/architecture/](docs/architecture/).
+Reference docs live under [docs/](docs/). When you change behaviour
+that's documented (auth, schema, API, chat pipeline, …), update the
+relevant `.md` in the same PR.
+
+Architectural decisions are recorded as ADRs under
+[docs/adr/](docs/adr/).
