@@ -1,5 +1,6 @@
 "use client";
 
+import { useTranslations } from "next-intl";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { signIn } from "next-auth/react";
@@ -18,6 +19,7 @@ const PRIMARY =
 
 export default function RegisterPage() {
   const router = useRouter();
+  const t = useTranslations("auth");
   const [submitting, setSubmitting] = useState(false);
 
   async function onSubmit(event: React.FormEvent<HTMLFormElement>) {
@@ -41,14 +43,14 @@ export default function RegisterPage() {
       if (!res || res.error) {
         throw new Error("auto-login failed");
       }
-      toast.success("Welcome!");
+      toast.success(t("welcome"));
       router.push("/home");
       router.refresh();
     } catch (err: unknown) {
       const msg =
         err instanceof ApiError && err.status === 409
-          ? "Username or email already taken"
-          : "Could not register";
+          ? t("errExists")
+          : t("errRegister");
       toast.error(msg);
     } finally {
       setSubmitting(false);
@@ -61,20 +63,20 @@ export default function RegisterPage() {
         <div className="mb-6 space-y-1">
           <div className="inline-flex items-center gap-2 border-2 border-border bg-background px-2.5 py-1 font-pixel text-[12px] uppercase tracking-[0.14em]">
             <span className="size-2 bg-[color:var(--lime)]" />
-            Registration
+            {t("tagRegister")}
           </div>
           <h1 className="font-display text-3xl font-bold leading-tight">
-            Create an <span className="italic">account</span>.
+            {t.rich("registerTitle", {
+              em: (chunks) => <span className="italic">{chunks}</span>,
+            })}
           </h1>
-          <p className="text-sm text-muted-foreground">
-            Takes 10 seconds. No email confirmation.
-          </p>
+          <p className="text-sm text-muted-foreground">{t("registerIntro")}</p>
         </div>
 
         <form onSubmit={onSubmit} className="space-y-4">
           <div className="space-y-1.5">
             <label htmlFor="username" className="block text-xs font-semibold uppercase tracking-wider">
-              Username
+              {t("username")}
             </label>
             <input
               id="username"
@@ -89,7 +91,7 @@ export default function RegisterPage() {
           </div>
           <div className="space-y-1.5">
             <label htmlFor="email" className="block text-xs font-semibold uppercase tracking-wider">
-              Email address
+              {t("email")}
             </label>
             <input
               id="email"
@@ -102,7 +104,7 @@ export default function RegisterPage() {
           </div>
           <div className="space-y-1.5">
             <label htmlFor="password" className="block text-xs font-semibold uppercase tracking-wider">
-              Password
+              {t("password")}
             </label>
             <input
               id="password"
@@ -116,13 +118,13 @@ export default function RegisterPage() {
           </div>
 
           <button type="submit" disabled={submitting} className={cn(PRIMARY, "mt-2")}>
-            {submitting ? "Creating..." : "Create account"}
+            {submitting ? t("creating") : t("createAccount")}
           </button>
 
           <p className="text-center text-sm text-muted-foreground">
-            Already have one?{" "}
+            {t("haveAccount")}{" "}
             <Link href="/login" className="font-medium text-foreground underline underline-offset-4">
-              Sign in
+              {t("signIn")}
             </Link>
           </p>
         </form>

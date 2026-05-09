@@ -1,6 +1,7 @@
 "use client";
 
 import { Send, SlidersHorizontal, Square } from "lucide-react";
+import { useTranslations } from "next-intl";
 import { useRef, useState } from "react";
 
 import { useHaptic } from "@/hooks/use-haptic";
@@ -23,6 +24,7 @@ export function ChatInput({
   const [focused, setFocused] = useState(false);
   const textareaRef = useRef<HTMLTextAreaElement>(null);
   const haptic = useHaptic();
+  const t = useTranslations("chat");
 
   const submit = () => {
     const value = text.trim();
@@ -49,8 +51,8 @@ export function ChatInput({
               haptic("select");
               onOpenControls();
             }}
-            aria-label="Chat controls"
-            title="Chat controls (⌘,)"
+            aria-label={t("controlsLabel")}
+            title={`${t("controlsLabel")} (⌘,)`}
             className="inline-flex h-11 w-11 items-center justify-center rounded-xl border-2 border-border bg-card text-muted-foreground shadow-[3px_3px_0_0_var(--border)] transition-[transform,box-shadow,color] duration-100 hover:-translate-x-[1px] hover:-translate-y-[1px] hover:text-foreground hover:shadow-[4px_4px_0_0_var(--border)] active:translate-x-[1px] active:translate-y-[1px] active:shadow-[1px_1px_0_0_var(--border)]"
           >
             <SlidersHorizontal className="size-4" />
@@ -76,7 +78,7 @@ export function ChatInput({
             onBlur={() => setFocused(false)}
             rows={1}
             disabled={disabled}
-            placeholder="Send a message…"
+            placeholder={t("sendPlaceholder")}
             className="min-h-[40px] max-h-48 flex-1 resize-none bg-transparent px-3 py-2.5 text-sm placeholder:text-muted-foreground focus:outline-none disabled:cursor-not-allowed disabled:opacity-50"
           />
         </div>
@@ -87,7 +89,7 @@ export function ChatInput({
               haptic("error");
               onStop();
             }}
-            aria-label="Stop"
+            aria-label={t("stop")}
             className="inline-flex h-11 w-11 items-center justify-center rounded-xl border-2 border-border bg-destructive text-destructive-foreground shadow-[3px_3px_0_0_var(--border)] transition-[transform,box-shadow] duration-100 hover:-translate-x-[1px] hover:-translate-y-[1px] hover:shadow-[4px_4px_0_0_var(--border)] active:translate-x-[1px] active:translate-y-[1px] active:shadow-[1px_1px_0_0_var(--border)]"
           >
             <Square className="size-4" />
@@ -97,7 +99,7 @@ export function ChatInput({
             type="button"
             onClick={submit}
             disabled={!canSend}
-            aria-label="Send"
+            aria-label={t("send")}
             className={cn(
               "inline-flex h-11 w-11 items-center justify-center rounded-xl border-2 border-border bg-primary text-primary-foreground transition-[transform,box-shadow] duration-100",
               canSend

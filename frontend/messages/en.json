@@ -64,6 +64,70 @@
     },
     "tag": "Settings"
   },
+  "auth": {
+    "tagSignIn": "Sign in",
+    "tagRegister": "Registration",
+    "loginTitle": "Welcome <em>back</em>.",
+    "loginIntro": "Sign in to chat with your axolotl.",
+    "registerTitle": "Create an <em>account</em>.",
+    "registerIntro": "Takes 10 seconds. No email confirmation.",
+    "username": "Username",
+    "email": "Email address",
+    "password": "Password",
+    "signIn": "Sign in",
+    "signingIn": "Signing in…",
+    "createAccount": "Create account",
+    "creating": "Creating…",
+    "noAccount": "No account?",
+    "createOne": "Create one",
+    "haveAccount": "Already have one?",
+    "errInvalid": "Invalid credentials",
+    "errExists": "Username or email already taken",
+    "errRegister": "Could not register",
+    "welcome": "Welcome!"
+  },
+  "chat": {
+    "controlsLabel": "Chat controls",
+    "sendPlaceholder": "Send a message…",
+    "stop": "Stop",
+    "send": "Send"
+  },
+  "personas": {
+    "title": "Your <em>personas</em>.",
+    "intro": "Named system prompts the axolotl can take on — attach one when starting a conversation, or edit the wording here.",
+    "newPersona": "New persona",
+    "empty": "No personas yet — create one to shape how the axolotl responds.",
+    "defaultBadge": "default",
+    "builtInBadge": "built-in",
+    "defaultTitle": "Default for new sessions",
+    "builtInTitle": "Built-in persona — read only",
+    "setAsDefault": "Set as default",
+    "clearDefault": "Clear default",
+    "modal": {
+      "newTitle": "New *persona*",
+      "editTitle": "Edit *persona*",
+      "name": "Name",
+      "systemPrompt": "System prompt",
+      "systemPromptHelp": "Applied as the system message when a session uses this persona.",
+      "promptPlaceholder": "You are a helpful axolotl companion…",
+      "create": "Create"
+    },
+    "delete": {
+      "title": "Delete *persona*?",
+      "description": "“{name}” will be removed. Sessions already using it keep their stored prompt; new sessions can no longer select it."
+    },
+    "toasts": {
+      "created": "Persona created",
+      "saved": "Persona saved",
+      "deleted": "Persona deleted",
+      "defaultCleared": "Default cleared",
+      "defaultUpdated": "Default persona updated",
+      "errCreate": "Could not create persona",
+      "errSave": "Could not save",
+      "errDelete": "Could not delete",
+      "errDefault": "Could not update default"
+    }
+  },
   "tools": {
     "title": "Pick what the axolotl can <em>reach for</em>.",
     "intro": "Each tool is local-first. Toggle any off and the model will stop calling it.",

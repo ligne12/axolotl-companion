@@ -64,6 +64,70 @@
     },
     "tag": "Réglages"
   },
+  "auth": {
+    "tagSignIn": "Connexion",
+    "tagRegister": "Inscription",
+    "loginTitle": "Bon <em>retour</em>.",
+    "loginIntro": "Connectez-vous pour discuter avec votre axolotl.",
+    "registerTitle": "Créez un <em>compte</em>.",
+    "registerIntro": "10 secondes. Pas de confirmation par email.",
+    "username": "Nom d'utilisateur",
+    "email": "Adresse email",
+    "password": "Mot de passe",
+    "signIn": "Se connecter",
+    "signingIn": "Connexion…",
+    "createAccount": "Créer le compte",
+    "creating": "Création…",
+    "noAccount": "Pas de compte ?",
+    "createOne": "En créer un",
+    "haveAccount": "Vous en avez déjà un ?",
+    "errInvalid": "Identifiants invalides",
+    "errExists": "Nom d'utilisateur ou email déjà utilisé",
+    "errRegister": "Inscription impossible",
+    "welcome": "Bienvenue !"
+  },
+  "chat": {
+    "controlsLabel": "Réglages du chat",
+    "sendPlaceholder": "Envoyer un message…",
+    "stop": "Arrêter",
+    "send": "Envoyer"
+  },
+  "personas": {
+    "title": "Vos <em>personas</em>.",
+    "intro": "Des prompts système nommés que l'axolotl peut endosser — attachez-en un au démarrage d'une conversation, ou éditez le texte ici.",
+    "newPersona": "Nouvelle persona",
+    "empty": "Aucune persona pour l'instant — créez-en une pour façonner les réponses de l'axolotl.",
+    "defaultBadge": "défaut",
+    "builtInBadge": "intégré",
+    "defaultTitle": "Persona par défaut pour les nouvelles sessions",
+    "builtInTitle": "Persona intégrée — lecture seule",
+    "setAsDefault": "Définir par défaut",
+    "clearDefault": "Retirer le défaut",
+    "modal": {
+      "newTitle": "Nouvelle *persona*",
+      "editTitle": "Modifier la *persona*",
+      "name": "Nom",
+      "systemPrompt": "Prompt système",
+      "systemPromptHelp": "Appliqué comme message système lorsqu'une session utilise cette persona.",
+      "promptPlaceholder": "Vous êtes un axolotl serviable…",
+      "create": "Créer"
+    },
+    "delete": {
+      "title": "Supprimer la *persona* ?",
+      "description": "« {name} » sera supprimée. Les sessions qui l'utilisent gardent leur prompt mémorisé ; les nouvelles ne pourront plus la choisir."
+    },
+    "toasts": {
+      "created": "Persona créée",
+      "saved": "Persona enregistrée",
+      "deleted": "Persona supprimée",
+      "defaultCleared": "Défaut retiré",
+      "defaultUpdated": "Persona par défaut mise à jour",
+      "errCreate": "Impossible de créer la persona",
+      "errSave": "Impossible d'enregistrer",
+      "errDelete": "Impossible de supprimer",
+      "errDefault": "Impossible de mettre à jour le défaut"
+    }
+  },
   "tools": {
     "title": "Choisissez ce que l'axolotl peut <em>solliciter</em>.",
     "intro": "Chaque outil est local-first. Désactivez-en un et le modèle cessera de l'appeler.",

@@ -2,6 +2,7 @@
 
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { Lock, Pencil, Pin, PinOff, Plus, Trash2 } from "lucide-react";
+import { useTranslations } from "next-intl";
 import { useState } from "react";
 import { toast } from "sonner";
 
@@ -30,6 +31,8 @@ type Draft = { id: number | null; name: string; system_prompt: string };
 export default function PersonasPage() {
   const api = useApi();
   const qc = useQueryClient();
+  const t = useTranslations("personas");
+  const tc = useTranslations("common");
 
   const personas = useQuery({
     queryKey: ["personas"],
@@ -50,9 +53,9 @@ export default function PersonasPage() {
     onSuccess: () => {
       qc.invalidateQueries({ queryKey: ["personas"] });
       setEditor(null);
-      toast.success("Persona created");
+      toast.success(t("toasts.created"));
     },
-    onError: () => toast.error("Could not create persona"),
+    onError: () => toast.error(t("toasts.errCreate")),
   });
 
   const updateMut = useMutation({
@@ -61,9 +64,9 @@ export default function PersonasPage() {
     onSuccess: () => {
       qc.invalidateQueries({ queryKey: ["personas"] });
       setEditor(null);
-      toast.success("Persona saved");
+      toast.success(t("toasts.saved"));
     },
-    onError: () => toast.error("Could not save"),
+    onError: () => toast.error(t("toasts.errSave")),
   });
 
   const deleteMut = useMutation({
@@ -72,9 +75,9 @@ export default function PersonasPage() {
     onSuccess: () => {
       qc.invalidateQueries({ queryKey: ["personas"] });
       qc.invalidateQueries({ queryKey: ["auth", "me"] });
-      toast.success("Persona deleted");
+      toast.success(t("toasts.deleted"));
     },
-    onError: () => toast.error("Could not delete"),
+    onError: () => toast.error(t("toasts.errDelete")),
   });
 
   const setDefaultMut = useMutation({
@@ -87,11 +90,11 @@ export default function PersonasPage() {
       qc.setQueryData<UserPublic>(["auth", "me"], next);
       toast.success(
         next.default_persona_id === null
-          ? "Default cleared"
-          : "Default persona updated",
+          ? t("toasts.defaultCleared")
+          : t("toasts.defaultUpdated"),
       );
     },
-    onError: () => toast.error("Could not update default"),
+    onError: () => toast.error(t("toasts.errDefault")),
   });
 
   const startCreate = () => setEditor({ id: null, name: "", system_prompt: "" });
@@ -119,26 +122,25 @@ export default function PersonasPage() {
       <header className="flex flex-wrap items-end justify-between gap-4">
         <div className="space-y-2">
           <h1 className="font-display text-3xl font-bold leading-tight">
-            Your <span className="italic">personas</span>.
+            {t.rich("title", {
+              em: (chunks) => <span className="italic">{chunks}</span>,
+            })}
           </h1>
-          <p className="max-w-xl text-sm text-muted-foreground">
-            Named system prompts the axolotl can take on — attach one when
-            starting a conversation, or edit the wording here.
-          </p>
+          <p className="max-w-xl text-sm text-muted-foreground">{t("intro")}</p>
         </div>
         <button className={PRIMARY} onClick={startCreate} type="button">
           <Plus className="size-4" />
-          New persona
+          {t("newPersona")}
         </button>
       </header>
 
       {personas.isPending && (
-        <p className="text-sm text-muted-foreground">Loading…</p>
+        <p className="text-sm text-muted-foreground">{tc("loading")}</p>
       )}
 
       {!personas.isPending && list.length === 0 && (
         <div className="rounded-xl border-2 border-dashed border-border p-8 text-center text-sm text-muted-foreground">
-          No personas yet — create one to shape how the axolotl responds.
+          {t("empty")}
         </div>
       )}
 
@@ -160,19 +162,19 @@ export default function PersonasPage() {
                 {isDefault && (
                   <span
                     className="inline-flex items-center gap-1 border-2 border-border bg-[color:var(--lime)] px-1.5 py-0.5 font-pixel text-[10px] uppercase tracking-widest text-[color:var(--lime-foreground)]"
-                    title="Default for new sessions"
+                    title={t("defaultTitle")}
                   >
                     <Pin className="size-3" />
-                    default
+                    {t("defaultBadge")}
                   </span>
                 )}
                 {p.is_builtin && (
                   <span
                     className="inline-flex items-center gap-1 border-2 border-border bg-background px-1.5 py-0.5 font-pixel text-[10px] uppercase tracking-widest text-muted-foreground"
-                    title="Built-in persona — read only"
+                    title={t("builtInTitle")}
                   >
                     <Lock className="size-3" />
-                    built-in
+                    {t("builtInBadge")}
                   </span>
                 )}
               </div>
@@ -184,8 +186,8 @@ export default function PersonasPage() {
               <div className="mt-auto flex justify-end gap-1 pt-2 transition-opacity md:opacity-0 md:group-hover:opacity-100 md:focus-within:opacity-100">
                 <button
                   type="button"
-                  aria-label={isDefault ? "Clear default" : "Set as default"}
-                  title={isDefault ? "Clear default" : "Set as default"}
+                  aria-label={isDefault ? t("clearDefault") : t("setAsDefault")}
+                  title={isDefault ? t("clearDefault") : t("setAsDefault")}
                   onClick={() => setDefaultMut.mutate(isDefault ? null : p.id)}
                   disabled={setDefaultMut.isPending}
                   className={cn(
@@ -201,7 +203,7 @@ export default function PersonasPage() {
                   <>
                     <button
                       type="button"
-                      aria-label="Edit"
+                      aria-label={tc("edit")}
                       onClick={() => startEdit(p)}
                       className="inline-flex size-11 items-center justify-center text-muted-foreground transition-transform duration-75 hover:text-foreground active:scale-90 md:size-7"
                     >
@@ -209,7 +211,7 @@ export default function PersonasPage() {
                     </button>
                     <button
                       type="button"
-                      aria-label="Delete"
+                      aria-label={tc("delete")}
                       onClick={() => setPendingDelete(p)}
                       className="inline-flex size-11 items-center justify-center text-muted-foreground transition-transform duration-75 hover:text-destructive active:scale-90 md:size-7"
                     >
@@ -229,13 +231,13 @@ export default function PersonasPage() {
         onOpenChange={(o) => {
           if (!o) setEditor(null);
         }}
-        title={editor?.id === null ? "New *persona*" : "Edit *persona*"}
+        title={editor?.id === null ? t("modal.newTitle") : t("modal.editTitle")}
       >
         {editor && (
           <form onSubmit={onSubmit} className="space-y-4">
             <div className="space-y-1.5">
               <label htmlFor="persona-name" className={LABEL}>
-                Name
+                {t("modal.name")}
               </label>
               <input
                 id="persona-name"
@@ -249,7 +251,7 @@ export default function PersonasPage() {
             </div>
             <div className="space-y-1.5">
               <label htmlFor="persona-prompt" className={LABEL}>
-                System prompt
+                {t("modal.systemPrompt")}
               </label>
               <textarea
                 id="persona-prompt"
@@ -261,19 +263,19 @@ export default function PersonasPage() {
                 }
                 maxLength={20_000}
                 required
-                placeholder="You are a helpful axolotl companion…"
+                placeholder={t("modal.promptPlaceholder")}
               />
               <p className="text-xs text-muted-foreground">
-                Applied as the system message when a session uses this persona.
+                {t("modal.systemPromptHelp")}
               </p>
             </div>
             <Modal.Footer>
-              <Modal.Cancel>Cancel</Modal.Cancel>
+              <Modal.Cancel>{tc("cancel")}</Modal.Cancel>
               <Modal.Confirm
                 onClick={() => onSubmit({ preventDefault() {} } as React.FormEvent)}
                 disabled={createMut.isPending || updateMut.isPending}
               >
-                {editor.id === null ? "Create" : "Save"}
+                {editor.id === null ? t("modal.create") : tc("save")}
               </Modal.Confirm>
             </Modal.Footer>
           </form>
@@ -286,13 +288,11 @@ export default function PersonasPage() {
         onOpenChange={(o) => {
           if (!o) setPendingDelete(null);
         }}
-        title="Delete *persona*?"
+        title={t("delete.title")}
         description={
-          pendingDelete
-            ? `“${pendingDelete.name}” will be removed. Sessions already using it keep their stored prompt; new sessions can no longer select it.`
-            : ""
+          pendingDelete ? t("delete.description", { name: pendingDelete.name }) : ""
         }
-        confirmLabel="Delete"
+        confirmLabel={tc("delete")}
         variant="destructive"
         onConfirm={() => {
           if (pendingDelete) {

@@ -1,5 +1,6 @@
 "use client";
 
+import { useTranslations } from "next-intl";
 import Link from "next/link";
 import { useRouter, useSearchParams } from "next/navigation";
 import { signIn } from "next-auth/react";
@@ -18,6 +19,7 @@ function LoginForm() {
   const router = useRouter();
   const params = useSearchParams();
   const callback = params.get("callbackUrl") ?? "/home";
+  const t = useTranslations("auth");
 
   const [submitting, setSubmitting] = useState(false);
 
@@ -36,7 +38,7 @@ function LoginForm() {
     setSubmitting(false);
 
     if (!res || res.error) {
-      toast.error("Invalid credentials");
+      toast.error(t("errInvalid"));
       return;
     }
     router.push(callback);
@@ -48,20 +50,20 @@ function LoginForm() {
       <div className="mb-6 space-y-1">
         <div className="inline-flex items-center gap-2 border-2 border-border bg-background px-2.5 py-1 font-pixel text-[12px] uppercase tracking-[0.14em]">
           <span className="size-2 bg-[color:var(--lime)]" />
-          Sign in
+          {t("tagSignIn")}
         </div>
         <h1 className="font-display text-3xl font-bold leading-tight">
-          Welcome <span className="italic">back</span>.
+          {t.rich("loginTitle", {
+            em: (chunks) => <span className="italic">{chunks}</span>,
+          })}
         </h1>
-        <p className="text-sm text-muted-foreground">
-          Sign in to chat with your axolotl.
-        </p>
+        <p className="text-sm text-muted-foreground">{t("loginIntro")}</p>
       </div>
 
       <form onSubmit={onSubmit} className="space-y-4">
         <div className="space-y-1.5">
           <label htmlFor="username" className="block text-xs font-semibold uppercase tracking-wider">
-            Username
+            {t("username")}
           </label>
           <input
             id="username"
@@ -73,7 +75,7 @@ function LoginForm() {
         </div>
         <div className="space-y-1.5">
           <label htmlFor="password" className="block text-xs font-semibold uppercase tracking-wider">
-            Password
+            {t("password")}
           </label>
           <input
             id="password"
@@ -86,13 +88,13 @@ function LoginForm() {
         </div>
 
         <button type="submit" disabled={submitting} className={cn(PRIMARY, "mt-2")}>
-          {submitting ? "Signing in..." : "Sign in"}
+          {submitting ? t("signingIn") : t("signIn")}
         </button>
 
         <p className="text-center text-sm text-muted-foreground">
-          No account?{" "}
+          {t("noAccount")}{" "}
           <Link href="/register" className="font-medium text-foreground underline underline-offset-4">
-            Create one
+            {t("createOne")}
           </Link>
         </p>
       </form>
