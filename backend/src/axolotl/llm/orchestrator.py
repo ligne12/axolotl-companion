@@ -129,7 +129,7 @@ async def _load_mcp_tool_context(
     enabled MCP servers. The dict lets the dispatcher resolve a tool call
     back to the server's URL + auth without re-querying the DB."""
     result = await db.execute(
-        select(MCPServer).where(MCPServer.user_id == user_id, MCPServer.enabled.is_(True))
+        select(MCPServer).where(MCPServer.user_id == user_id, col(MCPServer.enabled).is_(True))
     )
     servers = list(result.scalars().all())
     specs: list[dict[str, Any]] = []
