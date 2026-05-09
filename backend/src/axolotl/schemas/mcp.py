@@ -7,7 +7,12 @@ from typing import Any, Literal
 
 from pydantic import BaseModel, ConfigDict, Field, HttpUrl
 
-Transport = Literal["http", "sse"]
+Transport = Literal["http"]
+"""Supported MCP transports. Streamable HTTP is the primary spec — POST a
+JSON-RPC, server responds with JSON (or with an SSE stream when a single
+result isn't enough). For ``tools/list`` and current single-result tools
+we only need the JSON path. ``sse`` and ``stdio`` are deferred (see
+plan.md)."""
 
 
 class MCPToolInfo(BaseModel):

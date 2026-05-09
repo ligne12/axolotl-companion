@@ -4,6 +4,7 @@ from __future__ import annotations
 
 import asyncio
 import json
+import re
 import time
 from collections.abc import AsyncIterator
 from typing import Any
@@ -14,9 +15,12 @@ from sqlalchemy.ext.asyncio import AsyncSession
 from sqlmodel import col, select
 
 from axolotl.config import get_settings
-from axolotl.db.models import Message, Persona, Session
+from axolotl.core.secrets import decrypt_secret
+from axolotl.db.models import MCPServer, Message, Persona, Session
 from axolotl.llm.client import VLLMClient
 from axolotl.llm.events import ChatEvent
+from axolotl.llm.mcp_client import MCPError
+from axolotl.llm.mcp_client import call_tool as mcp_call_tool
 from axolotl.llm.tools import execute_tool, registry
 
 logger = structlog.get_logger(__name__)
@@ -89,6 +93,90 @@ _SAMPLING_KEYS = (
 )
 
 
+_MCP_TOOL_PREFIX = "mcp__"
+_MCP_NAME_RE = re.compile(r"[^a-zA-Z0-9_-]")
+
+
+def _mcp_tool_name(server_id: int, raw_name: str) -> str:
+    """Encode an MCP tool name to OpenAI's allowed charset
+    (`[a-zA-Z0-9_-]`). The server id is part of the prefix so the
+    dispatcher can route back to the right MCP server without a name
+    lookup; the original name is sanitised but preserved end-to-end."""
+    safe = _MCP_NAME_RE.sub("_", raw_name)
+    return f"{_MCP_TOOL_PREFIX}{server_id}__{safe}"
+
+
+def _parse_mcp_tool_name(name: str) -> tuple[int, str] | None:
+    """Inverse of :func:`_mcp_tool_name`. Returns (server_id, original_name)
+    or ``None`` if the name isn't an MCP-prefixed tool."""
+    if not name.startswith(_MCP_TOOL_PREFIX):
+        return None
+    body = name[len(_MCP_TOOL_PREFIX) :]
+    sep = body.find("__")
+    if sep <= 0:
+        return None
+    try:
+        server_id = int(body[:sep])
+    except ValueError:
+        return None
+    return server_id, body[sep + 2 :]
+
+
+async def _load_mcp_tool_context(
+    db: AsyncSession, user_id: int
+) -> tuple[list[dict[str, Any]], dict[int, MCPServer]]:
+    """Return (OpenAI tool specs, server_id → MCPServer) for the user's
+    enabled MCP servers. The dict lets the dispatcher resolve a tool call
+    back to the server's URL + auth without re-querying the DB."""
+    result = await db.execute(
+        select(MCPServer).where(MCPServer.user_id == user_id, MCPServer.enabled.is_(True))
+    )
+    servers = list(result.scalars().all())
+    specs: list[dict[str, Any]] = []
+    by_id: dict[int, MCPServer] = {}
+    for server in servers:
+        if server.id is None:
+            continue
+        by_id[server.id] = server
+        for tool in server.synced_tools:
+            raw_name = tool.get("name")
+            if not isinstance(raw_name, str):
+                continue
+            specs.append(
+                {
+                    "type": "function",
+                    "function": {
+                        "name": _mcp_tool_name(server.id, raw_name),
+                        "description": tool.get("description", "") or "",
+                        "parameters": tool.get("parameters_schema") or {},
+                    },
+                }
+            )
+    return specs, by_id
+
+
+async def _dispatch_tool(
+    name: str,
+    arguments: dict[str, Any],
+    mcp_servers: dict[int, MCPServer],
+) -> dict[str, Any]:
+    """Route a tool call to the built-in registry or to the right MCP
+    server. Errors are caught and surfaced as ``{"error": "..."}`` so the
+    orchestrator can persist a tool message and the model can react."""
+    parsed = _parse_mcp_tool_name(name)
+    if parsed is None:
+        return await execute_tool(name, arguments)
+    server_id, original_name = parsed
+    server = mcp_servers.get(server_id)
+    if server is None or not server.enabled:
+        return {"error": f"MCP server {server_id} not enabled"}
+    token = decrypt_secret(server.auth_token_cipher) if server.auth_token_cipher else None
+    try:
+        return await mcp_call_tool(server.url, token, original_name, arguments)
+    except MCPError as exc:
+        return {"error": f"MCP call failed: {exc}"}
+
+
 def _merge_sampling_params(
     *,
     user_defaults: dict[str, Any] | None,
@@ -142,6 +230,8 @@ async def stream_chat(
     system_prompt = await _load_persona_prompt(db, session.persona_id)
     history = await _load_history(db, session.id, system_prompt=system_prompt)
     tool_specs = registry.specs_for(enabled_tools)
+    mcp_specs, mcp_servers = await _load_mcp_tool_context(db, session.user_id)
+    tool_specs = [*tool_specs, *mcp_specs]
     sampling = _merge_sampling_params(
         user_defaults=user_defaults,
         session_overrides=session.overrides,
@@ -290,7 +380,7 @@ async def stream_chat(
             )
 
             tool_start = time.monotonic()
-            result = await execute_tool(tc["function"]["name"], args)
+            result = await _dispatch_tool(tc["function"]["name"], args, mcp_servers)
             duration_ms = int((time.monotonic() - tool_start) * 1000)
             tool_durations_ms[tc["id"]] = duration_ms
             result_json = json.dumps(result, ensure_ascii=False)
