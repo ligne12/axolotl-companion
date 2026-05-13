@@ -36,8 +36,9 @@ Rationale:
 - Auth.js v5 is designed around Next.js (credentials provider + middleware
   patterns); the same `auth()` helper is reused in middleware, server
   components and route handlers.
-- PWA support via Serwist is first-class (manifest already wired; service
-  worker pending — Phase 4).
+- PWA support via Serwist is first-class — manifest, theme colours and
+  a custom-build service worker (`@serwist/next`) ship together; the SW
+  bypasses `/api/*` and every navigation with `NetworkOnly`.
 - React Server Components + streaming map cleanly to our SSE chat flow:
   static shells render on the server, the `useChat` hook lights up on the
   client.

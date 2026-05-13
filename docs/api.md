@@ -105,7 +105,7 @@ present in the body are touched.
 curl -X PATCH https://chat.localhost/api/auth/me \
   -H "Authorization: Bearer $TOKEN" \
   -H "Content-Type: application/json" \
-  -d '{"locality":"Montpellier","time_format":"24h","defaults":{"temperature":0.6}}'
+  -d '{"locality":"Paris","time_format":"24h","defaults":{"temperature":0.6}}'
 ```
 
 `default_persona_id` uses `null` to detach (`{"default_persona_id":null}`)
@@ -168,7 +168,7 @@ curl -N -X POST https://chat.localhost/api/v1/sessions/$SID/messages \
   -H "Authorization: Bearer $TOKEN" \
   -H "Content-Type: application/json" \
   -H "Accept: text/event-stream" \
-  -d '{"content":"What's the weather in Montpellier?"}'
+  -d '{"content":"What is the weather in Paris?"}'
 ```
 
 Response is `text/event-stream`. Event types:

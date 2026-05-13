@@ -16,22 +16,20 @@
 
 ## ✨ Features
 
-> ✅ shipped &nbsp;·&nbsp; 🚧 in progress &nbsp;·&nbsp; 📋 planned
-
-- ✅ **Private LLM inference** — [vLLM](https://github.com/vllm-project/vllm) in Docker on your own GPU, model configurable via env vars (any vLLM-compatible repo).
-- ✅ **Streaming chat** — SSE pipeline emits `reasoning.delta`, `message.delta`, `tool.call`, `tool.result` events; the UI renders reasoning blocks, web-search result cards and tool-call traces in real time.
-- ✅ **Tool calling** — extensible built-in registry (`web_search` shipped, per-user toggle) **plus full MCP support**: per-user MCP servers with Fernet-encrypted bearer tokens, manual sync, automatic tool-name namespacing, and dedicated chat cards for MCP results.
-- ✅ **Personas** — named system prompts with full markdown bodies, default-per-user pin, per-session attach via the command palette.
-- ✅ **Granular controls** — global hyperparam defaults on the user (temperature, top_p, top_k, min_p, presence_penalty, repetition_penalty, max_tokens, `enable_thinking`), overridable per-session from a `Cmd+,` drawer.
-- ✅ **Auth** — Auth.js v5 (credentials provider) → FastAPI JWT, bcrypt hashes, rotating refresh tokens, **slowapi per-IP rate limiting** on the auth endpoints.
-- ✅ **Custom design language** — pixel-neubru (warm cream paper, 2 px ink borders, electric-lime accent), dark/light theming, command palette (`Cmd+K`), keyboard-shortcut overlay.
-- ✅ **3D animated mascot** — Blender-baked GLB with seven NLA clips (idle / listening / thinking / searching / typing / happy / confused), driven by Three.js with a 300 ms mood crossfade and pixel-art emblem overlays. SVG sprite is the SSR + reduced-motion fallback.
-- ✅ **Installable PWA** — Serwist service worker with NetworkOnly bypass on `/api/*` and on every navigation (post-rebuild redirect loops impossible).
-- ✅ **i18n FR / EN** — `next-intl` with cookie-based locale (no URL prefix), ICU plurals, locale-aware relative time. Sidebar switcher pinned next to the theme toggle.
-- ✅ **Real HTTPS, opt-in** — public hostname served with a Let's Encrypt cert via the **DNS-01** challenge (Cloudflare DNS plugin) — works behind NAT, no public IP, no port forwarding, no client-side CA install.
-- ✅ **Observability** — Prometheus + Grafana profile (`make obs`) with a provisioned dashboard for HTTP latency / chat streams / tool-call outcomes / vLLM KV-cache; **Langfuse** trace exporter wires every chat round + tool call into a hosted timeline when credentials are set.
-- ✅ **OpenAPI → TS types pipeline** — backend schema is the single source of truth; frontend types are regenerated, drift is enforced in CI.
-- 📋 **Export / import conversations** (JSON) is the last polish item left on the roadmap.
+- **Private LLM inference** — [vLLM](https://github.com/vllm-project/vllm) in Docker on your own GPU, model configurable via env vars (any vLLM-compatible repo). Developed against the **Qwen3.5 architecture** (hybrid reasoning toggle, `qwen3_coder` tool-call format); any Qwen3.5/3.6 model drops in via env, other families need a parser swap (see [`docs/models.md`](docs/models.md)).
+- **Streaming chat** — SSE pipeline emits `reasoning.delta`, `message.delta`, `tool.call`, `tool.result` events; the UI renders reasoning blocks, web-search result cards and tool-call traces in real time.
+- **Tool calling** — extensible built-in registry (`web_search` shipped, per-user toggle) **plus full MCP support**: per-user MCP servers with Fernet-encrypted bearer tokens, `initialize` + `Mcp-Session-Id` handshake, SSE / JSON-RPC parsing, manual sync, automatic tool-name namespacing, and dedicated chat cards for MCP results.
+- **Personas** — named system prompts with full markdown bodies, default-per-user pin, per-session attach via the command palette.
+- **Granular sampling controls** — global hyperparam defaults on the user (temperature, top_p, top_k, min_p, presence_penalty, repetition_penalty, max_tokens, `enable_thinking`), overridable per-session from a `Cmd+,` drawer with locale-aware slider labels.
+- **Auth** — Auth.js v5 (credentials provider) → FastAPI JWT, bcrypt hashes, rotating refresh tokens, slowapi per-IP rate limiting on the auth endpoints (Redis-backed).
+- **Custom design language** — pixel-neubru (warm cream paper, 2 px ink borders, electric-lime accent), dark/light theming, command palette (`Cmd+K`), keyboard-shortcut overlay, full-pass mobile polish.
+- **3D animated mascot** — Blender-baked GLB with seven NLA clips (idle / listening / thinking / searching / typing / happy / confused), driven by Three.js with a 300 ms mood crossfade. The chibi reads its state through the body animation alone — no overlay glyphs cluttering the canvas.
+- **Installable PWA** — Serwist service worker with NetworkOnly bypass on `/api/*` and on every navigation (post-rebuild redirect loops impossible by construction).
+- **i18n FR / EN** — `next-intl` with cookie-based locale (no URL prefix, no SEO penalty), ICU plurals, locale-aware relative time, sidebar switcher pinned next to the theme toggle.
+- **Real HTTPS, opt-in** — public hostname served with a Let's Encrypt cert via the **DNS-01** challenge (Cloudflare DNS plugin). Works behind NAT / CGNAT, no public IP, no port forwarding, no client-side CA install.
+- **Observability** — Prometheus instrumentator on `/metrics` + custom signal (chat-stream outcomes & duration, tool calls by name, MCP sync). Grafana profile (`make obs`) ships a provisioned 10-panel overview board. Optional Langfuse traces wrap every chat round + tool call when credentials are set; no-op otherwise.
+- **Security** — CSP headers with prod / dev splits, slim CORS allowlist, Fernet for third-party tokens at rest, Trivy image scans uploading SARIF to GitHub Code-scanning, Dependabot.
+- **OpenAPI → TS types pipeline** — backend schema is the single source of truth; frontend types are regenerated, drift is enforced in CI.
 
 ## 🏗️ Stack
 
@@ -195,16 +193,39 @@ sequenceDiagram
     F-->>N: SSE message.done
 ```
 
-## 🛣️ Roadmap
+## 🛣️ Status
 
-Full phased roadmap in [`plan.md`](plan.md). Current state:
+**The feature list above is the shipped surface.** Runs locally via
+`make dev`, public HTTPS opt-in via `make dev` + `APP_HOSTNAMES`,
+observability behind `make obs`. CI is green on every commit (backend
+ruff + format + mypy strict + pytest, frontend `tsc` + ESLint, Docker
+build + Trivy SARIF upload, pre-commit hooks enforced — gitleaks +
+detect-private-key).
 
-- Phase 0 — Repo setup ✅
-- Phase 1 — Backend MVP ✅ (auth, sessions, chat SSE, tool calling, personas, MCP)
-- Phase 2 — Frontend MVP ✅
-- Phase 3 — Animated axolotl ✅ (Three.js + GLB + seven-state derivation)
-- Phase 4 — Polish 🚧 (PWA ✅, MCP ✅, i18n ✅, mobile ✅, public HTTPS ✅ — export/import still pending)
-- Phase 5 — Observability ✅ Prometheus + Grafana board + Langfuse traces · security checklist 9/10
+The deliberate parking-lot of follow-up ideas lives in [`plan.md` §7](plan.md) —
+non-binding, each entry sized as a standalone slice:
+
+- **Chibi-in-conversation** — pull the mascot into the chat shell so
+  the seven moods react continuously while messages stream, plus a
+  per-message frozen-mood avatar.
+- **RAG memory** — star ⭐ an assistant bubble to persist it; pgvector
+  + a small embeddings sidecar pull the top-K matches into the next
+  chat's context.
+- **Multimodal vision** — either drop the `--language-model-only`
+  flag on the current Qwen3.5-9B (one env var, lose context budget),
+  or hot-swap to [`GLM-OCR`](https://huggingface.co/zai-org/GLM-OCR) per session for OCR work.
+- **Built-in tool wave** — `get_weather` (Open-Meteo), `fetch_url`
+  (readability), `current_time`, `calculator`, `wikipedia_search`,
+  `reminder` (cron + SSE), `recall_memory`. About one dev-day for
+  the batch, big quality-of-life win.
+- **Daily brief agent** — cron-driven session pre-built each morning
+  (MCP + built-ins + a templated prompt).
+- **Pin & widgets** — promote any assistant message to a persistent
+  card on `/home`.
+- **Chat search (BM25 + semantic)** — re-uses the embeddings sidecar
+  from RAG memory; surfaced via Cmd+K.
+- **Conversation branching, persona evolution, export / import** —
+  smaller items, see `plan.md`.
 
 ## 📄 License
 
