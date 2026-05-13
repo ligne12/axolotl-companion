@@ -53,7 +53,13 @@ const CSP_DIRECTIVES: Record<string, string[]> = {
   "style-src": ["'self'", "'unsafe-inline'", "https://fonts.googleapis.com"],
   "img-src": ["'self'", "data:", "blob:", "https:"],
   "font-src": ["'self'", "data:", "https://fonts.gstatic.com"],
-  "connect-src": ["'self'"],
+  // 'self' + blob: (Three.js GLTFLoader fetches embedded textures via blob: URLs)
+  // + data: (small inline textures); localhost:8001 in dev for the FastAPI
+  // backend when running `npm run dev` outside the Caddy reverse proxy.
+  "connect-src":
+    process.env.NODE_ENV === "production"
+      ? ["'self'", "blob:", "data:"]
+      : ["'self'", "blob:", "data:", "http://localhost:8001", "ws://localhost:*"],
   "worker-src": ["'self'", "blob:"],
   "frame-ancestors": ["'none'"],
   "base-uri": ["'self'"],
