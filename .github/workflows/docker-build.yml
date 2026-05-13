@@ -25,6 +25,10 @@ jobs:
     permissions:
       contents: read
       packages: write
+      # ``security-events: write`` lets the SARIF upload land in the
+      # GitHub Code-scanning tab so Trivy findings have a permanent home
+      # instead of being buried in the build log.
+      security-events: write
     strategy:
       matrix:
         target:
@@ -68,11 +72,24 @@ jobs:
           cache-to: type=gha,scope=${{ matrix.target.name }},mode=max
 
       - name: Scan image for vulnerabilities
+        id: trivy
         if: github.event_name != 'pull_request'
-        uses: aquasecurity/trivy-action@master
+        uses: aquasecurity/trivy-action@0.28.0
         with:
           image-ref: ${{ env.REGISTRY }}/${{ env.IMAGE_OWNER }}/axolotl-${{ matrix.target.name }}:sha-${{ github.sha }}
           format: sarif
           output: trivy-${{ matrix.target.name }}.sarif
           severity: CRITICAL,HIGH
+          ignore-unfixed: true
+        # Don't block deploys on upstream CVEs — Trivy results land in
+        # the Code-scanning tab via the upload step below and the SARIF
+        # build-up is still observable on every push.
+        continue-on-error: true
+
+      - name: Upload Trivy SARIF
+        if: github.event_name != 'pull_request' && always()
+        uses: github/codeql-action/upload-sarif@v3
+        with:
+          sarif_file: trivy-${{ matrix.target.name }}.sarif
+          category: trivy-${{ matrix.target.name }}
         continue-on-error: true

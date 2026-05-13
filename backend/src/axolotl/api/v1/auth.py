@@ -7,10 +7,11 @@ from datetime import UTC, datetime
 import jwt
 import sqlalchemy as sa
 import structlog
-from fastapi import APIRouter, HTTPException, status
+from fastapi import APIRouter, HTTPException, Request, status
 from sqlmodel import col, select
 
 from axolotl.api.deps import CurrentUser, DbSession
+from axolotl.core.rate_limit import limiter
 from axolotl.core.security import (
     create_access_token,
     create_refresh_token,
@@ -58,7 +59,8 @@ async def _issue_tokens(db: DbSession, user: User) -> TokenPair:
 
 
 @router.post("/register", response_model=UserPublic, status_code=status.HTTP_201_CREATED)
-async def register(payload: RegisterRequest, db: DbSession) -> User:
+@limiter.limit("5/hour")
+async def register(request: Request, payload: RegisterRequest, db: DbSession) -> User:
     """Register a new user."""
     existing = await db.execute(
         select(User).where(
@@ -87,7 +89,8 @@ async def register(payload: RegisterRequest, db: DbSession) -> User:
 
 
 @router.post("/login", response_model=TokenPair)
-async def login(payload: LoginRequest, db: DbSession) -> TokenPair:
+@limiter.limit("10/minute")
+async def login(request: Request, payload: LoginRequest, db: DbSession) -> TokenPair:
     """Exchange username/password for an access + refresh token."""
     result = await db.execute(select(User).where(User.username == payload.username))
     user = result.scalar_one_or_none()
@@ -103,7 +106,8 @@ async def login(payload: LoginRequest, db: DbSession) -> TokenPair:
 
 
 @router.post("/refresh", response_model=TokenPair)
-async def refresh(payload: RefreshRequest, db: DbSession) -> TokenPair:
+@limiter.limit("30/minute")
+async def refresh(request: Request, payload: RefreshRequest, db: DbSession) -> TokenPair:
     """Rotate a refresh token: revoke the old one, issue a new pair."""
     try:
         decoded = decode_token(payload.refresh_token, expected_type="refresh")

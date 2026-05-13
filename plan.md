@@ -256,12 +256,21 @@ unique on `users.username`, `users.email`, `refresh_tokens.token_hash`.
   weather pill compacted, markdown tables scroll horizontally instead of
   pushing the bubble past the viewport
 
-### Phase 3 — Animated axolotl 🚧 partial
+### Phase 3 — Animated axolotl ✅ done (different shape than planned)
 - ✅ Mood reactivity on the home hero
-- 🚧 Sprite sheet (pixel art or animated SVG)
-- 🚧 State machine (XState or custom) — bound to SSE chat events
-  (`thinking`, `searching`, `typing`, `idle`, …)
-- 🚧 Framer Motion animations
+- ✅ Blender-authored ``axolotl-chibi.glb`` driven by Three.js +
+  ``GLTFLoader`` + ``AnimationMixer``; seven NLA clips (idle /
+  listening / thinking / searching / typing / happy / confused) with a
+  300 ms crossfade between moods. ``Axolotl3D`` is lazy-loaded with
+  the SVG sprite as the SSR + reduced-motion fallback.
+- ✅ Seven-state derivation lives in ``home-hero``, driven by the
+  ``chat-status`` store (``lastError``, ``currentTool``, ``isSending``,
+  ``tokensPerSec``, ``justFinished``, ``pokedUntil``). No external
+  state-machine library — the rules are linear enough that a plain
+  reducer reads more clearly than XState here.
+- ✅ Pixel-art mood emblems (thought bubble, magnifier, hearts, ``?``,
+  listening dashes) overlay the canvas so the state reads at the same
+  glance as the SVG sprite-sheet reference.
 
 ### Phase 4 — Polish 🚧 in progress
 - ✅ Settings UI:
@@ -288,24 +297,36 @@ unique on `users.username`, `users.email`, `refresh_tokens.token_hash`.
 - ✅ PWA (Serwist) — manifest + theme colours + custom-build service
   worker (`@serwist/next`) with NetworkOnly bypass on `/api/*`, SVG icons
   in the design language, installable on home screen
-- 🚧 **MCP servers CRUD** — MVP scope:
-  - per-user records (id, name, url, transport `http`/`sse`,
-    Fernet-encrypted bearer token, enabled flag)
-  - CRUD endpoints + a `POST /sync` that fetches the server's tool list
-    and persists it
-  - tools surface in the existing registry under `mcp:<server>:<name>`,
-    visible in the Tools settings page alongside built-ins, and routed
-    through the same `execute_tool` dispatcher in the orchestrator
-  - Settings → MCP servers page (cards, modal create/edit) + Tools page
-    grouped by provenance
-  - Deferred to a follow-up iteration:
+- ✅ **MCP servers CRUD** — per-user records (id, name, url, transport
+  ``http``, Fernet-encrypted bearer token, enabled flag) + CRUD
+  endpoints + ``POST /sync``. Tools encoded as
+  ``mcp__<server_id>__<name>``, dispatched through the orchestrator
+  alongside built-ins. The MCP client speaks the proper
+  ``initialize`` + ``Mcp-Session-Id`` handshake and parses
+  ``text/event-stream`` JSON-RPC responses (verified against Context7
+  + DeepWiki). Result text is capped at 12 k chars before re-entering
+  the prompt so a chatty tool can't blow the KV cache.
+  Settings → MCP page (cards, modal CRUD, sync state with inline CTA on
+  ``never synced`` / ``sync failed``) + Tools page grouped by
+  provenance (built-in vs per-server). Chat renders a dedicated MCP
+  card for ``mcp__*`` tool calls — args in a collapsible details, MCP
+  content blocks (text / image / resource) inline.
+  Deferred to a follow-up iteration:
     - OAuth flows (only static bearer token in MVP)
     - Auto-reconnect / periodic health-check (sync is manual)
     - Streaming tool results (MCP tools return one object per call)
-    - `stdio` transport (security risk — server would spawn arbitrary
+    - ``stdio`` transport (security risk — server would spawn arbitrary
       local processes)
+- ✅ **i18n FR / EN** — ``next-intl`` 3.x, cookie-based locale
+  (``axo-locale``, no URL prefix), ``Accept-Language`` fallback. Single
+  source of truth in ``src/i18n/config.ts``; messages live under
+  ``messages/<code>.json`` with ICU plurals, ``t.rich`` for ``<em>`` /
+  ``<code>`` / ``<kbd>`` / ``<link>`` tags. Sidebar, Settings (all six
+  tabs), Auth pages, chat input + controls drawer, sampling sliders
+  (param labels looked up via ``params.<key>``), home hero + recent
+  sessions all translated. Locale switcher pinned next to the theme
+  toggle in the sidebar footer.
 - 📋 Export / import conversations (JSON)
-- 📋 i18n FR / EN
 
 ### Phase 5 — Observability + docs polish 📋
 - Prometheus + Grafana dashboards (services scaffolded in compose, dashboards
@@ -337,13 +358,20 @@ unique on `users.username`, `users.email`, `refresh_tokens.token_hash`.
 
 ## 9. Security checklist
 
-- [ ] bcrypt (or argon2) for passwords
-- [ ] Short-lived JWT (15 min) + rotating refresh tokens
-- [ ] Restrictive CORS (origin whitelist)
-- [ ] Rate limiting (slowapi + Redis)
-- [ ] CSP headers in Next.js
-- [ ] Secrets never committed (pre-commit hook)
-- [ ] Third-party tokens (e.g. `HF_TOKEN`) encrypted at rest in DB (Fernet)
-- [ ] Trivy / Grype image scans in CI
-- [ ] Dependabot enabled
-- [ ] HTTPS in prod (Caddy auto TLS)
+- [x] bcrypt for passwords (direct `bcrypt` lib, not `passlib`)
+- [x] Short-lived JWT (15 min access) + rotating refresh tokens (hashed at rest)
+- [x] Restrictive CORS (origin whitelist from `CORS_ORIGINS`)
+- [x] Rate limiting (slowapi + Redis) — `5/hour` register, `10/min`
+      login, `30/min` refresh; opt-in per route, in-memory fallback in
+      tests
+- [x] CSP headers in Next.js (`next.config.ts`) — same-origin script,
+      Tailwind/Radix inline styles, `data:`/`blob:` images, Google
+      Fonts host, `frame-ancestors 'none'`
+- [ ] Secrets never committed (pre-commit hook) — manual review only
+- [x] Third-party tokens (MCP bearer, etc.) encrypted at rest in DB
+      (Fernet via `core/secrets.py`)
+- [x] Trivy image scans in CI (SARIF → GitHub Code-scanning,
+      `severity: CRITICAL,HIGH`, `ignore-unfixed`)
+- [x] Dependabot enabled (`Dependabot Updates` runs visible in CI)
+- [x] HTTPS in prod (Caddy auto TLS — local trust on `*.localhost`,
+      Let's Encrypt + DNS-01 on public hostnames)

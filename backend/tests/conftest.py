@@ -17,10 +17,18 @@ from sqlalchemy.pool import NullPool
 from sqlmodel import SQLModel
 
 from axolotl.config import get_settings
+from axolotl.core.rate_limit import limiter
 from axolotl.db.base import get_db
 from axolotl.main import app
 
 _settings = get_settings()
+
+# Rate-limiting is per-IP and slowapi keys off the test client's
+# loopback address, so a couple of register calls in a row would burst
+# through the 5/hour limit. The limiter still gets exercised in
+# dedicated tests; disabling it here keeps the rest of the suite
+# focused on the endpoint logic.
+limiter.enabled = False
 
 test_engine = create_async_engine(
     _settings.database_url,

@@ -20,6 +20,52 @@ const withSerwist = withSerwistInit({
   reloadOnOnline: true,
 });
 
+/**
+ * Content-Security-Policy.
+ *
+ * The chrome is server-rendered + same-origin for both the API
+ * (``/api/*`` is proxied to FastAPI) and the SSE stream, so the policy
+ * stays tight:
+ *
+ *   - ``script-src 'self'`` only — no third-party scripts.
+ *     ``'unsafe-inline'`` is dev-only because Next.js streams hydration
+ *     scripts inline during HMR; prod uses hashed/nonced scripts and
+ *     drops the loophole.
+ *   - ``style-src 'self' 'unsafe-inline'`` — Tailwind + Radix UI both
+ *     inject inline ``<style>`` blocks, and Google Fonts ships from
+ *     ``fonts.googleapis.com``.
+ *   - ``img-src`` covers our own assets, MCP-returned ``data:`` images
+ *     (``MCPToolCard``), and the user-uploaded avatar URLs.
+ *   - ``connect-src`` is same-origin (the chat SSE) plus the runtime
+ *     config endpoint — backend is reached via the same hostname.
+ *   - ``font-src`` Google Fonts + ``data:`` for the pixel font's woff2.
+ *   - ``frame-ancestors 'none'`` doubles up with ``X-Frame-Options:
+ *     DENY``.
+ *   - ``worker-src 'self' blob:`` — Serwist registers the service
+ *     worker via ``blob:`` in dev, ``/sw.js`` in prod.
+ */
+const CSP_DIRECTIVES: Record<string, string[]> = {
+  "default-src": ["'self'"],
+  "script-src":
+    process.env.NODE_ENV === "production"
+      ? ["'self'"]
+      : ["'self'", "'unsafe-inline'", "'unsafe-eval'"],
+  "style-src": ["'self'", "'unsafe-inline'", "https://fonts.googleapis.com"],
+  "img-src": ["'self'", "data:", "blob:", "https:"],
+  "font-src": ["'self'", "data:", "https://fonts.gstatic.com"],
+  "connect-src": ["'self'"],
+  "worker-src": ["'self'", "blob:"],
+  "frame-ancestors": ["'none'"],
+  "base-uri": ["'self'"],
+  "form-action": ["'self'"],
+  "object-src": ["'none'"],
+  "upgrade-insecure-requests": [],
+};
+
+const CSP_HEADER = Object.entries(CSP_DIRECTIVES)
+  .map(([k, v]) => (v.length ? `${k} ${v.join(" ")}` : k))
+  .join("; ");
+
 const nextConfig: NextConfig = {
   reactStrictMode: true,
   poweredByHeader: false,
@@ -39,6 +85,7 @@ const nextConfig: NextConfig = {
             key: "Permissions-Policy",
             value: "camera=(), microphone=(), geolocation=()",
           },
+          { key: "Content-Security-Policy", value: CSP_HEADER },
         ],
       },
       {

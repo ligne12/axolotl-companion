@@ -6,9 +6,13 @@ from contextlib import asynccontextmanager
 import structlog
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
+from slowapi import _rate_limit_exceeded_handler
+from slowapi.errors import RateLimitExceeded
+from slowapi.middleware import SlowAPIMiddleware
 
 from axolotl import __version__
 from axolotl.config import get_settings
+from axolotl.core.rate_limit import limiter
 
 logger = structlog.get_logger(__name__)
 
@@ -42,6 +46,21 @@ def create_app() -> FastAPI:
         allow_methods=["*"],
         allow_headers=["*"],
     )
+
+    # Per-IP rate limiting (slowapi + Redis). The handlers opt-in via
+    # ``@limiter.limit("...")`` — nothing is throttled by default. The
+    # ``SlowAPIMiddleware`` wires ``request.state.view_rate_limit`` so
+    # ``X-RateLimit-*`` headers come through on every limited response.
+    # The exception handler is slowapi's own — it knows the exception
+    # carries the ``Retry-After`` headers, the ``view_rate_limit``
+    # snapshot, etc.
+    app.state.limiter = limiter
+    app.add_middleware(SlowAPIMiddleware)
+    # slowapi types ``_rate_limit_exceeded_handler`` with the narrow
+    # ``RateLimitExceeded`` parameter; Starlette wants the generic
+    # ``Exception`` shape on the handler signature, so we tell mypy to
+    # trust the registration.
+    app.add_exception_handler(RateLimitExceeded, _rate_limit_exceeded_handler)  # type: ignore[arg-type]
 
     @app.get("/health", tags=["system"])
     async def health() -> dict[str, str]:
