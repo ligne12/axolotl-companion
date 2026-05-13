@@ -5,7 +5,21 @@
   <!-- 2 px ink inset border -->
   <rect x="8" y="8" width="176" height="176" rx="24" fill="none" stroke="#1a1610" stroke-width="6"/>
   <!-- L-shape offset shadow signature -->
-  <rect x="68" y="72" width="76" height="76" rx="10" fill="#1a1610"/>
-  <!-- Lime accent tile, the "active" state colour of the design language -->
-  <rect x="60" y="64" width="76" height="76" rx="10" fill="#baff39" stroke="#1a1610" stroke-width="6"/>
+  <rect x="58" y="58" width="88" height="88" rx="10" fill="#1a1610"/>
+  <!-- Lime accent tile centred on the canvas, hosting the lotus mark. -->
+  <rect x="52" y="52" width="88" height="88" rx="10" fill="#baff39" stroke="#1a1610" stroke-width="6"/>
+  <!-- Custom lotus — five flat petals + yellow centre, all ink-outlined
+       so the mark stays in the pixel-neubru language (no colour-emoji
+       glossiness clashing with the rest). Petals are unit ellipses
+       rotated around the canvas centre at 72° intervals. -->
+  <g transform="translate(96 96)" stroke="#1a1610" stroke-width="4" stroke-linejoin="round">
+    <g fill="#e87b9a">
+      <ellipse cx="0" cy="-19" rx="9" ry="17"/>
+      <ellipse cx="0" cy="-19" rx="9" ry="17" transform="rotate(72)"/>
+      <ellipse cx="0" cy="-19" rx="9" ry="17" transform="rotate(144)"/>
+      <ellipse cx="0" cy="-19" rx="9" ry="17" transform="rotate(216)"/>
+      <ellipse cx="0" cy="-19" rx="9" ry="17" transform="rotate(288)"/>
+    </g>
+    <circle cx="0" cy="0" r="8" fill="#f5d56a"/>
+  </g>
 </svg>

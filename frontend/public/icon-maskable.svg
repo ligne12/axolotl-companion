@@ -1,11 +1,22 @@
 <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 192 192" width="192" height="192" role="img" aria-label="Axolotl Companion">
   <title>Axolotl Companion</title>
-  <!-- Maskable variant: full-bleed cream background; the brand mark sits in
-       the safe zone (centred 80 % of the canvas) so Android's adaptive icon
-       mask doesn't crop it. -->
+  <!-- Maskable variant: full-bleed cream background; the mark sits in
+       the safe zone (centred 80 % of the canvas) so Android's adaptive
+       icon mask doesn't crop it. -->
   <rect width="192" height="192" fill="#f6f2e6"/>
   <!-- L-shape offset shadow -->
-  <rect x="80" y="84" width="60" height="60" rx="8" fill="#1a1610"/>
-  <!-- Lime accent tile, ink-bordered -->
-  <rect x="74" y="78" width="60" height="60" rx="8" fill="#baff39" stroke="#1a1610" stroke-width="5"/>
+  <rect x="58" y="58" width="88" height="88" rx="10" fill="#1a1610"/>
+  <!-- Lime accent tile centred on the canvas -->
+  <rect x="52" y="52" width="88" height="88" rx="10" fill="#baff39" stroke="#1a1610" stroke-width="6"/>
+  <!-- Five-petal lotus — see icon.svg for the rationale. -->
+  <g transform="translate(96 96)" stroke="#1a1610" stroke-width="4" stroke-linejoin="round">
+    <g fill="#e87b9a">
+      <ellipse cx="0" cy="-19" rx="9" ry="17"/>
+      <ellipse cx="0" cy="-19" rx="9" ry="17" transform="rotate(72)"/>
+      <ellipse cx="0" cy="-19" rx="9" ry="17" transform="rotate(144)"/>
+      <ellipse cx="0" cy="-19" rx="9" ry="17" transform="rotate(216)"/>
+      <ellipse cx="0" cy="-19" rx="9" ry="17" transform="rotate(288)"/>
+    </g>
+    <circle cx="0" cy="0" r="8" fill="#f5d56a"/>
+  </g>
 </svg>
