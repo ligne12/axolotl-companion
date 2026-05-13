@@ -1,0 +1,44 @@
+name: Pre-commit
+
+# Runs the full ``.pre-commit-config.yaml`` against every push and PR.
+# This is what actually flips the "Secrets never committed" box on the
+# plan.md security checklist: ``detect-private-key`` + ``gitleaks`` both
+# get enforced here, regardless of whether anyone ran
+# ``make install-hooks`` locally.
+
+on:
+  push:
+    branches: [main, dev]
+  pull_request:
+
+concurrency:
+  group: pre-commit-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  pre-commit:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          # gitleaks needs the full history to scan diffs reliably.
+          fetch-depth: 0
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+      # The prettier hook runs through the project's own pnpm install
+      # (see ``.pre-commit-config.yaml``), so the CI runner needs Node
+      # + pnpm + a populated ``frontend/node_modules`` before the
+      # hooks fire.
+      - uses: pnpm/action-setup@v4
+        with:
+          version: 9
+      - uses: actions/setup-node@v4
+        with:
+          node-version: "20"
+          cache: pnpm
+          cache-dependency-path: frontend/pnpm-lock.yaml
+      - name: Install frontend deps (for prettier)
+        working-directory: frontend
+        run: pnpm install --frozen-lockfile
+      - uses: pre-commit/action@v3.0.1
