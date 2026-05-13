@@ -9,12 +9,22 @@ import { useRouter } from "next/navigation";
 import { useEffect, useState } from "react";
 import { toast } from "sonner";
 
-import { AxolotlSprite, type AxolotlMood } from "@/components/axolotl/axolotl-sprite";
+import type { AxolotlMood } from "@/components/axolotl/axolotl-3d";
 
 // Three.js bundle (~150 KB gz) is heavy; defer it from the initial paint.
+// A sized neutral tile fills the slot during SSR + first-load so the
+// hero layout doesn't pop.
 const Axolotl3D = dynamic(
   () => import("@/components/axolotl/axolotl-3d").then((m) => m.Axolotl3D),
-  { ssr: false, loading: () => <AxolotlSprite mood="idle" size={150} /> },
+  {
+    ssr: false,
+    loading: () => (
+      <div
+        aria-hidden
+        className="border-border bg-card size-[150px] rounded-2xl border-2 shadow-[3px_3px_0_0_var(--border)]"
+      />
+    ),
+  },
 );
 import CircularText from "@/components/reactbits/circular-text";
 import ClickSpark from "@/components/reactbits/click-spark";
@@ -91,7 +101,7 @@ export function HomeHero({
   });
 
   return (
-    <section className="relative isolate overflow-hidden rounded-[28px] border-2 border-border bg-card p-6 shadow-[3px_3px_0_0_var(--border)] md:p-10">
+    <section className="border-border bg-card relative isolate overflow-hidden rounded-[28px] border-2 p-6 shadow-[3px_3px_0_0_var(--border)] md:p-10">
       {/* Hero-local snow layer — drifts on top of the global PixelBlast wash */}
       <div className="pointer-events-none absolute inset-0 opacity-30">
         <PixelSnow
@@ -112,28 +122,28 @@ export function HomeHero({
               type="button"
               onClick={() => setPokedUntil(Date.now() + 3000)}
               aria-label={t("poke")}
-              className="relative z-10 rounded-2xl border-2 border-border bg-card p-3 shadow-[3px_3px_0_0_var(--border)] transition-[transform,box-shadow] duration-100 active:translate-x-[2px] active:translate-y-[2px] active:shadow-[1px_1px_0_0_var(--border)]"
+              className="border-border bg-card relative z-10 rounded-2xl border-2 p-3 shadow-[3px_3px_0_0_var(--border)] transition-[transform,box-shadow] duration-100 active:translate-x-[2px] active:translate-y-[2px] active:shadow-[1px_1px_0_0_var(--border)]"
             >
               <Axolotl3D mood={mood} size={150} />
             </button>
           </ClickSpark>
-          <div className="pointer-events-none absolute inset-0 -m-6 z-20 flex items-center justify-center">
+          <div className="pointer-events-none absolute inset-0 z-20 -m-6 flex items-center justify-center">
             <CircularText
               text="AXOLOTL ✦ COMPANION ✦ LOCAL ✦ FIRST ✦ "
               spinDuration={28}
               onHover="speedUp"
-              className="!h-[220px] !w-[220px] !text-[11px] !text-foreground font-pixel !uppercase !tracking-[0.18em]"
+              className="!text-foreground font-pixel !h-[220px] !w-[220px] !text-[11px] !tracking-[0.18em] !uppercase"
             />
           </div>
         </div>
 
-        <div className="flex min-w-0 flex-1 max-w-xl flex-col gap-4 text-left">
-          <span className="inline-flex w-fit items-center gap-2 border-2 border-border bg-card px-2.5 py-1 font-pixel text-[12px] uppercase tracking-[0.14em]">
+        <div className="flex max-w-xl min-w-0 flex-1 flex-col gap-4 text-left">
+          <span className="border-border bg-card font-pixel inline-flex w-fit items-center gap-2 border-2 px-2.5 py-1 text-[12px] tracking-[0.14em] uppercase">
             <span className="size-2 bg-[color:var(--lime)]" />
             {t("hi", { name })}
           </span>
 
-          <h1 className="font-display text-4xl font-bold uppercase leading-[1.05] md:text-5xl">
+          <h1 className="font-display text-4xl leading-[1.05] font-bold uppercase md:text-5xl">
             {t.rich("title", {
               em: (chunks) => <span className="italic">{chunks}</span>,
             })}
@@ -141,7 +151,7 @@ export function HomeHero({
 
           <TextType
             as="p"
-            className="min-h-[3rem] max-w-md text-balance leading-snug text-muted-foreground"
+            className="text-muted-foreground min-h-[3rem] max-w-md leading-snug text-balance"
             text={greetings}
             typingSpeed={38}
             deletingSpeed={18}
@@ -157,7 +167,7 @@ export function HomeHero({
                 onClick={() => createSession.mutate()}
                 disabled={createSession.isPending}
                 className={cn(
-                  "group inline-flex items-center gap-2 border-2 border-border bg-primary px-5 py-2.5 text-sm font-semibold text-primary-foreground",
+                  "group border-border bg-primary text-primary-foreground inline-flex items-center gap-2 border-2 px-5 py-2.5 text-sm font-semibold",
                   "shadow-[3px_3px_0_0_var(--lime)] transition-[transform,box-shadow] duration-100",
                   "hover:shadow-[4px_4px_0_0_var(--lime)]",
                   "active:translate-x-[2px] active:translate-y-[2px] active:shadow-[1px_1px_0_0_var(--lime)]",
@@ -174,7 +184,7 @@ export function HomeHero({
                 <Link
                   href={`/chat/${lastSessionId}`}
                   className={cn(
-                    "inline-flex items-center gap-2 border-2 border-border bg-card px-5 py-2.5 text-sm font-semibold",
+                    "border-border bg-card inline-flex items-center gap-2 border-2 px-5 py-2.5 text-sm font-semibold",
                     "shadow-[3px_3px_0_0_var(--border)] transition-[transform,box-shadow] duration-100",
                     "hover:shadow-[4px_4px_0_0_var(--border)]",
                     "active:translate-x-[2px] active:translate-y-[2px] active:shadow-[1px_1px_0_0_var(--border)]",

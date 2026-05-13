@@ -7,7 +7,20 @@ import { GLTFLoader } from "three/examples/jsm/loaders/GLTFLoader.js";
 
 import { cn } from "@/lib/utils";
 
-import type { AxolotlMood } from "./axolotl-sprite";
+/**
+ * Mood state exposed by the chat-status store and consumed by every
+ * mascot consumer. Kept here (rather than in a separate ``types`` file)
+ * because the 3D renderer is the only canonical renderer of the mascot
+ * — there is no longer an SVG fallback to share the type with.
+ */
+export type AxolotlMood =
+  | "idle"
+  | "listening"
+  | "thinking"
+  | "searching"
+  | "typing"
+  | "happy"
+  | "confused";
 
 const MODEL_URL = "/models/axolotl-chibi.glb";
 const CROSSFADE_S = 0.3;
@@ -38,8 +51,6 @@ export function Axolotl3D({
   const containerRef = useRef<HTMLDivElement | null>(null);
   const actionsRef = useRef<Map<string, THREE.AnimationAction> | null>(null);
   const currentRef = useRef<THREE.AnimationAction | null>(null);
-  // 3D emblem props baked into the GLB — toggled per-mood at runtime.
-  const emblemsRef = useRef<Map<AxolotlMood, THREE.Object3D> | null>(null);
 
   useEffect(() => {
     const container = containerRef.current;
@@ -121,24 +132,22 @@ export function Axolotl3D({
         }
         actionsRef.current = map;
 
-        // Find emblem props in the loaded scene and store them by mood.
-        // Hide all by default; the mood effect will enable the one that matches.
-        const EMBLEM_NODE_BY_MOOD: Record<string, AxolotlMood> = {
-          emblem_bubble: "thinking",
-          emblem_loupe: "searching",
-          emblem_question: "confused",
-          emblem_listen: "listening",
-          emblem_typing: "typing",
-        };
-        const emblems = new Map<AxolotlMood, THREE.Object3D>();
+        // Hide the in-GLB emblem props (bubble / loupe / question / listen /
+        // typing dots) — the chibi reads its mood through the body
+        // animation alone, no extra overlay glyphs.
+        const EMBLEM_NODES = new Set([
+          "emblem_bubble",
+          "emblem_loupe",
+          "emblem_question",
+          "emblem_listen",
+          "emblem_typing",
+        ]);
         // Collect skinned meshes that need outlining + the broken finB3 shell
         // so we can hide it and replace with a clean normal-offset outline.
         const skinnedToOutline: THREE.SkinnedMesh[] = [];
         gltf.scene.traverse((obj) => {
-          const m = EMBLEM_NODE_BY_MOOD[obj.name];
-          if (m) {
+          if (EMBLEM_NODES.has(obj.name)) {
             obj.visible = false;
-            emblems.set(m, obj);
           }
           // finB3 = old inverted-hull outline mesh. Its uniform-scale shell
           // fractures at the limbs under skinning. Hide it and replace with
@@ -150,7 +159,6 @@ export function Axolotl3D({
             skinnedToOutline.push(obj);
           }
         });
-        emblemsRef.current = emblems;
 
         // Build a clean inverted-hull outline as a sibling SkinnedMesh that
         // shares the same skeleton. Offset along the *skinned* normal in the
@@ -210,8 +218,6 @@ export function Axolotl3D({
           console.info(
             "[axolotl-3d] loaded clips:",
             gltf.animations.map((c) => `${c.name} (${c.duration.toFixed(2)}s)`),
-            "emblems:",
-            [...emblems.keys()],
           );
         }
 
@@ -220,8 +226,6 @@ export function Axolotl3D({
           initial.reset().play();
           currentRef.current = initial;
         }
-        const initialEmblem = emblems.get(mood);
-        if (initialEmblem) initialEmblem.visible = true;
       },
       undefined,
       (err) => {
@@ -261,28 +265,18 @@ export function Axolotl3D({
   // Crossfade to the new clip whenever `mood` changes, and toggle 3D emblems.
   useEffect(() => {
     const map = actionsRef.current;
-    if (map) {
-      const next = map.get(mood);
-      if (next) {
-        const current = currentRef.current;
-        if (current !== next) {
-          next.reset();
-          next.setEffectiveWeight(1);
-          next.play();
-          if (current) {
-            current.crossFadeTo(next, CROSSFADE_S, false);
-          }
-          currentRef.current = next;
-        }
-      }
+    if (!map) return;
+    const next = map.get(mood);
+    if (!next) return;
+    const current = currentRef.current;
+    if (current === next) return;
+    next.reset();
+    next.setEffectiveWeight(1);
+    next.play();
+    if (current) {
+      current.crossFadeTo(next, CROSSFADE_S, false);
     }
-    // Show only the matching 3D prop, hide all others.
-    const emblems = emblemsRef.current;
-    if (emblems) {
-      for (const [m, obj] of emblems) {
-        obj.visible = m === mood;
-      }
-    }
+    currentRef.current = next;
   }, [mood]);
 
   return (
@@ -292,69 +286,6 @@ export function Axolotl3D({
       style={{ width: size, height: size }}
       aria-label="Animated axolotl mascot"
       role="img"
-    >
-      <MoodEmblem mood={mood} size={size} />
-    </div>
+    />
   );
 }
-
-/* ------------------------------------------------------------------ */
-/* Mood emblems for the 3D mascot.                                    */
-/* The bubble / magnifier / "?" / listening dashes / typing dots are  */
-/* baked as 3D meshes inside the GLB and toggled via Object3D.visible */
-/* in the mood effect above. Only the floating hearts stay as DOM     */
-/* particles since they read better as fast 2D rises than as 3D mesh. */
-/* ------------------------------------------------------------------ */
-
-function MoodEmblem({ mood, size }: { mood: AxolotlMood; size: number }) {
-  const u = (n: number) => Math.round(size * n);
-  if (mood !== "happy") return null;
-  return (
-    <div className="pointer-events-none absolute inset-0" style={{ zIndex: 5 }}>
-      <Heart
-        size={u(0.18)}
-        style={{ top: u(0.12), left: u(0.06), animation: "mood-rise 1.4s ease-out infinite" }}
-      />
-      <Heart
-        size={u(0.14)}
-        style={{ top: u(0.04), right: u(0.18), animation: "mood-rise 1.6s ease-out 0.35s infinite" }}
-      />
-      <Heart
-        size={u(0.16)}
-        style={{ top: u(0.16), right: u(0.0), animation: "mood-rise 1.8s ease-out 0.7s infinite" }}
-      />
-    </div>
-  );
-}
-
-function Heart({
-  size,
-  style,
-}: {
-  size: number;
-  style?: React.CSSProperties;
-}) {
-  return (
-    <svg
-      width={size}
-      height={size}
-      viewBox="0 0 16 16"
-      shapeRendering="crispEdges"
-      className="absolute"
-      style={style}
-    >
-      <g fill="#ff5d8f">
-        <rect x="2" y="3" width="4" height="2" />
-        <rect x="10" y="3" width="4" height="2" />
-        <rect x="1" y="5" width="6" height="3" />
-        <rect x="9" y="5" width="6" height="3" />
-        <rect x="2" y="8" width="12" height="2" />
-        <rect x="3" y="10" width="10" height="2" />
-        <rect x="5" y="12" width="6" height="2" />
-        <rect x="7" y="14" width="2" height="1" />
-      </g>
-      <rect x="3" y="5" width="2" height="2" fill="#ffd7e3" />
-    </svg>
-  );
-}
-
