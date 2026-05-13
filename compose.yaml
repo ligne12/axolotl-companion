@@ -167,6 +167,13 @@ services:
       context: ./frontend
       dockerfile: Dockerfile
       target: ${FRONTEND_TARGET:-production}
+      # ``NEXT_PUBLIC_*`` is baked into the client bundle at build time;
+      # passing through ``args`` here is what makes the value reach
+      # ``pnpm build``. The runtime ``environment:`` block below is kept
+      # too because the dev (``pnpm dev``) stage reads them at runtime.
+      args:
+        NEXT_PUBLIC_API_URL: ${NEXT_PUBLIC_API_URL:-/api}
+        NEXT_PUBLIC_APP_NAME: ${NEXT_PUBLIC_APP_NAME:-Axolotl Companion}
     image: axolotl/frontend:latest
     container_name: axolotl-frontend
     restart: unless-stopped
