@@ -1,0 +1,16 @@
+apiVersion: 1
+
+# Auto-provisioned data sources. Mounted read-only at
+# /etc/grafana/provisioning/datasources/ — Grafana picks them up on
+# boot. The Prometheus container is reachable on the compose network
+# under ``prometheus:9090``.
+datasources:
+  - name: Prometheus
+    uid: axolotl-prometheus
+    type: prometheus
+    access: proxy
+    url: http://prometheus:9090
+    isDefault: true
+    editable: false
+    jsonData:
+      timeInterval: "15s"

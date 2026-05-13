@@ -1,0 +1,171 @@
+{
+  "schemaVersion": 39,
+  "title": "Axolotl — overview",
+  "uid": "axolotl-overview",
+  "tags": ["axolotl"],
+  "timezone": "browser",
+  "time": { "from": "now-1h", "to": "now" },
+  "refresh": "30s",
+  "panels": [
+    {
+      "id": 1,
+      "title": "Request rate (req/s)",
+      "type": "timeseries",
+      "datasource": { "type": "prometheus", "uid": "axolotl-prometheus" },
+      "gridPos": { "x": 0, "y": 0, "w": 12, "h": 8 },
+      "targets": [
+        {
+          "expr": "sum by (handler) (rate(http_requests_total{handler!~\"/metrics|/health\"}[1m]))",
+          "legendFormat": "{{handler}}",
+          "refId": "A"
+        }
+      ],
+      "fieldConfig": { "defaults": { "unit": "reqps" } }
+    },
+    {
+      "id": 2,
+      "title": "p95 latency (HTTP)",
+      "type": "timeseries",
+      "datasource": { "type": "prometheus", "uid": "axolotl-prometheus" },
+      "gridPos": { "x": 12, "y": 0, "w": 12, "h": 8 },
+      "targets": [
+        {
+          "expr": "histogram_quantile(0.95, sum by (le, handler) (rate(http_request_duration_seconds_bucket{handler!~\"/metrics|/health\"}[5m])))",
+          "legendFormat": "{{handler}}",
+          "refId": "A"
+        }
+      ],
+      "fieldConfig": { "defaults": { "unit": "s" } }
+    },
+    {
+      "id": 3,
+      "title": "5xx responses",
+      "type": "timeseries",
+      "datasource": { "type": "prometheus", "uid": "axolotl-prometheus" },
+      "gridPos": { "x": 0, "y": 8, "w": 12, "h": 8 },
+      "targets": [
+        {
+          "expr": "sum by (handler) (rate(http_requests_total{status=~\"5..\"}[5m]))",
+          "legendFormat": "{{handler}}",
+          "refId": "A"
+        }
+      ],
+      "fieldConfig": { "defaults": { "unit": "reqps" } }
+    },
+    {
+      "id": 4,
+      "title": "Chat streams — started vs completed vs failed",
+      "type": "timeseries",
+      "datasource": { "type": "prometheus", "uid": "axolotl-prometheus" },
+      "gridPos": { "x": 12, "y": 8, "w": 12, "h": 8 },
+      "targets": [
+        {
+          "expr": "sum by (outcome) (rate(axolotl_chat_streams_total[5m]))",
+          "legendFormat": "{{outcome}}",
+          "refId": "A"
+        }
+      ],
+      "fieldConfig": { "defaults": { "unit": "ops" } }
+    },
+    {
+      "id": 5,
+      "title": "Chat stream p95 / p50 (wall-clock)",
+      "type": "timeseries",
+      "datasource": { "type": "prometheus", "uid": "axolotl-prometheus" },
+      "gridPos": { "x": 0, "y": 16, "w": 12, "h": 8 },
+      "targets": [
+        {
+          "expr": "histogram_quantile(0.95, sum by (le) (rate(axolotl_chat_stream_duration_seconds_bucket[5m])))",
+          "legendFormat": "p95",
+          "refId": "A"
+        },
+        {
+          "expr": "histogram_quantile(0.50, sum by (le) (rate(axolotl_chat_stream_duration_seconds_bucket[5m])))",
+          "legendFormat": "p50",
+          "refId": "B"
+        }
+      ],
+      "fieldConfig": { "defaults": { "unit": "s" } }
+    },
+    {
+      "id": 6,
+      "title": "Tool calls by name",
+      "type": "timeseries",
+      "datasource": { "type": "prometheus", "uid": "axolotl-prometheus" },
+      "gridPos": { "x": 12, "y": 16, "w": 12, "h": 8 },
+      "targets": [
+        {
+          "expr": "sum by (tool) (rate(axolotl_tool_calls_total[5m]))",
+          "legendFormat": "{{tool}}",
+          "refId": "A"
+        }
+      ],
+      "fieldConfig": { "defaults": { "unit": "ops" } }
+    },
+    {
+      "id": 7,
+      "title": "Tool call errors",
+      "type": "timeseries",
+      "datasource": { "type": "prometheus", "uid": "axolotl-prometheus" },
+      "gridPos": { "x": 0, "y": 24, "w": 12, "h": 8 },
+      "targets": [
+        {
+          "expr": "sum by (tool) (rate(axolotl_tool_calls_total{outcome=\"error\"}[5m]))",
+          "legendFormat": "{{tool}}",
+          "refId": "A"
+        }
+      ],
+      "fieldConfig": { "defaults": { "unit": "ops" } }
+    },
+    {
+      "id": 8,
+      "title": "MCP sync outcomes",
+      "type": "timeseries",
+      "datasource": { "type": "prometheus", "uid": "axolotl-prometheus" },
+      "gridPos": { "x": 12, "y": 24, "w": 12, "h": 8 },
+      "targets": [
+        {
+          "expr": "sum by (outcome) (rate(axolotl_mcp_syncs_total[15m]))",
+          "legendFormat": "{{outcome}}",
+          "refId": "A"
+        }
+      ],
+      "fieldConfig": { "defaults": { "unit": "ops" } }
+    },
+    {
+      "id": 9,
+      "title": "vLLM running / waiting requests",
+      "type": "timeseries",
+      "datasource": { "type": "prometheus", "uid": "axolotl-prometheus" },
+      "gridPos": { "x": 0, "y": 32, "w": 12, "h": 8 },
+      "targets": [
+        {
+          "expr": "sum(vllm:num_requests_running)",
+          "legendFormat": "running",
+          "refId": "A"
+        },
+        {
+          "expr": "sum(vllm:num_requests_waiting)",
+          "legendFormat": "waiting",
+          "refId": "B"
+        }
+      ],
+      "fieldConfig": { "defaults": { "unit": "short" } }
+    },
+    {
+      "id": 10,
+      "title": "vLLM GPU KV-cache usage",
+      "type": "timeseries",
+      "datasource": { "type": "prometheus", "uid": "axolotl-prometheus" },
+      "gridPos": { "x": 12, "y": 32, "w": 12, "h": 8 },
+      "targets": [
+        {
+          "expr": "vllm:gpu_cache_usage_perc",
+          "legendFormat": "kv-cache %",
+          "refId": "A"
+        }
+      ],
+      "fieldConfig": { "defaults": { "unit": "percentunit" } }
+    }
+  ]
+}

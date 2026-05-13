@@ -1,0 +1,16 @@
+apiVersion: 1
+
+# Filesystem dashboard provider. Grafana watches this directory and
+# imports every ``*.json`` it finds under the matching ``path``. To add
+# a new board, drop another JSON next to ``axolotl-overview.json``.
+providers:
+  - name: axolotl
+    orgId: 1
+    folder: ""
+    type: file
+    disableDeletion: false
+    updateIntervalSeconds: 30
+    allowUiUpdates: false
+    options:
+      path: /etc/grafana/provisioning/dashboards
+      foldersFromFilesStructure: false

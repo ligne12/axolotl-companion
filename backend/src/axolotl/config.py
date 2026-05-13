@@ -59,6 +59,14 @@ class Settings(BaseSettings):
     web_search_max_results: int = 5
     web_search_timeout_seconds: float = 10.0
 
+    # -- Observability (Langfuse) --------------------------------------------
+    # Blank values keep tracing disabled — the orchestrator's tracer
+    # collapses to a no-op so a fresh clone runs without setting up
+    # Langfuse first. Fill these in to start streaming traces.
+    langfuse_host: str = "https://cloud.langfuse.com"
+    langfuse_public_key: str = ""
+    langfuse_secret_key: str = ""
+
     @property
     def cors_origins_list(self) -> list[str]:
         """Parse comma-separated CORS origins."""

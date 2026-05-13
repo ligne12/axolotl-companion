@@ -120,8 +120,9 @@ restore: ## Restore postgres from latest backup
 # -----------------------------------------------------------------------------
 # Tooling setup
 # -----------------------------------------------------------------------------
-install-hooks: ## Install pre-commit hooks
+install-hooks: ## Install pre-commit hooks (pre-commit + commit-msg)
 	pre-commit install --install-hooks
+	pre-commit install --hook-type commit-msg
 
 # -----------------------------------------------------------------------------
 # OpenAPI → TS types
@@ -138,4 +139,3 @@ check-api-types: ## Fail if frontend types drift from backend OpenAPI (CI)
 	$(MAKE) gen-api-types
 	@git diff --exit-code backend/openapi.json frontend/src/types/api-generated.ts \
 		|| (echo "  ✗ API types are out of sync. Run 'make gen-api-types' and commit."; exit 1)
-	pre-commit install --hook-type commit-msg

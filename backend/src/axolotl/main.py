@@ -6,6 +6,7 @@ from contextlib import asynccontextmanager
 import structlog
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
+from prometheus_fastapi_instrumentator import Instrumentator
 from slowapi import _rate_limit_exceeded_handler
 from slowapi.errors import RateLimitExceeded
 from slowapi.middleware import SlowAPIMiddleware
@@ -61,6 +62,16 @@ def create_app() -> FastAPI:
     # ``Exception`` shape on the handler signature, so we tell mypy to
     # trust the registration.
     app.add_exception_handler(RateLimitExceeded, _rate_limit_exceeded_handler)  # type: ignore[arg-type]
+
+    # Prometheus instrumentation. Exposes ``/metrics`` with the
+    # default HTTP request counters + latency histograms; the custom
+    # chat / tool / MCP signal lives in ``core.metrics``. The
+    # instrumentator is excluded from its own measurements so the
+    # scrape doesn't pollute the latency buckets.
+    Instrumentator(
+        excluded_handlers=["/metrics", "/health"],
+        should_group_status_codes=True,
+    ).instrument(app).expose(app, include_in_schema=False, tags=["system"])
 
     @app.get("/health", tags=["system"])
     async def health() -> dict[str, str]:

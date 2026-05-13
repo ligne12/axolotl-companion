@@ -8,7 +8,10 @@ repos:
       - id: check-json
       - id: check-toml
       - id: check-added-large-files
-        args: [--maxkb=500]
+        # 4 MB — generous enough to admit the Blender-baked mascot GLB
+        # (~3.3 MB) without nagging on every re-bake. Anything heavier
+        # belongs on a CDN or Git LFS.
+        args: [--maxkb=4096]
       - id: check-merge-conflict
       - id: detect-private-key
 

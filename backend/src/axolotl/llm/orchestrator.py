@@ -15,7 +15,13 @@ from sqlalchemy.ext.asyncio import AsyncSession
 from sqlmodel import col, select
 
 from axolotl.config import get_settings
+from axolotl.core.metrics import (
+    CHAT_STREAM_DURATION,
+    CHAT_STREAMS_TOTAL,
+    TOOL_CALLS_TOTAL,
+)
 from axolotl.core.secrets import decrypt_secret
+from axolotl.core.tracing import start_chat_trace
 from axolotl.db.models import MCPServer, Message, Persona, Session
 from axolotl.llm.client import VLLMClient
 from axolotl.llm.events import ChatEvent
@@ -274,6 +280,8 @@ async def stream_chat(
 
     overall_start = time.monotonic()
     tool_durations_ms: dict[str, int] = {}
+    CHAT_STREAMS_TOTAL.labels(outcome="started").inc()
+    trace = start_chat_trace(session_id=str(session.id), user_id=session.user_id)
 
     for round_n in range(settings.max_tool_rounds + 1):
         is_last_round = round_n == settings.max_tool_rounds
@@ -291,6 +299,11 @@ async def stream_chat(
         reasoning_end: float | None = None
         content_start: float | None = None
 
+        generation = trace.generation(
+            name=f"vllm.round.{round_n}",
+            model=model,
+            payload=history,
+        )
         stream = client.stream_chat(
             messages=history,
             model=model,
@@ -375,6 +388,13 @@ async def stream_chat(
         db.add(assistant_msg)
         await db.commit()
         await db.refresh(assistant_msg)
+        generation.end(
+            output={
+                "content": content_str or None,
+                "tool_calls": tool_calls or None,
+            },
+            usage=usage,
+        )
 
         history.append(
             {
@@ -401,6 +421,9 @@ async def stream_chat(
                     },
                 },
             )
+            CHAT_STREAMS_TOTAL.labels(outcome="completed").inc()
+            CHAT_STREAM_DURATION.observe(total_ms / 1000.0)
+            trace.update(output={"content": content_str, "usage": usage})
             return
 
         for tc in tool_calls:
@@ -414,10 +437,20 @@ async def stream_chat(
                 data={"id": tc["id"], "name": tc["function"]["name"], "arguments": args},
             )
 
+            tool_span = trace.tool_span(name=tc["function"]["name"], payload=args)
             tool_start = time.monotonic()
             result = await _dispatch_tool(tc["function"]["name"], args, mcp_servers)
             duration_ms = int((time.monotonic() - tool_start) * 1000)
             tool_durations_ms[tc["id"]] = duration_ms
+            # ``_dispatch_tool`` surfaces failures as ``{"error": ...}``
+            # rather than raising, so the outcome label has to inspect
+            # the result shape.
+            tool_outcome = "error" if isinstance(result, dict) and "error" in result else "ok"
+            TOOL_CALLS_TOTAL.labels(tool=tc["function"]["name"], outcome=tool_outcome).inc()
+            tool_span.end(
+                output=result,
+                **({"level": "ERROR"} if tool_outcome == "error" else {}),
+            )
             result_json = json.dumps(result, ensure_ascii=False)
 
             tool_msg = Message(
@@ -440,3 +473,5 @@ async def stream_chat(
         event="error",
         data={"message": f"Max tool rounds ({settings.max_tool_rounds}) exceeded"},
     )
+    CHAT_STREAMS_TOTAL.labels(outcome="failed").inc()
+    CHAT_STREAM_DURATION.observe(time.monotonic() - overall_start)

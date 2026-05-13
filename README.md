@@ -20,16 +20,18 @@
 
 - ✅ **Private LLM inference** — [vLLM](https://github.com/vllm-project/vllm) in Docker on your own GPU, model configurable via env vars (any vLLM-compatible repo).
 - ✅ **Streaming chat** — SSE pipeline emits `reasoning.delta`, `message.delta`, `tool.call`, `tool.result` events; the UI renders reasoning blocks, web-search result cards and tool-call traces in real time.
-- ✅ **Tool calling** — extensible registry, `web_search` (DuckDuckGo) shipped, per-user enable/disable.
+- ✅ **Tool calling** — extensible built-in registry (`web_search` shipped, per-user toggle) **plus full MCP support**: per-user MCP servers with Fernet-encrypted bearer tokens, manual sync, automatic tool-name namespacing, and dedicated chat cards for MCP results.
 - ✅ **Personas** — named system prompts with full markdown bodies, default-per-user pin, per-session attach via the command palette.
 - ✅ **Granular controls** — global hyperparam defaults on the user (temperature, top_p, top_k, min_p, presence_penalty, repetition_penalty, max_tokens, `enable_thinking`), overridable per-session from a `Cmd+,` drawer.
-- ✅ **Auth** — Auth.js v5 (credentials provider) → FastAPI JWT, bcrypt hashes, rotating refresh tokens.
+- ✅ **Auth** — Auth.js v5 (credentials provider) → FastAPI JWT, bcrypt hashes, rotating refresh tokens, **slowapi per-IP rate limiting** on the auth endpoints.
 - ✅ **Custom design language** — pixel-neubru (warm cream paper, 2 px ink borders, electric-lime accent), dark/light theming, command palette (`Cmd+K`), keyboard-shortcut overlay.
+- ✅ **3D animated mascot** — Blender-baked GLB with seven NLA clips (idle / listening / thinking / searching / typing / happy / confused), driven by Three.js with a 300 ms mood crossfade and pixel-art emblem overlays. SVG sprite is the SSR + reduced-motion fallback.
+- ✅ **Installable PWA** — Serwist service worker with NetworkOnly bypass on `/api/*` and on every navigation (post-rebuild redirect loops impossible).
+- ✅ **i18n FR / EN** — `next-intl` with cookie-based locale (no URL prefix), ICU plurals, locale-aware relative time. Sidebar switcher pinned next to the theme toggle.
 - ✅ **Real HTTPS, opt-in** — public hostname served with a Let's Encrypt cert via the **DNS-01** challenge (Cloudflare DNS plugin) — works behind NAT, no public IP, no port forwarding, no client-side CA install.
+- ✅ **Observability** — Prometheus + Grafana profile (`make obs`) with a provisioned dashboard for HTTP latency / chat streams / tool-call outcomes / vLLM KV-cache; **Langfuse** trace exporter wires every chat round + tool call into a hosted timeline when credentials are set.
 - ✅ **OpenAPI → TS types pipeline** — backend schema is the single source of truth; frontend types are regenerated, drift is enforced in CI.
-- 🚧 **Animated axolotl companion** — mood is reactive on the home hero; the full sprite state-machine bound to chat events is the next phase.
-- 🚧 **PWA** — manifest + theme colours in place, service worker (Serwist) pending.
-- 📋 **MCP servers CRUD**, **conversation export/import**, **i18n FR/EN**, **observability dashboards** (Prometheus + Grafana + Langfuse).
+- 📋 **Export / import conversations** (JSON) is the last polish item left on the roadmap.
 
 ## 🏗️ Stack
 
@@ -198,11 +200,11 @@ sequenceDiagram
 Full phased roadmap in [`plan.md`](plan.md). Current state:
 
 - Phase 0 — Repo setup ✅
-- Phase 1 — Backend MVP ✅
+- Phase 1 — Backend MVP ✅ (auth, sessions, chat SSE, tool calling, personas, MCP)
 - Phase 2 — Frontend MVP ✅
-- Phase 3 — Animated axolotl 🚧 (mood reactivity shipped, state-machine binding next)
-- Phase 4 — Polish 🚧 (settings UI ✅, hyperparam controls ✅, public HTTPS ✅; PWA, MCP CRUD, export/import, i18n pending)
-- Phase 5 — Observability + docs polish 📋
+- Phase 3 — Animated axolotl ✅ (Three.js + GLB + seven-state derivation)
+- Phase 4 — Polish 🚧 (PWA ✅, MCP ✅, i18n ✅, mobile ✅, public HTTPS ✅ — export/import still pending)
+- Phase 5 — Observability ✅ Prometheus + Grafana board + Langfuse traces · security checklist 9/10
 
 ## 📄 License
 

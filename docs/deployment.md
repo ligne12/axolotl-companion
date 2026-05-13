@@ -186,3 +186,53 @@ it via `--env-file`, or use Docker secrets / an external orchestrator.
 The current production overrides are intentionally minimal — opinionated
 hosting choices (TLS termination, scaling, observability) are left to the
 operator.
+
+## Observability (optional)
+
+Prometheus + Grafana ship behind the ``obs`` Compose profile so the
+heavy containers stay opt-in on a laptop:
+
+```bash
+docker compose --profile obs up -d   # or: make obs
+```
+
+Endpoints:
+
+| Service | URL | Purpose |
+|---|---|---|
+| Backend `/metrics` | `http://localhost:8001/metrics` | `prometheus-fastapi-instrumentator` request counters + custom chat / tool / MCP signal |
+| Prometheus UI | `http://localhost:9090` | Raw scrape + PromQL console |
+| Grafana | `http://localhost:3001` | Pre-provisioned **Axolotl — overview** dashboard (`admin` / `admin` by default — override via `GRAFANA_ADMIN_*`) |
+
+The dashboard is provisioned from
+[`docker/grafana/provisioning/dashboards/axolotl-overview.json`](../docker/grafana/provisioning/dashboards/axolotl-overview.json),
+so edits made in the Grafana UI are local-only. Drop another JSON
+next to it to add a board.
+
+Custom backend metrics live in
+[`backend/src/axolotl/core/metrics.py`](../backend/src/axolotl/core/metrics.py):
+
+- `axolotl_chat_streams_total{outcome=started|completed|failed}`
+- `axolotl_chat_stream_duration_seconds` (histogram, 0.5 s – 5 min buckets)
+- `axolotl_tool_calls_total{tool, outcome=ok|error}`
+- `axolotl_mcp_syncs_total{outcome=ok|error}`
+
+vLLM exposes its own `/metrics` (running / waiting requests, KV cache
+usage) on the same Prometheus scrape — the dashboard charts those too.
+
+### Langfuse traces (optional)
+
+Set the three env vars and traces start streaming on the next chat
+round; the orchestrator wraps each LLM round in a generation span and
+each tool call in a tool span, with the full session id / user id /
+usage payload attached.
+
+```bash
+LANGFUSE_HOST=https://cloud.langfuse.com   # or self-hosted
+LANGFUSE_PUBLIC_KEY=pk-...
+LANGFUSE_SECRET_KEY=sk-...
+```
+
+Leave them blank and `core/tracing.py` collapses to a no-op — no
+network call, no startup cost, no behaviour change. The orchestrator
+never branches on whether tracing is enabled.

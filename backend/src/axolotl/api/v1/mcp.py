@@ -15,6 +15,7 @@ from fastapi import APIRouter, HTTPException, status
 from sqlmodel import col, select
 
 from axolotl.api.deps import CurrentUser, DbSession
+from axolotl.core.metrics import MCP_SYNCS_TOTAL
 from axolotl.core.secrets import decrypt_secret, encrypt_secret
 from axolotl.db.models import MCPServer
 from axolotl.llm.mcp_client import MCPError, list_tools
@@ -180,6 +181,7 @@ async def sync_server(server_id: int, current_user: CurrentUser, db: DbSession) 
         db.add(server)
         await db.commit()
         await db.refresh(server)
+        MCP_SYNCS_TOTAL.labels(outcome="error").inc()
         raise HTTPException(
             status_code=status.HTTP_502_BAD_GATEWAY,
             detail=f"Sync failed: {exc}",
@@ -192,4 +194,5 @@ async def sync_server(server_id: int, current_user: CurrentUser, db: DbSession) 
     db.add(server)
     await db.commit()
     await db.refresh(server)
+    MCP_SYNCS_TOTAL.labels(outcome="ok").inc()
     return MCPSyncResult(server=_to_public(server), tools_count=len(tools))
