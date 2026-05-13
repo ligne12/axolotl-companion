@@ -12,6 +12,10 @@
 [![Caddy](https://img.shields.io/badge/proxy-Caddy%202-1f88c0.svg)](https://caddyserver.com/)
 [![Let's Encrypt](https://img.shields.io/badge/TLS-Let's%20Encrypt-003a70.svg)](https://letsencrypt.org/)
 
+<br />
+
+<img src="docs/demo.gif" width="720" alt="Axolotl Companion — chat, MCP tool call, animated mascot reacting to the conversation" />
+
 </div>
 
 ---
