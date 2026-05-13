@@ -5,6 +5,7 @@ import { usePathname } from "next/navigation";
 import { useEffect, useState } from "react";
 
 import { AppSidebar } from "@/components/layout/app-sidebar";
+import { LotusLogo } from "@/components/layout/lotus-logo";
 import { TerminalBar } from "@/components/layout/terminal-bar";
 import { KeyboardShortcutsProvider } from "@/components/providers/keyboard-shortcuts";
 import { Button } from "@/components/ui/button";
@@ -53,7 +54,10 @@ export function AppShell({ children }: { children: React.ReactNode }) {
             >
               {open ? <X /> : <Menu />}
             </Button>
-            <span className="font-display text-sm font-bold">🪷 Axolotl</span>
+            <span className="font-display inline-flex items-center gap-1.5 text-sm font-bold">
+              <LotusLogo className="size-5" />
+              Axolotl
+            </span>
             <span className="w-9" /> {/* spacer for symmetry */}
           </div>
 

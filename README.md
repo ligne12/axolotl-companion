@@ -1,6 +1,8 @@
 <div align="center">
 
-# 🪷 Axolotl Companion
+<img src="frontend/public/icon.svg" width="96" alt="Axolotl Companion logo" />
+
+# Axolotl Companion
 
 **Local-first AI companion** with a private LLM, a streaming chat UI, and an animated mascot.
 
