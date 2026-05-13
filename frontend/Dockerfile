@@ -18,7 +18,13 @@ RUN --mount=type=cache,id=pnpm,target=/pnpm/store \
     pnpm install --no-frozen-lockfile
 
 # -----------------------------------------------------------------------------
-# Development stage (HMR)
+# Development stage — HMR via ``pnpm dev``
+#
+# Selected only when ``FRONTEND_TARGET=development`` is set (and the
+# matching ``compose.hmr.yaml`` overlay is applied, which mounts the
+# host's ``src/`` + ``public/`` so changes hot-reload). The default
+# ``make dev`` keeps the ``production`` stage below so the stack boots
+# straight into the real bundle.
 # -----------------------------------------------------------------------------
 FROM base AS development
 
@@ -33,13 +39,25 @@ CMD ["pnpm", "dev"]
 
 # -----------------------------------------------------------------------------
 # Build stage
+#
+# ``NEXT_PUBLIC_*`` vars are inlined into the client bundle at *build*
+# time (``pnpm build``) — they're literal strings in the emitted JS,
+# not env lookups at runtime. So whatever value compose passes to the
+# runtime container is ignored unless we also surface it here as a
+# build arg. Without that wiring, the bundle would freeze whatever
+# ``utils.ts`` falls back to (``/api``) regardless of ``.env``.
 # -----------------------------------------------------------------------------
 FROM base AS builder
 
+ARG NEXT_PUBLIC_API_URL=/api
+ARG NEXT_PUBLIC_APP_NAME="Axolotl Companion"
+
+ENV NEXT_PUBLIC_API_URL=${NEXT_PUBLIC_API_URL} \
+    NEXT_PUBLIC_APP_NAME=${NEXT_PUBLIC_APP_NAME} \
+    NEXT_TELEMETRY_DISABLED=1
+
 COPY --from=deps /app/node_modules ./node_modules
 COPY . .
-
-ENV NEXT_TELEMETRY_DISABLED=1
 
 RUN pnpm build
 

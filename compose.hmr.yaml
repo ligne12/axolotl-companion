@@ -1,0 +1,31 @@
+# =============================================================================
+# HMR overlay
+#
+# Applied on top of ``compose.yaml`` to flip the frontend into the
+# ``development`` Docker stage (``pnpm dev``) and bind-mount the host's
+# ``src/`` + ``public/`` so file edits hot-reload inside the container.
+#
+# Usage (preferred):
+#
+#   make dev-hmr
+#
+# Direct compose invocation:
+#
+#   FRONTEND_TARGET=development docker compose \
+#     -f compose.yaml -f compose.hmr.yaml up -d --build
+#
+# Why a separate overlay rather than env-var-conditioned volumes:
+# compose has no syntax for "mount these only when X" — variables can
+# only interpolate values, not toggle whole list entries. An overlay is
+# the idiomatic switch.
+# =============================================================================
+
+services:
+  frontend:
+    build:
+      target: development
+    environment:
+      - NODE_ENV=development
+    volumes:
+      - ./frontend/src:/app/src
+      - ./frontend/public:/app/public

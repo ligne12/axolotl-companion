@@ -21,6 +21,7 @@ import { useEffect, useRef, useState } from "react";
 import { toast } from "sonner";
 
 import { LocaleSwitcher } from "@/components/layout/locale-switcher";
+import { LotusLogo } from "@/components/layout/lotus-logo";
 import { ThemeToggle } from "@/components/layout/theme-toggle";
 import { ConfirmDialog } from "@/components/ui/confirm-dialog";
 import { useApi } from "@/hooks/use-api";
@@ -250,9 +251,7 @@ export function AppSidebar() {
         href="/home"
         className="border-border hover:bg-card flex items-center gap-2 border-b-2 px-4 py-3 transition"
       >
-        <span aria-hidden className="text-xl">
-          🪷
-        </span>
+        <LotusLogo className="size-7" />
         <span className="font-display text-lg font-bold">Axolotl</span>
       </Link>
 

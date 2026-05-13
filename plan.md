@@ -499,7 +499,8 @@ registry; sized roughly so the whole batch is one focused PR
 
 | Mode | Command | Notes |
 |---|---|---|
-| Local dev | `make dev` | Compose with HMR, local Postgres |
+| Local dev | `make dev` | Compose, frontend = prod bundle by default |
+| Local dev (HMR) | `make dev-hmr` | Frontend `pnpm dev` with bind-mounted `src/` |
 | Local prod | `make prod` | Optimised Compose, single machine |
 | VPS | `docker compose -f compose.prod.yaml up -d` | Caddy TLS, secrets via `.env` |
 | Vercel (frontend only) | `vercel deploy` | Backend hosted separately (VPS or Railway) |

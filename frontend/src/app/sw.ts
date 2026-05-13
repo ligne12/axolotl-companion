@@ -63,12 +63,25 @@ const navigationOnly: RuntimeCaching = {
   handler: new NetworkOnly(),
 };
 
+/**
+ * Firefox + some Safari builds eagerly request ``/favicon.ico`` even
+ * when the document carries an explicit ``<link rel="icon" href="…">``
+ * pointing at ``favicon.svg``. We don't ship a ``.ico`` (the SVG is
+ * the icon), so the request always 404s — and Serwist's default cache
+ * then logs an "unexpected error" trying to cache the response.
+ * Routing it straight to the network keeps the 404 quiet.
+ */
+const faviconBypass: RuntimeCaching = {
+  matcher: ({ url }) => url.pathname === "/favicon.ico",
+  handler: new NetworkOnly(),
+};
+
 const serwist = new Serwist({
   precacheEntries,
   skipWaiting: true,
   clientsClaim: true,
   navigationPreload: true,
-  runtimeCaching: [apiBypass, navigationOnly, ...defaultCache],
+  runtimeCaching: [apiBypass, navigationOnly, faviconBypass, ...defaultCache],
 });
 
 serwist.addEventListeners();

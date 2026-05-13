@@ -1,6 +1,8 @@
 <div align="center">
 
-# 🪷 Axolotl Companion
+<img src="frontend/public/icon.svg" width="96" alt="Axolotl Companion logo" />
+
+# Axolotl Companion
 
 **Local-first AI companion** with a private LLM, a streaming chat UI, and an animated mascot.
 
@@ -79,7 +81,9 @@ See [`docs/models.md`](docs/models.md) for recommended profiles by GPU budget.
 ### Make targets
 
 ```bash
-make dev              # Build + start the full stack with HMR
+make dev              # Build + start the full stack (frontend = prod bundle)
+make dev-hmr          # Same, but frontend runs pnpm dev with hot reload
+make rebuild          # Frontend rebuild --no-cache + restart (fixes nav loops)
 make prod             # Build + start with the prod overrides
 make test             # Backend pytest + frontend vitest + e2e
 make lint             # Lint + type-check both sides
@@ -88,6 +92,37 @@ make backup           # Snapshot the Postgres DB to ./backups/
 make obs              # Add Prometheus + Grafana + Langfuse on top
 make clean            # Stop + remove containers AND volumes (destructive)
 ```
+
+### Frontend: production bundle vs. HMR
+
+`make dev` boots the stack with the frontend served by `node server.js` from
+the Next.js standalone build — the same code path real users would see. This
+is the default because it is what a fresh `git clone` should demo.
+
+For contributor-side hot reload, `make dev-hmr` flips the frontend container
+into the `development` Docker stage (`pnpm dev`), bind-mounts `frontend/src/`
++ `frontend/public/`, and exposes the same `https://chat.localhost` URL.
+Under the hood it sets `FRONTEND_TARGET=development` and layers
+[`compose.hmr.yaml`](compose.hmr.yaml) on top of the base compose file —
+you can also set `FRONTEND_TARGET=development` in `.env` if you'd rather
+make it the default for your machine.
+
+### When the browser loops after a rebuild
+
+If you edit code, run `make dev` again, and the next page load lands in a
+redirect loop (`/login → /home → /login → …`), it almost always means
+either the Docker build re-used a stale `.next/cache` from before a change
+to middleware / auth wiring, **or** an old service worker is still active
+in the browser. The fix:
+
+```bash
+make rebuild         # purges the Docker layer cache for the frontend image
+```
+
+If the loop survives that, unregister the service worker once: DevTools →
+Application → Service Workers → **Unregister**, then hard-reload
+(`Ctrl-Shift-R` / `Cmd-Shift-R`). The next page load picks up the new
+build and the loop is gone for good.
 
 ## 🌐 Remote access (optional)
 
@@ -129,7 +164,8 @@ axolotl-companion/
 ├── docker/
 │   ├── proxy/               Caddy custom build (DNS-01 plugin)
 │   └── vllm.Dockerfile
-├── compose.yaml             Base Compose (dev-friendly, HMR)
+├── compose.yaml             Base Compose (frontend = prod bundle by default)
+├── compose.hmr.yaml         Overlay: flip frontend to pnpm dev + bind mounts
 ├── compose.prod.yaml        Production overrides
 ├── docs/                    Reference docs (architecture, auth, database, api, chat, features, deployment, models) + ADRs
 └── Makefile                 Unified workflow targets

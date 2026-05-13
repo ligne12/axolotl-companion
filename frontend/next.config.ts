@@ -27,18 +27,22 @@ const withSerwist = withSerwistInit({
  * (``/api/*`` is proxied to FastAPI) and the SSE stream, so the policy
  * stays tight:
  *
- *   - ``script-src 'self'`` only — no third-party scripts.
- *     ``'unsafe-inline'`` is dev-only because Next.js streams hydration
- *     scripts inline during HMR; prod uses hashed/nonced scripts and
- *     drops the loophole.
+ *   - ``script-src 'self' 'unsafe-inline'`` — Next.js 15 streams RSC
+ *     hydration data + bootstrap scripts inline (``<script>foo</script>``
+ *     with literal content). Strict-CSP with a per-request nonce would
+ *     require a middleware that defeats static caching; the trade-off
+ *     isn't worth it here because ``default-src 'self'`` already blocks
+ *     every cross-origin script load. The dev fork keeps ``'unsafe-eval'``
+ *     for HMR.
  *   - ``style-src 'self' 'unsafe-inline'`` — Tailwind + Radix UI both
- *     inject inline ``<style>`` blocks, and Google Fonts ships from
- *     ``fonts.googleapis.com``.
+ *     inject inline ``<style>`` blocks; Google Fonts + Fontshare each
+ *     serve a stylesheet from their CDN.
  *   - ``img-src`` covers our own assets, MCP-returned ``data:`` images
  *     (``MCPToolCard``), and the user-uploaded avatar URLs.
  *   - ``connect-src`` is same-origin (the chat SSE) plus the runtime
  *     config endpoint — backend is reached via the same hostname.
- *   - ``font-src`` Google Fonts + ``data:`` for the pixel font's woff2.
+ *   - ``font-src`` Google Fonts + Fontshare CDN + ``data:`` for the
+ *     pixel font's inlined woff2.
  *   - ``frame-ancestors 'none'`` doubles up with ``X-Frame-Options:
  *     DENY``.
  *   - ``worker-src 'self' blob:`` — Serwist registers the service
@@ -48,11 +52,16 @@ const CSP_DIRECTIVES: Record<string, string[]> = {
   "default-src": ["'self'"],
   "script-src":
     process.env.NODE_ENV === "production"
-      ? ["'self'"]
+      ? ["'self'", "'unsafe-inline'"]
       : ["'self'", "'unsafe-inline'", "'unsafe-eval'"],
-  "style-src": ["'self'", "'unsafe-inline'", "https://fonts.googleapis.com"],
+  "style-src": [
+    "'self'",
+    "'unsafe-inline'",
+    "https://fonts.googleapis.com",
+    "https://api.fontshare.com",
+  ],
   "img-src": ["'self'", "data:", "blob:", "https:"],
-  "font-src": ["'self'", "data:", "https://fonts.gstatic.com"],
+  "font-src": ["'self'", "data:", "https://fonts.gstatic.com", "https://cdn.fontshare.com"],
   // 'self' + blob: (Three.js GLTFLoader fetches embedded textures via blob: URLs)
   // + data: (small inline textures); localhost:8001 in dev for the FastAPI
   // backend when running `npm run dev` outside the Caddy reverse proxy.
