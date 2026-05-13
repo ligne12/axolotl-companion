@@ -1,10 +1,15 @@
 # =============================================================================
-# Axolotl Companion — Docker Compose (base, dev-friendly)
+# Axolotl Companion — Docker Compose (base)
+#
+# Frontend stage is driven by ``FRONTEND_TARGET`` (default: production).
+# For HMR with ``pnpm dev``, set FRONTEND_TARGET=development and layer
+# ``compose.hmr.yaml`` on top — or just use ``make dev-hmr``.
 #
 # Usage:
-#   docker compose up -d               # Lance tout en dev
-#   docker compose --profile obs up -d # + Prometheus / Grafana / Langfuse
-#   docker compose -f compose.yaml -f compose.prod.yaml up -d  # prod
+#   docker compose up -d                                    # default (prod bundle frontend)
+#   docker compose -f compose.yaml -f compose.hmr.yaml up   # HMR mode
+#   docker compose --profile obs up -d                      # + Prometheus / Grafana / Langfuse
+#   docker compose -f compose.yaml -f compose.prod.yaml up  # production overrides
 # =============================================================================
 
 name: axolotl-companion
@@ -148,19 +153,27 @@ services:
 
   # ---------------------------------------------------------------------------
   # Frontend — Next.js
+  #
+  # Stage controlled by ``FRONTEND_TARGET`` (default ``production``):
+  #   - ``production`` — built bundle served by ``node server.js``. No
+  #     bind mounts, ``make rebuild`` flushes the Docker cache when a
+  #     stale ``.next`` causes nav redirects after a code change.
+  #   - ``development`` — ``pnpm dev`` HMR server. Combine with
+  #     ``compose.hmr.yaml`` (or ``make dev-hmr``) to bind-mount
+  #     ``src/`` + ``public/`` so edits hot-reload.
   # ---------------------------------------------------------------------------
   frontend:
     build:
       context: ./frontend
       dockerfile: Dockerfile
-      target: development
+      target: ${FRONTEND_TARGET:-production}
     image: axolotl/frontend:latest
     container_name: axolotl-frontend
     restart: unless-stopped
     depends_on:
       - backend
     environment:
-      - NODE_ENV=${NODE_ENV:-development}
+      - NODE_ENV=${NODE_ENV:-production}
       - NEXT_PUBLIC_API_URL=${NEXT_PUBLIC_API_URL:-http://localhost:8001}
       - NEXT_PUBLIC_APP_NAME=${NEXT_PUBLIC_APP_NAME:-Axolotl Companion}
       - INTERNAL_API_URL=http://backend:8001
@@ -170,9 +183,6 @@ services:
       - AUTH_TRUST_HOST=${AUTH_TRUST_HOST:-true}
     ports:
       - "3000:3000"
-    volumes:
-      - ./frontend/src:/app/src
-      - ./frontend/public:/app/public
     networks:
       - axolotl
 

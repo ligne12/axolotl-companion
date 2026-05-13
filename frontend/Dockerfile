@@ -18,7 +18,13 @@ RUN --mount=type=cache,id=pnpm,target=/pnpm/store \
     pnpm install --no-frozen-lockfile
 
 # -----------------------------------------------------------------------------
-# Development stage (HMR)
+# Development stage — HMR via ``pnpm dev``
+#
+# Selected only when ``FRONTEND_TARGET=development`` is set (and the
+# matching ``compose.hmr.yaml`` overlay is applied, which mounts the
+# host's ``src/`` + ``public/`` so changes hot-reload). The default
+# ``make dev`` keeps the ``production`` stage below so the stack boots
+# straight into the real bundle.
 # -----------------------------------------------------------------------------
 FROM base AS development
 

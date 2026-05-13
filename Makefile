@@ -3,10 +3,11 @@
 # =============================================================================
 
 .DEFAULT_GOAL := help
-.PHONY: help dev prod stop down clean logs test lint fmt backend-shell db-migrate db-reset backup obs openapi-export gen-api-types check-api-types
+.PHONY: help dev dev-hmr rebuild prod stop down clean logs test lint fmt backend-shell db-migrate db-reset backup obs openapi-export gen-api-types check-api-types
 
 # -----------------------------------------------------------------------------
 COMPOSE := docker compose
+COMPOSE_HMR := $(COMPOSE) -f compose.yaml -f compose.hmr.yaml
 COMPOSE_PROD := $(COMPOSE) -f compose.yaml -f compose.prod.yaml
 
 # -----------------------------------------------------------------------------
@@ -16,12 +17,30 @@ help: ## Show this help
 # -----------------------------------------------------------------------------
 # Stack management
 # -----------------------------------------------------------------------------
-dev: ## Start the full stack in dev mode (HMR)
+dev: ## Start the full stack (Docker prod bundle — set FRONTEND_TARGET=development for HMR)
 	$(COMPOSE) up -d --build
 	@echo ""
 	@echo "  Frontend: https://chat.localhost"
 	@echo "  API:      https://api.localhost"
 	@echo "  Logs:     make logs"
+	@echo ""
+	@echo "  Frontend = production bundle. Use 'make dev-hmr' for hot reload."
+
+dev-hmr: ## Start the stack with frontend HMR (pnpm dev, bind-mounted src/+public/)
+	FRONTEND_TARGET=development $(COMPOSE_HMR) up -d --build
+	@echo ""
+	@echo "  Frontend (HMR): https://chat.localhost"
+	@echo "  API:            https://api.localhost"
+
+rebuild: ## Rebuild frontend without Docker cache + restart (fixes stale .next nav loops)
+	$(COMPOSE) rm -sf frontend
+	-docker image rm axolotl/frontend:latest
+	$(COMPOSE) build --no-cache frontend
+	$(COMPOSE) up -d frontend
+	@echo ""
+	@echo "  Frontend rebuilt from scratch. If the browser still loops,"
+	@echo "  unregister the service worker once: DevTools → Application →"
+	@echo "  Service Workers → Unregister, then hard-reload."
 
 prod: ## Start the stack in prod mode
 	$(COMPOSE_PROD) up -d --build
