@@ -174,7 +174,13 @@ services:
       - backend
     environment:
       - NODE_ENV=${NODE_ENV:-production}
-      - NEXT_PUBLIC_API_URL=${NEXT_PUBLIC_API_URL:-http://localhost:8001}
+      # Baked into the client bundle at build time, so a stale value
+      # survives until ``make rebuild``. Default ``/api`` is same-origin
+      # via Caddy — works on chat.localhost AND on any public hostname
+      # the proxy serves (axolotl.example.dev, LAN IPs, Tailscale, …).
+      # Override only if you run the frontend outside Docker / without
+      # Caddy and need an absolute URL to reach the backend.
+      - NEXT_PUBLIC_API_URL=${NEXT_PUBLIC_API_URL:-/api}
       - NEXT_PUBLIC_APP_NAME=${NEXT_PUBLIC_APP_NAME:-Axolotl Companion}
       - INTERNAL_API_URL=http://backend:8001
       - AUTH_SECRET=${AUTH_SECRET}
