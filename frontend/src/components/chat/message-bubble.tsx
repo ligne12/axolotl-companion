@@ -31,17 +31,17 @@ function WebSearchResults({
     <div className="space-y-2">
       <div className="space-y-0.5">
         <div className="flex items-center justify-between gap-2 text-xs">
-          <span className="inline-flex items-center gap-1.5 font-pixel uppercase tracking-[0.14em]">
+          <span className="font-pixel inline-flex items-center gap-1.5 tracking-[0.14em] uppercase">
             <Search className="size-3.5" aria-hidden />
             Web search · {results.length} result{results.length > 1 ? "s" : ""}
           </span>
           {typeof durationMs === "number" && (
-            <span className="shrink-0 font-mono tabular-nums text-[10px] text-muted-foreground">
+            <span className="text-muted-foreground shrink-0 font-mono text-[10px] tabular-nums">
               {formatDuration(durationMs)}
             </span>
           )}
         </div>
-        <p className="line-clamp-2 text-xs italic text-muted-foreground" title={query}>
+        <p className="text-muted-foreground line-clamp-2 text-xs italic" title={query}>
           “{query}”
         </p>
       </div>
@@ -49,7 +49,7 @@ function WebSearchResults({
         {results.map((r, i) => (
           <li
             key={r.url + i}
-            className="rounded-md border-2 border-border bg-card p-2 shadow-[2px_2px_0_0_var(--border)] transition-[transform,box-shadow] duration-100 hover:-translate-x-[1px] hover:-translate-y-[1px] hover:shadow-[3px_3px_0_0_var(--lime)]"
+            className="border-border bg-card rounded-md border-2 p-2 shadow-[2px_2px_0_0_var(--border)] transition-[transform,box-shadow] duration-100 hover:-translate-x-[1px] hover:-translate-y-[1px] hover:shadow-[3px_3px_0_0_var(--lime)]"
           >
             <div className="flex items-start gap-2">
               {r.icon ? (
@@ -63,7 +63,7 @@ function WebSearchResults({
                   loading="lazy"
                 />
               ) : (
-                <span className="mt-0.5 size-4 shrink-0 rounded-sm bg-muted" />
+                <span className="bg-muted mt-0.5 size-4 shrink-0 rounded-sm" />
               )}
               <div className="min-w-0 flex-1">
                 <a
@@ -75,13 +75,11 @@ function WebSearchResults({
                 >
                   {r.title}
                 </a>
-                <div className="truncate text-[10px] text-muted-foreground">
+                <div className="text-muted-foreground truncate text-[10px]">
                   {r.domain ?? new URL(r.url).hostname}
                 </div>
                 {r.snippet && (
-                  <p className="mt-0.5 line-clamp-2 text-xs text-muted-foreground">
-                    {r.snippet}
-                  </p>
+                  <p className="text-muted-foreground mt-0.5 line-clamp-2 text-xs">{r.snippet}</p>
                 )}
               </div>
             </div>
@@ -92,9 +90,7 @@ function WebSearchResults({
   );
 }
 
-function isWebSearchResult(
-  result: unknown,
-): result is { query: string; results: SearchResult[] } {
+function isWebSearchResult(result: unknown): result is { query: string; results: SearchResult[] } {
   return (
     typeof result === "object" &&
     result !== null &&
@@ -120,9 +116,7 @@ type MCPContentBlock =
   | { type: "image"; data: string; mimeType?: string }
   | { type: "resource"; resource: { uri?: string; text?: string } };
 
-function isMcpResult(
-  result: unknown,
-): result is { content: MCPContentBlock[]; isError?: boolean } {
+function isMcpResult(result: unknown): result is { content: MCPContentBlock[]; isError?: boolean } {
   if (typeof result !== "object" || result === null) return false;
   const r = result as { content?: unknown };
   return Array.isArray(r.content);
@@ -139,50 +133,49 @@ function MCPToolCard({
   result?: unknown;
   durationMs?: number;
 }) {
-  const isErrored =
-    isMcpResult(result) && result.isError === true;
+  const isErrored = isMcpResult(result) && result.isError === true;
   const blocks = isMcpResult(result) ? result.content : null;
 
   return (
     <div
       className={cn(
-        "rounded-md border-2 bg-card p-2.5 text-xs shadow-[2px_2px_0_0_var(--border)]",
+        "bg-card rounded-md border-2 p-2.5 text-xs shadow-[2px_2px_0_0_var(--border)]",
         isErrored ? "border-destructive/60" : "border-border",
       )}
     >
       <div className="flex flex-wrap items-center gap-1.5">
-        <span className="inline-flex items-center gap-1.5 font-pixel uppercase tracking-[0.14em]">
+        <span className="font-pixel inline-flex items-center gap-1.5 tracking-[0.14em] uppercase">
           <Plug className="size-3.5" aria-hidden />
           MCP
         </span>
         <span className="text-muted-foreground">·</span>
-        <span className="font-mono normal-case tracking-normal" title={`server #${parts.serverId}`}>
+        <span className="font-mono tracking-normal normal-case" title={`server #${parts.serverId}`}>
           #{parts.serverId}
         </span>
         <span className="text-muted-foreground">·</span>
-        <span className="truncate font-mono normal-case tracking-normal text-foreground">
+        <span className="text-foreground truncate font-mono tracking-normal normal-case">
           {parts.toolName}
         </span>
         {typeof durationMs === "number" && (
-          <span className="ml-auto font-mono tabular-nums text-[10px] text-muted-foreground">
+          <span className="text-muted-foreground ml-auto font-mono text-[10px] tabular-nums">
             {formatDuration(durationMs)}
           </span>
         )}
       </div>
 
       {/* Args — single-line preview, expand for full payload */}
-      <details className="mt-1.5 border-t border-border/60 pt-1.5">
-        <summary className="cursor-pointer text-[10px] uppercase tracking-[0.14em] text-muted-foreground">
+      <details className="border-border/60 mt-1.5 border-t pt-1.5">
+        <summary className="text-muted-foreground cursor-pointer text-[10px] tracking-[0.14em] uppercase">
           Args
         </summary>
-        <pre className="mt-1 whitespace-pre-wrap break-words text-muted-foreground">
+        <pre className="text-muted-foreground mt-1 break-words whitespace-pre-wrap">
           {typeof args === "string" ? args : JSON.stringify(args, null, 2)}
         </pre>
       </details>
 
       {/* Result — render text blocks inline, JSON-fall back for the rest */}
       {result !== undefined && (
-        <div className="mt-1.5 border-t border-border/60 pt-1.5">
+        <div className="border-border/60 mt-1.5 border-t pt-1.5">
           {blocks ? (
             <div className="space-y-1.5">
               {blocks.map((b, i) => {
@@ -191,7 +184,7 @@ function MCPToolCard({
                     <pre
                       key={i}
                       className={cn(
-                        "whitespace-pre-wrap break-words leading-relaxed",
+                        "leading-relaxed break-words whitespace-pre-wrap",
                         isErrored ? "text-[color:var(--destructive)]" : "text-foreground",
                       )}
                     >
@@ -206,21 +199,21 @@ function MCPToolCard({
                       key={i}
                       src={`data:${b.mimeType ?? "image/png"};base64,${b.data}`}
                       alt={`MCP result ${i}`}
-                      className="max-h-64 rounded-sm border-2 border-border"
+                      className="border-border max-h-64 rounded-sm border-2"
                     />
                   );
                 }
                 if (b.type === "resource") {
                   return (
                     <div key={i} className="text-muted-foreground">
-                      <span className="font-pixel text-[9px] uppercase tracking-[0.14em]">
+                      <span className="font-pixel text-[9px] tracking-[0.14em] uppercase">
                         resource
                       </span>
                       {b.resource.uri && (
                         <span className="ml-2 font-mono normal-case">{b.resource.uri}</span>
                       )}
                       {b.resource.text && (
-                        <pre className="mt-1 whitespace-pre-wrap break-words">
+                        <pre className="mt-1 break-words whitespace-pre-wrap">
                           {b.resource.text}
                         </pre>
                       )}
@@ -231,7 +224,7 @@ function MCPToolCard({
               })}
             </div>
           ) : (
-            <pre className="whitespace-pre-wrap break-words text-muted-foreground">
+            <pre className="text-muted-foreground break-words whitespace-pre-wrap">
               {JSON.stringify(result, null, 2).slice(0, 1500)}
             </pre>
           )}
@@ -256,13 +249,11 @@ function ToolCallCard({
   const mcpParts = parseMcpName(name);
 
   if (mcpParts) {
-    return (
-      <MCPToolCard parts={mcpParts} args={args} result={result} durationMs={durationMs} />
-    );
+    return <MCPToolCard parts={mcpParts} args={args} result={result} durationMs={durationMs} />;
   }
 
   return (
-    <div className="rounded-md border-2 border-border bg-card p-2.5 text-xs shadow-[2px_2px_0_0_var(--border)]">
+    <div className="border-border bg-card rounded-md border-2 p-2.5 text-xs shadow-[2px_2px_0_0_var(--border)]">
       {isWebSearch ? (
         <WebSearchResults
           query={(result as { query: string }).query ?? ""}
@@ -272,23 +263,23 @@ function ToolCallCard({
       ) : (
         <>
           <div className="flex items-center gap-1.5">
-            <span className="inline-flex items-center gap-1.5 font-pixel uppercase tracking-[0.14em]">
+            <span className="font-pixel inline-flex items-center gap-1.5 tracking-[0.14em] uppercase">
               <Wrench className="size-3.5" aria-hidden />
               {name}
             </span>
             {typeof durationMs === "number" && (
-              <span className="ml-auto font-mono tabular-nums text-[10px] text-muted-foreground">
+              <span className="text-muted-foreground ml-auto font-mono text-[10px] tabular-nums">
                 {formatDuration(durationMs)}
               </span>
             )}
           </div>
-          <pre className="mt-1 whitespace-pre-wrap break-words text-muted-foreground">
+          <pre className="text-muted-foreground mt-1 break-words whitespace-pre-wrap">
             {typeof args === "string" ? args : JSON.stringify(args, null, 2)}
           </pre>
           {result !== undefined && (
-            <details className="mt-1 border-t border-border/60 pt-1">
-              <summary className="cursor-pointer text-muted-foreground">Result</summary>
-              <pre className="mt-1 whitespace-pre-wrap break-words text-muted-foreground">
+            <details className="border-border/60 mt-1 border-t pt-1">
+              <summary className="text-muted-foreground cursor-pointer">Result</summary>
+              <pre className="text-muted-foreground mt-1 break-words whitespace-pre-wrap">
                 {JSON.stringify(result, null, 2).slice(0, 1500)}
               </pre>
             </details>
@@ -336,83 +327,81 @@ export function MessageBubble({
 
   return (
     <div className={cn("group flex flex-col", isUser ? "items-end" : "items-start")}>
-     <div className="flex max-w-[80%] min-w-0 flex-col">
-      <div className={isUser ? USER_BUBBLE : ASSIST_BUBBLE}>
-        {hasReasoning && (
-          <details className="rounded-md border-2 border-border/30 bg-background/40 p-2 text-xs text-muted-foreground">
-            <summary className="flex cursor-pointer select-none items-center gap-2 font-display font-semibold uppercase tracking-wider">
-              <DecryptedText
-                text="Reasoned"
-                animateOn="view"
-                speed={22}
-                maxIterations={8}
-                sequential
-                revealDirection="start"
-                className="text-foreground"
-                encryptedClassName="text-muted-foreground/60"
+      <div className="flex max-w-[80%] min-w-0 flex-col">
+        <div className={isUser ? USER_BUBBLE : ASSIST_BUBBLE}>
+          {hasReasoning && (
+            <details className="border-border/30 bg-background/40 text-muted-foreground rounded-md border-2 p-2 text-xs">
+              <summary className="font-display flex cursor-pointer items-center gap-2 font-semibold tracking-wider uppercase select-none">
+                <DecryptedText
+                  text="Reasoned"
+                  animateOn="view"
+                  speed={22}
+                  maxIterations={8}
+                  sequential
+                  revealDirection="start"
+                  className="text-foreground"
+                  encryptedClassName="text-muted-foreground/60"
+                />
+                {typeof reasoningMs === "number" && (
+                  <span className="ml-auto font-mono text-[10px] tabular-nums">
+                    {formatDuration(reasoningMs)}
+                  </span>
+                )}
+              </summary>
+              <pre className="mt-1 font-sans text-xs whitespace-pre-wrap">{message.reasoning}</pre>
+            </details>
+          )}
+          {hasToolCalls &&
+            message.tool_calls!.map((tc: ToolCall) => (
+              <ToolCallCard
+                key={tc.id}
+                name={tc.function.name}
+                args={(() => {
+                  try {
+                    return JSON.parse(tc.function.arguments);
+                  } catch {
+                    return tc.function.arguments;
+                  }
+                })()}
+                result={tc.result}
+                durationMs={tc.duration_ms}
               />
-              {typeof reasoningMs === "number" && (
-                <span className="ml-auto font-mono tabular-nums text-[10px]">
-                  {formatDuration(reasoningMs)}
-                </span>
+            ))}
+          {message.content && (
+            <div className={cn(isUser && "[&_a]:text-primary-foreground [&_a]:underline")}>
+              {isUser ? (
+                <p className="leading-relaxed whitespace-pre-wrap">{message.content}</p>
+              ) : (
+                <Markdown text={message.content} />
               )}
-            </summary>
-            <pre className="mt-1 whitespace-pre-wrap font-sans text-xs">
-              {message.reasoning}
-            </pre>
-          </details>
-        )}
-        {hasToolCalls &&
-          message.tool_calls!.map((tc: ToolCall) => (
-            <ToolCallCard
-              key={tc.id}
-              name={tc.function.name}
-              args={(() => {
-                try {
-                  return JSON.parse(tc.function.arguments);
-                } catch {
-                  return tc.function.arguments;
-                }
-              })()}
-              result={tc.result}
-              durationMs={tc.duration_ms}
-            />
-          ))}
-        {message.content && (
-          <div className={cn(isUser && "[&_a]:text-primary-foreground [&_a]:underline")}>
-            {isUser ? (
-              <p className="whitespace-pre-wrap leading-relaxed">{message.content}</p>
-            ) : (
-              <Markdown text={message.content} />
+            </div>
+          )}
+        </div>
+
+        {(message.content || typeof totalMs === "number") && (
+          <div className="mt-1 flex w-full items-center gap-1">
+            {message.content && (
+              <div className="flex gap-1 opacity-0 transition-opacity group-hover:opacity-100">
+                <Button variant="ghost" size="sm" className="h-7 px-2" onClick={copy}>
+                  {copied ? <Check className="size-3" /> : <Copy className="size-3" />}
+                  <span className="ml-1 text-xs">{copied ? "Copied" : "Copy"}</span>
+                </Button>
+                {isLast && onRegenerate && !isUser && (
+                  <Button variant="ghost" size="sm" className="h-7 px-2" onClick={onRegenerate}>
+                    <RotateCw className="size-3" />
+                    <span className="ml-1 text-xs">Regenerate</span>
+                  </Button>
+                )}
+              </div>
+            )}
+            {!isUser && typeof totalMs === "number" && (
+              <span className="text-muted-foreground ml-auto font-mono text-[10px] tabular-nums">
+                {formatDuration(totalMs)}
+              </span>
             )}
           </div>
         )}
       </div>
-
-      {(message.content || typeof totalMs === "number") && (
-        <div className="mt-1 flex w-full items-center gap-1">
-          {message.content && (
-            <div className="flex gap-1 opacity-0 transition-opacity group-hover:opacity-100">
-              <Button variant="ghost" size="sm" className="h-7 px-2" onClick={copy}>
-                {copied ? <Check className="size-3" /> : <Copy className="size-3" />}
-                <span className="ml-1 text-xs">{copied ? "Copied" : "Copy"}</span>
-              </Button>
-              {isLast && onRegenerate && !isUser && (
-                <Button variant="ghost" size="sm" className="h-7 px-2" onClick={onRegenerate}>
-                  <RotateCw className="size-3" />
-                  <span className="ml-1 text-xs">Regenerate</span>
-                </Button>
-              )}
-            </div>
-          )}
-          {!isUser && typeof totalMs === "number" && (
-            <span className="ml-auto font-mono tabular-nums text-[10px] text-muted-foreground">
-              {formatDuration(totalMs)}
-            </span>
-          )}
-        </div>
-      )}
-     </div>
     </div>
   );
 }
@@ -434,59 +423,59 @@ export function StreamingBubble({
 
   return (
     <div className="group flex flex-col items-start">
-     <div className="flex max-w-[80%] min-w-0 flex-col">
-      <div className={ASSIST_BUBBLE}>
-        {reasoning.length > 0 && (
-          <details open className="rounded-md border-2 border-border/30 bg-background/40 p-2 text-xs text-muted-foreground">
-            <summary className="flex cursor-pointer select-none items-center gap-2 font-display font-semibold uppercase tracking-wider">
-              <DecryptedText
-                text="Thinking"
-                animateOn="view"
-                speed={28}
-                maxIterations={14}
-                sequential={false}
-                className="text-foreground"
-                encryptedClassName="text-[color:var(--lime-foreground)]/70"
-              />
-              <span
-                aria-hidden
-                className="inline-flex items-center gap-0.5"
-              >
-                <span className="h-1 w-1 animate-pulse rounded-full bg-[color:var(--lime)]" />
-                <span className="h-1 w-1 animate-pulse rounded-full bg-[color:var(--lime)] [animation-delay:150ms]" />
-                <span className="h-1 w-1 animate-pulse rounded-full bg-[color:var(--lime)] [animation-delay:300ms]" />
-              </span>
-              {reasoningElapsedMs > 0 && (
-                <span className="ml-auto font-mono tabular-nums text-[10px]">
-                  {formatDuration(reasoningElapsedMs)}
+      <div className="flex max-w-[80%] min-w-0 flex-col">
+        <div className={ASSIST_BUBBLE}>
+          {reasoning.length > 0 && (
+            <details
+              open
+              className="border-border/30 bg-background/40 text-muted-foreground rounded-md border-2 p-2 text-xs"
+            >
+              <summary className="font-display flex cursor-pointer items-center gap-2 font-semibold tracking-wider uppercase select-none">
+                <DecryptedText
+                  text="Thinking"
+                  animateOn="view"
+                  speed={28}
+                  maxIterations={14}
+                  sequential={false}
+                  className="text-foreground"
+                  encryptedClassName="text-[color:var(--lime-foreground)]/70"
+                />
+                <span aria-hidden className="inline-flex items-center gap-0.5">
+                  <span className="h-1 w-1 animate-pulse rounded-full bg-[color:var(--lime)]" />
+                  <span className="h-1 w-1 animate-pulse rounded-full bg-[color:var(--lime)] [animation-delay:150ms]" />
+                  <span className="h-1 w-1 animate-pulse rounded-full bg-[color:var(--lime)] [animation-delay:300ms]" />
                 </span>
-              )}
-            </summary>
-            <pre className="mt-1 whitespace-pre-wrap font-sans text-xs">{reasoning}</pre>
-          </details>
-        )}
-        {toolList.map(([id, tc]) => (
-          <ToolCallCard
-            key={id}
-            name={tc.name}
-            args={tc.arguments}
-            result={tc.result}
-            durationMs={tc.duration_ms}
-          />
-        ))}
-        {content && <Markdown text={content} />}
-        <span aria-label="Assistant is thinking" className="inline-flex items-end gap-1 py-1">
-          <span className="size-1.5 animate-axo-bounce rounded-full bg-muted-foreground" />
-          <span className="size-1.5 animate-axo-bounce rounded-full bg-muted-foreground [animation-delay:150ms]" />
-          <span className="size-1.5 animate-axo-bounce rounded-full bg-muted-foreground [animation-delay:300ms]" />
-        </span>
+                {reasoningElapsedMs > 0 && (
+                  <span className="ml-auto font-mono text-[10px] tabular-nums">
+                    {formatDuration(reasoningElapsedMs)}
+                  </span>
+                )}
+              </summary>
+              <pre className="mt-1 font-sans text-xs whitespace-pre-wrap">{reasoning}</pre>
+            </details>
+          )}
+          {toolList.map(([id, tc]) => (
+            <ToolCallCard
+              key={id}
+              name={tc.name}
+              args={tc.arguments}
+              result={tc.result}
+              durationMs={tc.duration_ms}
+            />
+          ))}
+          {content && <Markdown text={content} />}
+          <span aria-label="Assistant is thinking" className="inline-flex items-end gap-1 py-1">
+            <span className="animate-axo-bounce bg-muted-foreground size-1.5 rounded-full" />
+            <span className="animate-axo-bounce bg-muted-foreground size-1.5 rounded-full [animation-delay:150ms]" />
+            <span className="animate-axo-bounce bg-muted-foreground size-1.5 rounded-full [animation-delay:300ms]" />
+          </span>
+        </div>
+        <div className="mt-1 w-full">
+          <span className="text-muted-foreground ml-auto block w-fit font-mono text-[10px] tabular-nums">
+            {formatDuration(elapsedMs)}
+          </span>
+        </div>
       </div>
-      <div className="mt-1 w-full">
-        <span className="ml-auto block w-fit font-mono tabular-nums text-[10px] text-muted-foreground">
-          {formatDuration(elapsedMs)}
-        </span>
-      </div>
-     </div>
     </div>
   );
 }

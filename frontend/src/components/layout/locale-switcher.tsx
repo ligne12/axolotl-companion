@@ -26,10 +26,7 @@ export function LocaleSwitcher({ className }: { className?: string }) {
     <div
       role="radiogroup"
       aria-label="Language"
-      className={cn(
-        "inline-flex items-center border-2 border-border bg-card p-0.5",
-        className,
-      )}
+      className={cn("border-border bg-card inline-flex items-center border-2 p-0.5", className)}
     >
       {LOCALES.map((code) => {
         const active = current === code;
@@ -42,7 +39,7 @@ export function LocaleSwitcher({ className }: { className?: string }) {
             disabled={pending || active}
             onClick={() => startTransition(() => setLocale(code))}
             className={cn(
-              "inline-flex h-7 min-w-7 items-center justify-center px-1.5 font-pixel text-[10px] uppercase tracking-[0.14em] transition-colors disabled:cursor-not-allowed",
+              "font-pixel inline-flex h-7 min-w-7 items-center justify-center px-1.5 text-[10px] tracking-[0.14em] uppercase transition-colors disabled:cursor-not-allowed",
               active
                 ? "bg-[color:var(--lime)] text-[color:var(--lime-foreground)]"
                 : "text-muted-foreground hover:text-foreground",

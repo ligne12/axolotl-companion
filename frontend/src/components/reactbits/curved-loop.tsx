@@ -1,28 +1,28 @@
 // @ts-nocheck -- vendored React Bits component
 "use client";
 
-import { useRef, useEffect, useState, useMemo, useId, FC, PointerEvent } from 'react';
+import { useRef, useEffect, useState, useMemo, useId, FC, PointerEvent } from "react";
 
 interface CurvedLoopProps {
   marqueeText?: string;
   speed?: number;
   className?: string;
   curveAmount?: number;
-  direction?: 'left' | 'right';
+  direction?: "left" | "right";
   interactive?: boolean;
 }
 
 const CurvedLoop: FC<CurvedLoopProps> = ({
-  marqueeText = '',
+  marqueeText = "",
   speed = 2,
   className,
   curveAmount = 400,
-  direction = 'left',
-  interactive = true
+  direction = "left",
+  interactive = true,
 }) => {
   const text = useMemo(() => {
     const hasTrailing = /\s|\u00A0$/.test(marqueeText);
-    return (hasTrailing ? marqueeText.replace(/\s+$/, '') : marqueeText) + '\u00A0';
+    return (hasTrailing ? marqueeText.replace(/\s+$/, "") : marqueeText) + "\u00A0";
   }, [marqueeText]);
 
   const measureRef = useRef<SVGTextElement | null>(null);
@@ -36,14 +36,14 @@ const CurvedLoop: FC<CurvedLoopProps> = ({
 
   const dragRef = useRef(false);
   const lastXRef = useRef(0);
-  const dirRef = useRef<'left' | 'right'>(direction);
+  const dirRef = useRef<"left" | "right">(direction);
   const velRef = useRef(0);
 
   const textLength = spacing;
   const totalText = textLength
     ? Array(Math.ceil(1800 / textLength) + 2)
         .fill(text)
-        .join('')
+        .join("")
     : text;
   const ready = spacing > 0;
 
@@ -55,7 +55,7 @@ const CurvedLoop: FC<CurvedLoopProps> = ({
     if (!spacing) return;
     if (textPathRef.current) {
       const initial = -spacing;
-      textPathRef.current.setAttribute('startOffset', initial + 'px');
+      textPathRef.current.setAttribute("startOffset", initial + "px");
       setOffset(initial);
     }
   }, [spacing]);
@@ -65,13 +65,13 @@ const CurvedLoop: FC<CurvedLoopProps> = ({
     let frame = 0;
     const step = () => {
       if (!dragRef.current && textPathRef.current) {
-        const delta = dirRef.current === 'right' ? speed : -speed;
-        const currentOffset = parseFloat(textPathRef.current.getAttribute('startOffset') || '0');
+        const delta = dirRef.current === "right" ? speed : -speed;
+        const currentOffset = parseFloat(textPathRef.current.getAttribute("startOffset") || "0");
         let newOffset = currentOffset + delta;
         const wrapPoint = spacing;
         if (newOffset <= -wrapPoint) newOffset += wrapPoint;
         if (newOffset > 0) newOffset -= wrapPoint;
-        textPathRef.current.setAttribute('startOffset', newOffset + 'px');
+        textPathRef.current.setAttribute("startOffset", newOffset + "px");
         setOffset(newOffset);
       }
       frame = requestAnimationFrame(step);
@@ -93,45 +93,54 @@ const CurvedLoop: FC<CurvedLoopProps> = ({
     const dx = e.clientX - lastXRef.current;
     lastXRef.current = e.clientX;
     velRef.current = dx;
-    const currentOffset = parseFloat(textPathRef.current.getAttribute('startOffset') || '0');
+    const currentOffset = parseFloat(textPathRef.current.getAttribute("startOffset") || "0");
     let newOffset = currentOffset + dx;
     const wrapPoint = spacing;
     if (newOffset <= -wrapPoint) newOffset += wrapPoint;
     if (newOffset > 0) newOffset -= wrapPoint;
-    textPathRef.current.setAttribute('startOffset', newOffset + 'px');
+    textPathRef.current.setAttribute("startOffset", newOffset + "px");
     setOffset(newOffset);
   };
 
   const endDrag = () => {
     if (!interactive) return;
     dragRef.current = false;
-    dirRef.current = velRef.current > 0 ? 'right' : 'left';
+    dirRef.current = velRef.current > 0 ? "right" : "left";
   };
 
-  const cursorStyle = interactive ? (dragRef.current ? 'grabbing' : 'grab') : 'auto';
+  const cursorStyle = interactive ? (dragRef.current ? "grabbing" : "grab") : "auto";
 
   return (
     <div
-      className="min-h-screen flex items-center justify-center w-full"
-      style={{ visibility: ready ? 'visible' : 'hidden', cursor: cursorStyle }}
+      className="flex min-h-screen w-full items-center justify-center"
+      style={{ visibility: ready ? "visible" : "hidden", cursor: cursorStyle }}
       onPointerDown={onPointerDown}
       onPointerMove={onPointerMove}
       onPointerUp={endDrag}
       onPointerLeave={endDrag}
     >
       <svg
-        className="select-none w-full overflow-visible block aspect-[100/12] text-[6rem] font-bold uppercase leading-none"
+        className="block aspect-[100/12] w-full overflow-visible text-[6rem] leading-none font-bold uppercase select-none"
         viewBox="0 0 1440 120"
       >
-        <text ref={measureRef} xmlSpace="preserve" style={{ visibility: 'hidden', opacity: 0, pointerEvents: 'none' }}>
+        <text
+          ref={measureRef}
+          xmlSpace="preserve"
+          style={{ visibility: "hidden", opacity: 0, pointerEvents: "none" }}
+        >
           {text}
         </text>
         <defs>
           <path ref={pathRef} id={pathId} d={pathD} fill="none" stroke="transparent" />
         </defs>
         {ready && (
-          <text xmlSpace="preserve" className={`fill-white ${className ?? ''}`}>
-            <textPath ref={textPathRef} href={`#${pathId}`} startOffset={offset + 'px'} xmlSpace="preserve">
+          <text xmlSpace="preserve" className={`fill-white ${className ?? ""}`}>
+            <textPath
+              ref={textPathRef}
+              href={`#${pathId}`}
+              startOffset={offset + "px"}
+              xmlSpace="preserve"
+            >
               {totalText}
             </textPath>
           </text>

@@ -16,9 +16,7 @@ export function cn(...inputs: ClassValue[]) {
  */
 export const API_BASE =
   typeof window === "undefined"
-    ? (process.env.INTERNAL_API_URL ??
-      process.env.NEXT_PUBLIC_API_URL ??
-      "http://backend:8001")
+    ? (process.env.INTERNAL_API_URL ?? process.env.NEXT_PUBLIC_API_URL ?? "http://backend:8001")
     : (process.env.NEXT_PUBLIC_API_URL ?? "http://localhost:8001");
 
 /** Format a millisecond duration like "340ms", "2.4s", or "1m 12s". */

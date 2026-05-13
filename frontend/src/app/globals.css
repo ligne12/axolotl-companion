@@ -193,32 +193,54 @@ body {
 /* Modal fade — one keyframe for backdrop AND panel so they transition in
  * lockstep. Pure opacity, no transform (no cursor drift, no jank). */
 @keyframes axo-fade-in {
-  from { opacity: 0; }
-  to { opacity: 1; }
+  from {
+    opacity: 0;
+  }
+  to {
+    opacity: 1;
+  }
 }
 @keyframes axo-fade-out {
-  from { opacity: 1; }
-  to { opacity: 0; }
+  from {
+    opacity: 1;
+  }
+  to {
+    opacity: 0;
+  }
 }
 /* Side drawer slide from the right (chat controls panel). */
 @keyframes axo-slide-in-right {
-  from { transform: translateX(100%); }
-  to { transform: translateX(0); }
+  from {
+    transform: translateX(100%);
+  }
+  to {
+    transform: translateX(0);
+  }
 }
 @keyframes axo-slide-out-right {
-  from { transform: translateX(0); }
-  to { transform: translateX(100%); }
+  from {
+    transform: translateX(0);
+  }
+  to {
+    transform: translateX(100%);
+  }
 }
 /* Bottom-sheet variant of the modal (mobile only). Pairs with the
  * .axo-bottom-sheet positional override below. */
 @keyframes axo-slide-in-up {
-  from { transform: translateY(100%); }
-  to { transform: translateY(0); }
+  from {
+    transform: translateY(100%);
+  }
+  to {
+    transform: translateY(0);
+  }
 }
 /* Three-dot "thinking" indicator. Each dot uses the same keyframes; the
  * stagger comes from per-dot ``[animation-delay:Nms]`` in the JSX. */
 @keyframes axo-bounce {
-  0%, 60%, 100% {
+  0%,
+  60%,
+  100% {
     transform: translateY(0);
     opacity: 0.45;
   }
@@ -228,8 +250,12 @@ body {
   }
 }
 @keyframes axo-slide-out-down {
-  from { transform: translateY(0); }
-  to { transform: translateY(100%); }
+  from {
+    transform: translateY(0);
+  }
+  to {
+    transform: translateY(100%);
+  }
 }
 
 /* Chat markdown body — inline prose + GFM tables in the pixel-neubru DA */
@@ -258,9 +284,15 @@ body {
   margin-top: 0.75rem;
   font-weight: 700;
 }
-.markdown-body h1 { font-size: 1.125rem; }
-.markdown-body h2 { font-size: 1rem; }
-.markdown-body h3 { font-size: 0.9375rem; }
+.markdown-body h1 {
+  font-size: 1.125rem;
+}
+.markdown-body h2 {
+  font-size: 1rem;
+}
+.markdown-body h3 {
+  font-size: 0.9375rem;
+}
 .markdown-body ul {
   list-style: disc;
   padding-left: 1.1rem;
@@ -445,25 +477,60 @@ body {
 /* Mood emblem animations for the 3D mascot — small pixel-art badges that
  * pop above/around the head depending on the current chat state. */
 @keyframes mood-pop {
-  0%   { transform: scale(0) rotate(-8deg); opacity: 0; }
-  60%  { transform: scale(1.15) rotate(2deg); opacity: 1; }
-  100% { transform: scale(1) rotate(0deg); opacity: 1; }
+  0% {
+    transform: scale(0) rotate(-8deg);
+    opacity: 0;
+  }
+  60% {
+    transform: scale(1.15) rotate(2deg);
+    opacity: 1;
+  }
+  100% {
+    transform: scale(1) rotate(0deg);
+    opacity: 1;
+  }
 }
 @keyframes mood-rise {
-  0%   { transform: translateY(0) scale(0.6); opacity: 0; }
-  20%  { opacity: 1; }
-  100% { transform: translateY(-30px) scale(1); opacity: 0; }
+  0% {
+    transform: translateY(0) scale(0.6);
+    opacity: 0;
+  }
+  20% {
+    opacity: 1;
+  }
+  100% {
+    transform: translateY(-30px) scale(1);
+    opacity: 0;
+  }
 }
 @keyframes mood-bob {
-  0%, 100% { transform: translateY(0); }
-  50%      { transform: translateY(-3px); }
+  0%,
+  100% {
+    transform: translateY(0);
+  }
+  50% {
+    transform: translateY(-3px);
+  }
 }
 @keyframes mood-dots {
-  0%, 20%   { opacity: 0.2; }
-  40%       { opacity: 1; }
-  60%, 100% { opacity: 0.2; }
+  0%,
+  20% {
+    opacity: 0.2;
+  }
+  40% {
+    opacity: 1;
+  }
+  60%,
+  100% {
+    opacity: 0.2;
+  }
 }
 @keyframes mood-listen {
-  0%, 100% { transform: translateY(0) scaleY(1); }
-  50%      { transform: translateY(-2px) scaleY(1.15); }
+  0%,
+  100% {
+    transform: translateY(0) scaleY(1);
+  }
+  50% {
+    transform: translateY(-2px) scaleY(1.15);
+  }
 }

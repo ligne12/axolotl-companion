@@ -28,9 +28,7 @@ export function KeyboardShortcutsProvider({ children }: { children: React.ReactN
       const target = e.target as HTMLElement | null;
       const typing =
         target &&
-        (target.tagName === "INPUT" ||
-          target.tagName === "TEXTAREA" ||
-          target.isContentEditable);
+        (target.tagName === "INPUT" || target.tagName === "TEXTAREA" || target.isContentEditable);
 
       // Cmd/Ctrl+K — toggle palette from anywhere, even while typing
       if ((e.metaKey || e.ctrlKey) && e.key.toLowerCase() === "k") {

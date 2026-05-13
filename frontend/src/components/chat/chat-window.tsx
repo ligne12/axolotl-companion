@@ -66,9 +66,11 @@ export function ChatWindow({
         <div className="mx-auto max-w-3xl space-y-4 p-4">
           {visible.length === 0 && !chat.streaming && (
             <div className="mx-auto flex h-[40vh] max-w-sm flex-col items-center justify-center gap-2 text-center">
-              <span aria-hidden className="font-display text-4xl">🪷</span>
+              <span aria-hidden className="font-display text-4xl">
+                🪷
+              </span>
               <p className="font-display text-lg font-semibold">Say hi to your axolotl.</p>
-              <p className="text-sm text-muted-foreground">
+              <p className="text-muted-foreground text-sm">
                 Ask a question, drop a link, or just think out loud. I&apos;ll keep up.
               </p>
             </div>
@@ -91,7 +93,7 @@ export function ChatWindow({
             />
           )}
           {chat.error && (
-            <div className="rounded-md border border-destructive/30 bg-destructive/10 p-3 text-sm text-destructive">
+            <div className="border-destructive/30 bg-destructive/10 text-destructive rounded-md border p-3 text-sm">
               {chat.error}
             </div>
           )}

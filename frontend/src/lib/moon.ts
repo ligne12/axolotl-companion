@@ -9,7 +9,7 @@ export function moonPhaseFraction(date: Date = new Date()): number {
   const refMs = Date.UTC(2000, 0, 6, 18, 14);
   const synodicDays = 29.530_588_861;
   const days = (date.getTime() - refMs) / (1000 * 60 * 60 * 24);
-  return ((days / synodicDays) % 1 + 1) % 1;
+  return (((days / synodicDays) % 1) + 1) % 1;
 }
 
 export type MoonPhaseName =

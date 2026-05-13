@@ -53,14 +53,14 @@ export function ChatInput({
             }}
             aria-label={t("controlsLabel")}
             title={`${t("controlsLabel")} (⌘,)`}
-            className="inline-flex h-11 w-11 items-center justify-center rounded-xl border-2 border-border bg-card text-muted-foreground shadow-[3px_3px_0_0_var(--border)] transition-[transform,box-shadow,color] duration-100 hover:-translate-x-[1px] hover:-translate-y-[1px] hover:text-foreground hover:shadow-[4px_4px_0_0_var(--border)] active:translate-x-[1px] active:translate-y-[1px] active:shadow-[1px_1px_0_0_var(--border)]"
+            className="border-border bg-card text-muted-foreground hover:text-foreground inline-flex h-11 w-11 items-center justify-center rounded-xl border-2 shadow-[3px_3px_0_0_var(--border)] transition-[transform,box-shadow,color] duration-100 hover:-translate-x-[1px] hover:-translate-y-[1px] hover:shadow-[4px_4px_0_0_var(--border)] active:translate-x-[1px] active:translate-y-[1px] active:shadow-[1px_1px_0_0_var(--border)]"
           >
             <SlidersHorizontal className="size-4" />
           </button>
         )}
         <div
           className={cn(
-            "flex flex-1 items-end rounded-xl border-2 border-border bg-card transition-[box-shadow] duration-100",
+            "border-border bg-card flex flex-1 items-end rounded-xl border-2 transition-[box-shadow] duration-100",
             focused ? "shadow-[4px_4px_0_0_var(--lime)]" : "shadow-[3px_3px_0_0_var(--border)]",
           )}
         >
@@ -79,7 +79,7 @@ export function ChatInput({
             rows={1}
             disabled={disabled}
             placeholder={t("sendPlaceholder")}
-            className="min-h-[40px] max-h-48 flex-1 resize-none bg-transparent px-3 py-2.5 text-sm placeholder:text-muted-foreground focus:outline-none disabled:cursor-not-allowed disabled:opacity-50"
+            className="placeholder:text-muted-foreground max-h-48 min-h-[40px] flex-1 resize-none bg-transparent px-3 py-2.5 text-sm focus:outline-none disabled:cursor-not-allowed disabled:opacity-50"
           />
         </div>
         {isSending ? (
@@ -90,7 +90,7 @@ export function ChatInput({
               onStop();
             }}
             aria-label={t("stop")}
-            className="inline-flex h-11 w-11 items-center justify-center rounded-xl border-2 border-border bg-destructive text-destructive-foreground shadow-[3px_3px_0_0_var(--border)] transition-[transform,box-shadow] duration-100 hover:-translate-x-[1px] hover:-translate-y-[1px] hover:shadow-[4px_4px_0_0_var(--border)] active:translate-x-[1px] active:translate-y-[1px] active:shadow-[1px_1px_0_0_var(--border)]"
+            className="border-border bg-destructive text-destructive-foreground inline-flex h-11 w-11 items-center justify-center rounded-xl border-2 shadow-[3px_3px_0_0_var(--border)] transition-[transform,box-shadow] duration-100 hover:-translate-x-[1px] hover:-translate-y-[1px] hover:shadow-[4px_4px_0_0_var(--border)] active:translate-x-[1px] active:translate-y-[1px] active:shadow-[1px_1px_0_0_var(--border)]"
           >
             <Square className="size-4" />
           </button>
@@ -101,10 +101,10 @@ export function ChatInput({
             disabled={!canSend}
             aria-label={t("send")}
             className={cn(
-              "inline-flex h-11 w-11 items-center justify-center rounded-xl border-2 border-border bg-primary text-primary-foreground transition-[transform,box-shadow] duration-100",
+              "border-border bg-primary text-primary-foreground inline-flex h-11 w-11 items-center justify-center rounded-xl border-2 transition-[transform,box-shadow] duration-100",
               canSend
                 ? "shadow-[3px_3px_0_0_var(--lime)] hover:-translate-x-[1px] hover:-translate-y-[1px] hover:shadow-[4px_4px_0_0_var(--lime)] active:translate-x-[1px] active:translate-y-[1px] active:shadow-[1px_1px_0_0_var(--lime)]"
-                : "shadow-[3px_3px_0_0_var(--border)] opacity-60",
+                : "opacity-60 shadow-[3px_3px_0_0_var(--border)]",
             )}
           >
             <Send className="size-4" />

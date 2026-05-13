@@ -1,7 +1,17 @@
 "use client";
 
 import { useQuery } from "@tanstack/react-query";
-import { Cloud, CloudDrizzle, CloudFog, CloudLightning, CloudRain, CloudSnow, CloudSun, Sun, Wind } from "lucide-react";
+import {
+  Cloud,
+  CloudDrizzle,
+  CloudFog,
+  CloudLightning,
+  CloudRain,
+  CloudSnow,
+  CloudSun,
+  Sun,
+  Wind,
+} from "lucide-react";
 
 import { moonPhaseFraction, moonPhaseLabel, moonPhaseName } from "@/lib/moon";
 
@@ -30,7 +40,8 @@ function mapWeather(code: number): { kind: WeatherKind; label: string } {
   if (code === 45 || code === 48) return { kind: "fog", label: "Fog" };
   if (code >= 51 && code <= 57) return { kind: "drizzle", label: "Drizzle" };
   if (code >= 61 && code <= 67) return { kind: "rain", label: "Rain" };
-  if ((code >= 71 && code <= 77) || code === 85 || code === 86) return { kind: "snow", label: "Snow" };
+  if ((code >= 71 && code <= 77) || code === 85 || code === 86)
+    return { kind: "snow", label: "Snow" };
   if (code >= 80 && code <= 82) return { kind: "rain", label: "Showers" };
   if (code >= 95) return { kind: "storm", label: "Storm" };
   return { kind: "cloud", label: "—" };
@@ -39,14 +50,22 @@ function mapWeather(code: number): { kind: WeatherKind; label: string } {
 /** Pick a lucide (outline) glyph for day-time weather. */
 function dayIcon(kind: WeatherKind) {
   switch (kind) {
-    case "clear": return Sun;
-    case "partly": return CloudSun;
-    case "cloud": return Cloud;
-    case "fog": return CloudFog;
-    case "drizzle": return CloudDrizzle;
-    case "rain": return CloudRain;
-    case "snow": return CloudSnow;
-    case "storm": return CloudLightning;
+    case "clear":
+      return Sun;
+    case "partly":
+      return CloudSun;
+    case "cloud":
+      return Cloud;
+    case "fog":
+      return CloudFog;
+    case "drizzle":
+      return CloudDrizzle;
+    case "rain":
+      return CloudRain;
+    case "snow":
+      return CloudSnow;
+    case "storm":
+      return CloudLightning;
   }
 }
 
@@ -56,7 +75,11 @@ function dayIcon(kind: WeatherKind) {
  * the moon disc; these custom filled silhouettes read as a single solid
  * shape. All drawn in a 12×10 viewBox with ``currentColor`` fill.
  */
-function WeatherOverlay({ kind, className, style }: {
+function WeatherOverlay({
+  kind,
+  className,
+  style,
+}: {
   kind: WeatherKind;
   className?: string;
   style?: React.CSSProperties;
@@ -73,14 +96,7 @@ function WeatherOverlay({ kind, className, style }: {
   // Fill is ``--card`` so the cloud reads as a bright cutout against the
   // dark lit side.
   return (
-    <svg
-      width="12"
-      height="10"
-      viewBox="0 0 12 10"
-      className={className}
-      style={style}
-      aria-hidden
-    >
+    <svg width="12" height="10" viewBox="0 0 12 10" className={className} style={style} aria-hidden>
       <path
         d={CLOUD_PATH}
         fill="none"
@@ -115,9 +131,7 @@ function WeatherOverlay({ kind, className, style }: {
           <circle cx="8.5" cy="8.5" r="0.7" fill="currentColor" />
         </>
       )}
-      {kind === "storm" && (
-        <polygon points="6,7.3 4,10 5.5,8.5 4.5,10 7,7.3" fill="currentColor" />
-      )}
+      {kind === "storm" && <polygon points="6,7.3 4,10 5.5,8.5 4.5,10 7,7.3" fill="currentColor" />}
       {kind === "fog" && (
         <>
           <rect x="2.5" y="8" width="7" height="0.8" fill="currentColor" />
@@ -159,14 +173,7 @@ function MoonIcon({ className }: { className?: string }) {
     >
       <title>{label}</title>
       <path d={path} fill="currentColor" />
-      <circle
-        cx={cx}
-        cy={cy}
-        r={r}
-        fill="none"
-        stroke="currentColor"
-        strokeWidth="1.2"
-      />
+      <circle cx={cx} cy={cy} r={r} fill="none" stroke="currentColor" strokeWidth="1.2" />
     </svg>
   );
 }
@@ -234,13 +241,12 @@ export function WeatherPill({
     // just the moon centred.
     <span className="relative inline-flex h-4 w-[22px] shrink-0 items-center">
       <MoonIcon
-        className={kind === "clear" ? "absolute left-1 size-4" : "absolute left-0 top-0 size-[11px]"}
+        className={
+          kind === "clear" ? "absolute left-1 size-4" : "absolute top-0 left-0 size-[11px]"
+        }
       />
       {kind !== "clear" && (
-        <WeatherOverlay
-          kind={kind}
-          className="absolute right-0 top-0.5 size-[15px]"
-        />
+        <WeatherOverlay kind={kind} className="absolute top-0.5 right-0 size-[15px]" />
       )}
     </span>
   );
@@ -248,18 +254,18 @@ export function WeatherPill({
   return (
     <>
       <span className="text-muted-foreground">·</span>
-      <span className="inline-flex items-center gap-1.5 text-foreground">
+      <span className="text-foreground inline-flex items-center gap-1.5">
         {Icon}
-        <span className="font-mono tabular-nums normal-case tracking-normal">
+        <span className="font-mono tracking-normal normal-case tabular-nums">
           {tempRounded}°{unit}
         </span>
         {/* Verbal label + wind hint only on wider screens — too noisy in
         the narrow mobile terminal bar. */}
-        <span className="hidden md:inline text-muted-foreground">{label}</span>
+        <span className="text-muted-foreground hidden md:inline">{label}</span>
         {windy && (
           <>
-            <span className="hidden md:inline text-muted-foreground">·</span>
-            <Wind className="hidden md:inline-block size-3.5 shrink-0" aria-hidden />
+            <span className="text-muted-foreground hidden md:inline">·</span>
+            <Wind className="hidden size-3.5 shrink-0 md:inline-block" aria-hidden />
           </>
         )}
       </span>

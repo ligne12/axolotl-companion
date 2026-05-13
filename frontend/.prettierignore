@@ -7,3 +7,6 @@ test-results/
 *.min.*
 pnpm-lock.yaml
 public/
+# Regenerated from the backend's OpenAPI schema by ``make gen-api-types``
+# — formatting drift would surface as spurious diffs on every regen.
+src/types/api-generated.ts

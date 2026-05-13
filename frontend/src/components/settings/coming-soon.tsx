@@ -19,21 +19,17 @@ export function ComingSoon({
   return (
     <div className="space-y-6">
       <header className="space-y-2">
-        <h1 className="font-display text-3xl font-bold leading-tight">
-          {title}
-        </h1>
-        {children && (
-          <p className="max-w-xl text-sm text-muted-foreground">{children}</p>
-        )}
+        <h1 className="font-display text-3xl leading-tight font-bold">{title}</h1>
+        {children && <p className="text-muted-foreground max-w-xl text-sm">{children}</p>}
       </header>
 
-      <div className="flex items-center gap-4 border-2 border-dashed border-border bg-card/60 p-6">
-        <Construction className="size-6 shrink-0 text-muted-foreground" aria-hidden />
+      <div className="border-border bg-card/60 flex items-center gap-4 border-2 border-dashed p-6">
+        <Construction className="text-muted-foreground size-6 shrink-0" aria-hidden />
         <div className="space-y-0.5">
           <p className="font-display text-base font-semibold">
             Coming in <span className="italic">{milestone}</span>
           </p>
-          <p className="text-xs text-muted-foreground">
+          <p className="text-muted-foreground text-xs">
             Tab scaffold is in place — the form behind it ships in the next chunk.
           </p>
         </div>

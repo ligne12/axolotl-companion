@@ -28,15 +28,15 @@ export default function ChatSessionLoading() {
           input doesn't jump when the real one mounts. */}
       <div className="px-3 pt-3 pb-8" aria-hidden>
         <div className="mx-auto flex max-w-3xl items-end gap-2">
-          <div className="inline-flex h-11 w-11 items-center justify-center rounded-xl border-2 border-border bg-card text-muted-foreground/40 shadow-[3px_3px_0_0_var(--border)]">
+          <div className="border-border bg-card text-muted-foreground/40 inline-flex h-11 w-11 items-center justify-center rounded-xl border-2 shadow-[3px_3px_0_0_var(--border)]">
             <SlidersHorizontal className="size-4" />
           </div>
-          <div className="flex flex-1 items-end rounded-xl border-2 border-border bg-card shadow-[3px_3px_0_0_var(--border)]">
-            <div className="min-h-[40px] flex-1 px-3 py-2.5 text-sm text-muted-foreground/60">
+          <div className="border-border bg-card flex flex-1 items-end rounded-xl border-2 shadow-[3px_3px_0_0_var(--border)]">
+            <div className="text-muted-foreground/60 min-h-[40px] flex-1 px-3 py-2.5 text-sm">
               Loading…
             </div>
           </div>
-          <div className="inline-flex h-11 w-11 items-center justify-center rounded-xl border-2 border-border bg-primary/40 text-primary-foreground/50 shadow-[3px_3px_0_0_var(--border)]">
+          <div className="border-border bg-primary/40 text-primary-foreground/50 inline-flex h-11 w-11 items-center justify-center rounded-xl border-2 shadow-[3px_3px_0_0_var(--border)]">
             <Send className="size-4" />
           </div>
         </div>
@@ -59,7 +59,7 @@ function SkeletonBubble({
     <div className={cn("flex", isUser ? "justify-end" : "justify-start")}>
       <div
         className={cn(
-          "max-w-[80%] space-y-2 rounded-2xl border-2 border-border px-4 py-2.5 motion-safe:animate-pulse",
+          "border-border max-w-[80%] space-y-2 rounded-2xl border-2 px-4 py-2.5 motion-safe:animate-pulse",
           widthClass,
           isUser
             ? "bg-primary/30 shadow-[3px_3px_0_0_var(--lime)]"

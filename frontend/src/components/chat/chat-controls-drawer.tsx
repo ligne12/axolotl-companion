@@ -19,12 +19,7 @@ import {
   SAMPLING_FIELDS,
 } from "@/lib/hyperparams";
 import { cn } from "@/lib/utils";
-import type {
-  HyperParams,
-  PersonaPublic,
-  SessionPublic,
-  UserPublic,
-} from "@/types/api";
+import type { HyperParams, PersonaPublic, SessionPublic, UserPublic } from "@/types/api";
 
 type ThinkingChoice = "on" | "off" | "inherit";
 
@@ -160,12 +155,12 @@ export function ChatControlsDrawer({
   return (
     <Dialog.Root open={open} onOpenChange={onOpenChange}>
       <Dialog.Portal>
-        <Dialog.Overlay className="fixed inset-0 z-40 bg-black/55 data-[state=open]:animate-[axo-fade-in_200ms_ease-out] data-[state=closed]:animate-[axo-fade-out_180ms_ease-in]" />
+        <Dialog.Overlay className="fixed inset-0 z-40 bg-black/55 data-[state=closed]:animate-[axo-fade-out_180ms_ease-in] data-[state=open]:animate-[axo-fade-in_200ms_ease-out]" />
         <Dialog.Content
           aria-describedby={undefined}
-          className="fixed right-0 top-0 z-50 flex h-dvh w-[min(94vw,26rem)] flex-col border-l-2 border-border bg-card shadow-[-4px_0_0_0_var(--border)] data-[state=open]:animate-[axo-slide-in-right_200ms_ease-out] data-[state=closed]:animate-[axo-slide-out-right_180ms_ease-in] focus:outline-none"
+          className="border-border bg-card fixed top-0 right-0 z-50 flex h-dvh w-[min(94vw,26rem)] flex-col border-l-2 shadow-[-4px_0_0_0_var(--border)] focus:outline-none data-[state=closed]:animate-[axo-slide-out-right_180ms_ease-in] data-[state=open]:animate-[axo-slide-in-right_200ms_ease-out]"
         >
-          <div className="flex items-center justify-between border-b-2 border-border px-4 py-3">
+          <div className="border-border flex items-center justify-between border-b-2 px-4 py-3">
             <Dialog.Title asChild>
               <h2 className="font-display text-lg font-bold">
                 {t.rich("title", {
@@ -177,7 +172,7 @@ export function ChatControlsDrawer({
               <button
                 type="button"
                 aria-label={tc("close")}
-                className="inline-flex size-9 items-center justify-center text-muted-foreground transition-[transform,colors] duration-75 hover:text-destructive active:scale-90"
+                className="text-muted-foreground hover:text-destructive inline-flex size-9 items-center justify-center transition-[transform,colors] duration-75 active:scale-90"
               >
                 <X className="size-5" />
               </button>
@@ -201,9 +196,9 @@ export function ChatControlsDrawer({
                 onChange={(e) => setModel(e.target.value)}
                 placeholder={t("modelPlaceholder")}
                 disabled={!draft}
-                className="w-full border-2 border-border bg-card px-3 py-2 text-sm outline-none transition-[box-shadow] duration-100 focus:shadow-[2px_2px_0_0_var(--lime)] placeholder:text-muted-foreground disabled:cursor-not-allowed disabled:opacity-60"
+                className="border-border bg-card placeholder:text-muted-foreground w-full border-2 px-3 py-2 text-sm transition-[box-shadow] duration-100 outline-none focus:shadow-[2px_2px_0_0_var(--lime)] disabled:cursor-not-allowed disabled:opacity-60"
               />
-              <p className="mt-2 text-[11px] leading-relaxed text-muted-foreground">
+              <p className="text-muted-foreground mt-2 text-[11px] leading-relaxed">
                 {t("modelHelp")}
               </p>
             </DrawerSection>
@@ -232,7 +227,7 @@ export function ChatControlsDrawer({
                     resetAll();
                   }}
                   disabled={!draft || Object.keys(draft.overrides).length === 0}
-                  className="inline-flex items-center gap-1 font-pixel text-[10px] uppercase tracking-[0.14em] text-muted-foreground transition-colors hover:text-foreground disabled:opacity-40"
+                  className="font-pixel text-muted-foreground hover:text-foreground inline-flex items-center gap-1 text-[10px] tracking-[0.14em] uppercase transition-colors disabled:opacity-40"
                 >
                   <RotateCcw className="size-3" />
                   {t("reset")}
@@ -242,8 +237,7 @@ export function ChatControlsDrawer({
               <div className="space-y-5">
                 {SAMPLING_FIELDS.map((field) => {
                   const userValue = userDefaults[field.key];
-                  const hasUserOverride =
-                    typeof userValue === "number" && !Number.isNaN(userValue);
+                  const hasUserOverride = typeof userValue === "number" && !Number.isNaN(userValue);
                   return (
                     <ParamSlider
                       key={field.key}
@@ -256,13 +250,15 @@ export function ChatControlsDrawer({
                           ? (userValue as number)
                           : (SAMPLING_DEFAULTS[field.key] as number)
                       }
-                      defaultLabel={hasUserOverride ? t("userDefaultLabel") : t("serverDefaultLabel")}
+                      defaultLabel={
+                        hasUserOverride ? t("userDefaultLabel") : t("serverDefaultLabel")
+                      }
                       disabled={!draft}
                     />
                   );
                 })}
               </div>
-              <p className="pt-3 text-[11px] leading-relaxed text-muted-foreground">
+              <p className="text-muted-foreground pt-3 text-[11px] leading-relaxed">
                 {t("samplingHelp")}{" "}
                 <Link
                   href="/settings/model"
@@ -277,7 +273,7 @@ export function ChatControlsDrawer({
             <DrawerSection
               title={t("toolsSection")}
               badge={
-                <span className="border-2 border-border bg-background px-1.5 py-0.5 font-pixel text-[9px] uppercase tracking-widest text-muted-foreground">
+                <span className="border-border bg-background font-pixel text-muted-foreground border-2 px-1.5 py-0.5 text-[9px] tracking-widest uppercase">
                   {t("toolsBadge")}
                 </span>
               }
@@ -286,8 +282,8 @@ export function ChatControlsDrawer({
             </DrawerSection>
           </div>
 
-          <div className="flex items-center justify-between gap-3 border-t-2 border-border px-4 py-3">
-            <span className="font-pixel text-[10px] uppercase tracking-[0.14em] text-muted-foreground">
+          <div className="border-border flex items-center justify-between gap-3 border-t-2 px-4 py-3">
+            <span className="font-pixel text-muted-foreground text-[10px] tracking-[0.14em] uppercase">
               {t("toggleHint")}
             </span>
             <button
@@ -295,7 +291,7 @@ export function ChatControlsDrawer({
               onClick={onApply}
               disabled={!dirty || apply.isPending}
               className={cn(
-                "inline-flex min-h-11 items-center gap-2 border-2 border-border bg-primary px-4 py-2 text-xs font-pixel uppercase tracking-[0.14em] text-primary-foreground",
+                "border-border bg-primary font-pixel text-primary-foreground inline-flex min-h-11 items-center gap-2 border-2 px-4 py-2 text-xs tracking-[0.14em] uppercase",
                 "shadow-[2px_2px_0_0_var(--lime)] transition-[transform,box-shadow] duration-100",
                 "hover:shadow-[3px_3px_0_0_var(--lime)]",
                 "active:translate-x-[1px] active:translate-y-[1px] active:shadow-none",
@@ -333,11 +329,11 @@ function DrawerSection({
   return (
     <details
       open={defaultOpen}
-      className="group border-b-2 border-border/30 py-3 first:pt-0 last:border-b-0"
+      className="group border-border/30 border-b-2 py-3 first:pt-0 last:border-b-0"
     >
-      <summary className="flex min-h-11 cursor-pointer select-none items-center gap-2 list-none [&::-webkit-details-marker]:hidden">
-        <ChevronRight className="size-4 shrink-0 text-muted-foreground transition-transform duration-150 group-open:rotate-90" />
-        <h3 className="flex-1 font-pixel text-[12px] uppercase tracking-[0.14em] text-muted-foreground">
+      <summary className="flex min-h-11 cursor-pointer list-none items-center gap-2 select-none [&::-webkit-details-marker]:hidden">
+        <ChevronRight className="text-muted-foreground size-4 shrink-0 transition-transform duration-150 group-open:rotate-90" />
+        <h3 className="font-pixel text-muted-foreground flex-1 text-[12px] tracking-[0.14em] uppercase">
           {title}
         </h3>
         {badge}
@@ -362,15 +358,11 @@ function PersonaList({
   const t = useTranslations("chat.drawer");
   return (
     <div className="space-y-1.5">
-      <PersonaRow
-        active={selected === null}
-        onClick={() => onChange(null)}
-        disabled={disabled}
-      >
+      <PersonaRow active={selected === null} onClick={() => onChange(null)} disabled={disabled}>
         <span
           aria-hidden
           className={cn(
-            "size-2 shrink-0 border-2 border-border",
+            "border-border size-2 shrink-0 border-2",
             selected === null ? "bg-[color:var(--lime)]" : "bg-background",
           )}
         />
@@ -383,10 +375,10 @@ function PersonaList({
           onClick={() => onChange(p.id)}
           disabled={disabled}
         >
-          <IdCard className="size-4 shrink-0 text-muted-foreground" />
+          <IdCard className="text-muted-foreground size-4 shrink-0" />
           <span className="flex-1 truncate">{p.name}</span>
           {p.is_builtin && (
-            <span className="border-2 border-border bg-background px-1.5 py-0.5 font-pixel text-[9px] uppercase tracking-widest text-muted-foreground">
+            <span className="border-border bg-background font-pixel text-muted-foreground border-2 px-1.5 py-0.5 text-[9px] tracking-widest uppercase">
               {t("personaBuiltIn")}
             </span>
           )}
@@ -473,11 +465,11 @@ function ReasoningRadios({
             <span
               aria-hidden
               className={cn(
-                "size-2 shrink-0 border-2 border-border",
+                "border-border size-2 shrink-0 border-2",
                 active ? "bg-[color:var(--lime)]" : "bg-background",
               )}
             />
-            <span className="flex-1 truncate font-pixel text-[12px] uppercase tracking-[0.12em]">
+            <span className="font-pixel flex-1 truncate text-[12px] tracking-[0.12em] uppercase">
               {opt.label}
             </span>
           </button>

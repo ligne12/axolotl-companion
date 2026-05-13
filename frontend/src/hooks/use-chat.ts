@@ -99,9 +99,10 @@ export function useChat(
       lastUserMessageRef.current = content;
 
       const userMsg: MessagePublic = {
-        id: typeof crypto !== "undefined" && "randomUUID" in crypto
-          ? crypto.randomUUID()
-          : `local-${Date.now()}-${Math.random().toString(36).slice(2, 8)}`,
+        id:
+          typeof crypto !== "undefined" && "randomUUID" in crypto
+            ? crypto.randomUUID()
+            : `local-${Date.now()}-${Math.random().toString(36).slice(2, 8)}`,
         role: "user",
         content,
         reasoning: null,
@@ -189,8 +190,7 @@ export function useChat(
             acc.reasoning += d.text;
             setStreaming((prev) => {
               if (!prev) return prev;
-              const reasoningStartedAt =
-                prev.reasoningStartedAt ?? Date.now();
+              const reasoningStartedAt = prev.reasoningStartedAt ?? Date.now();
               return {
                 ...prev,
                 reasoning: acc.reasoning,
@@ -224,9 +224,7 @@ export function useChat(
             const d = data as ToolCallEventData;
             acc.toolCalls[d.id] = { name: d.name, arguments: d.arguments };
             setStoreTool(d.name);
-            setStreaming((prev) =>
-              prev ? { ...prev, toolCalls: { ...acc.toolCalls } } : prev,
-            );
+            setStreaming((prev) => (prev ? { ...prev, toolCalls: { ...acc.toolCalls } } : prev));
             return;
           }
           if (ev === "tool.result") {
@@ -238,9 +236,7 @@ export function useChat(
               duration_ms: d.duration_ms,
             };
             setStoreTool(null);
-            setStreaming((prev) =>
-              prev ? { ...prev, toolCalls: { ...acc.toolCalls } } : prev,
-            );
+            setStreaming((prev) => (prev ? { ...prev, toolCalls: { ...acc.toolCalls } } : prev));
             return;
           }
           if (ev === "message.done") {

@@ -24,13 +24,13 @@ function ToolToggle({
       aria-checked={enabled}
       onClick={() => onChange(!enabled)}
       className={cn(
-        "relative inline-flex h-7 w-12 shrink-0 items-center border-2 border-border transition-colors",
+        "border-border relative inline-flex h-7 w-12 shrink-0 items-center border-2 transition-colors",
         enabled ? "bg-[color:var(--lime)]" : "bg-card",
       )}
     >
       <span
         className={cn(
-          "inline-block size-4 border-2 border-border bg-background transition-transform",
+          "border-border bg-background inline-block size-4 border-2 transition-transform",
           enabled ? "translate-x-[20px]" : "translate-x-[2px]",
         )}
       />
@@ -50,9 +50,9 @@ function SectionHeading({
   return (
     <div className="flex items-center gap-2">
       <Icon className="size-4 shrink-0" />
-      <h2 className="font-pixel text-[11px] uppercase tracking-[0.14em]">{label}</h2>
+      <h2 className="font-pixel text-[11px] tracking-[0.14em] uppercase">{label}</h2>
       {typeof count === "number" && (
-        <span className="border-2 border-border bg-background px-1.5 py-0.5 font-pixel text-[10px] uppercase tracking-wider text-muted-foreground">
+        <span className="border-border bg-background font-pixel text-muted-foreground border-2 px-1.5 py-0.5 text-[10px] tracking-wider uppercase">
           {count}
         </span>
       )}
@@ -112,7 +112,7 @@ export function ToolsList({ compact = false }: { compact?: boolean }) {
   });
 
   if (tools.isPending) {
-    return <p className="text-sm text-muted-foreground">{tc("loading")}</p>;
+    return <p className="text-muted-foreground text-sm">{tc("loading")}</p>;
   }
 
   const builtIns = tools.data ?? [];
@@ -120,7 +120,7 @@ export function ToolsList({ compact = false }: { compact?: boolean }) {
 
   if (builtIns.length === 0 && enabledServers.length === 0) {
     return (
-      <p className="font-pixel text-[11px] uppercase tracking-wider text-muted-foreground">
+      <p className="font-pixel text-muted-foreground text-[11px] tracking-wider uppercase">
         {t("noTools")}
       </p>
     );
@@ -136,7 +136,7 @@ export function ToolsList({ compact = false }: { compact?: boolean }) {
               <li
                 key={tool.name}
                 className={cn(
-                  "flex items-start justify-between gap-4 border-2 border-border bg-card shadow-[3px_3px_0_0_var(--border)]",
+                  "border-border bg-card flex items-start justify-between gap-4 border-2 shadow-[3px_3px_0_0_var(--border)]",
                   compact ? "p-3" : "p-4",
                 )}
               >
@@ -155,7 +155,7 @@ export function ToolsList({ compact = false }: { compact?: boolean }) {
                         ? t(`builtIns.${tool.name}.title`)
                         : tool.title}
                     </h3>
-                    <span className="border-2 border-border bg-background px-1.5 py-0.5 font-pixel text-[11px] uppercase tracking-wider text-muted-foreground">
+                    <span className="border-border bg-background font-pixel text-muted-foreground border-2 px-1.5 py-0.5 text-[11px] tracking-wider uppercase">
                       {t.has(`categories.${tool.category}`)
                         ? t(`categories.${tool.category}`)
                         : tool.category}
@@ -184,13 +184,7 @@ export function ToolsList({ compact = false }: { compact?: boolean }) {
   );
 }
 
-function McpServerSection({
-  server,
-  compact,
-}: {
-  server: MCPServerPublic;
-  compact: boolean;
-}) {
+function McpServerSection({ server, compact }: { server: MCPServerPublic; compact: boolean }) {
   const t = useTranslations("tools");
   const synced = server.synced_tools ?? [];
   return (
@@ -203,13 +197,13 @@ function McpServerSection({
         />
         <Link
           href="/settings/mcp"
-          className="border-2 border-transparent px-2 py-1 font-pixel text-[10px] uppercase tracking-wider text-muted-foreground hover:border-border/40 hover:bg-card/60"
+          className="font-pixel text-muted-foreground hover:border-border/40 hover:bg-card/60 border-2 border-transparent px-2 py-1 text-[10px] tracking-wider uppercase"
         >
           {t("manage")}
         </Link>
       </div>
       {synced.length === 0 ? (
-        <p className="font-pixel text-[11px] uppercase tracking-wider text-muted-foreground">
+        <p className="font-pixel text-muted-foreground text-[11px] tracking-wider uppercase">
           {server.last_sync_error ? t("syncFailed") : t("notSynced")}
         </p>
       ) : (
@@ -218,7 +212,7 @@ function McpServerSection({
             <li
               key={tool.name}
               className={cn(
-                "flex items-start justify-between gap-4 border-2 border-border bg-card shadow-[3px_3px_0_0_var(--border)]",
+                "border-border bg-card flex items-start justify-between gap-4 border-2 shadow-[3px_3px_0_0_var(--border)]",
                 compact ? "p-3" : "p-4",
               )}
             >
@@ -226,13 +220,13 @@ function McpServerSection({
                 <div className="flex items-center gap-2">
                   <h3
                     className={cn(
-                      "truncate font-display font-semibold",
+                      "font-display truncate font-semibold",
                       compact ? "text-sm" : "text-base",
                     )}
                   >
                     {tool.name}
                   </h3>
-                  <span className="border-2 border-border bg-background px-1.5 py-0.5 font-pixel text-[11px] uppercase tracking-wider text-muted-foreground">
+                  <span className="border-border bg-background font-pixel text-muted-foreground border-2 px-1.5 py-0.5 text-[11px] tracking-wider uppercase">
                     {t("mcpBadge")}
                   </span>
                 </div>

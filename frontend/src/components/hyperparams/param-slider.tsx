@@ -82,9 +82,7 @@ export function ParamSlider({
   return (
     <div className="space-y-1.5">
       <div className="flex items-center justify-between gap-3">
-        <label className="text-xs font-semibold uppercase tracking-wider">
-          {label}
-        </label>
+        <label className="text-xs font-semibold tracking-wider uppercase">{label}</label>
         <div className="flex items-center gap-2">
           {editing ? (
             <input
@@ -107,7 +105,7 @@ export function ParamSlider({
                 }
               }}
               autoFocus
-              className="w-24 border-2 border-border bg-card px-2 py-0.5 text-right font-mono text-xs tabular-nums outline-none focus:shadow-[2px_2px_0_0_var(--lime)]"
+              className="border-border bg-card w-24 border-2 px-2 py-0.5 text-right font-mono text-xs tabular-nums outline-none focus:shadow-[2px_2px_0_0_var(--lime)]"
             />
           ) : (
             <button
@@ -120,13 +118,13 @@ export function ParamSlider({
               disabled={disabled}
               aria-label={`Edit ${label.toLowerCase()} value`}
               className={cn(
-                "border-2 border-border bg-card px-2 py-0.5 font-mono text-xs tabular-nums transition-[transform,box-shadow] duration-100 hover:shadow-[1px_1px_0_0_var(--border)] active:translate-x-[1px] active:translate-y-[1px] active:shadow-none disabled:cursor-not-allowed disabled:opacity-50",
+                "border-border bg-card border-2 px-2 py-0.5 font-mono text-xs tabular-nums transition-[transform,box-shadow] duration-100 hover:shadow-[1px_1px_0_0_var(--border)] active:translate-x-[1px] active:translate-y-[1px] active:shadow-none disabled:cursor-not-allowed disabled:opacity-50",
                 overridden ? "text-foreground" : "text-muted-foreground",
               )}
             >
               {field.format(displayed)}
               {!overridden && (
-                <span className="ml-1.5 font-pixel text-[9px] uppercase tracking-[0.2em] text-muted-foreground">
+                <span className="font-pixel text-muted-foreground ml-1.5 text-[9px] tracking-[0.2em] uppercase">
                   {defaultLabel}
                 </span>
               )}
@@ -141,7 +139,7 @@ export function ParamSlider({
               }}
               disabled={disabled}
               aria-label={`Reset ${label.toLowerCase()} to default`}
-              className="inline-flex size-9 items-center justify-center text-muted-foreground transition-colors hover:text-foreground active:scale-90 disabled:opacity-40 md:size-auto"
+              className="text-muted-foreground hover:text-foreground inline-flex size-9 items-center justify-center transition-colors active:scale-90 disabled:opacity-40 md:size-auto"
             >
               <RotateCcw className="size-3.5" />
             </button>
@@ -176,9 +174,7 @@ export function ParamSlider({
         />
       </div>
 
-      <p className="text-[11px] leading-relaxed text-muted-foreground">
-        {description}
-      </p>
+      <p className="text-muted-foreground text-[11px] leading-relaxed">{description}</p>
     </div>
   );
 }
@@ -199,7 +195,7 @@ function Stepper({
       type="button"
       onClick={onClick}
       disabled={disabled}
-      className="inline-flex size-9 shrink-0 items-center justify-center border-2 border-border bg-card text-muted-foreground transition-[transform,colors,box-shadow] duration-75 hover:text-foreground hover:shadow-[1px_1px_0_0_var(--border)] active:translate-x-[1px] active:translate-y-[1px] active:shadow-none disabled:cursor-not-allowed disabled:opacity-40 md:size-7"
+      className="border-border bg-card text-muted-foreground hover:text-foreground inline-flex size-9 shrink-0 items-center justify-center border-2 transition-[transform,colors,box-shadow] duration-75 hover:shadow-[1px_1px_0_0_var(--border)] active:translate-x-[1px] active:translate-y-[1px] active:shadow-none disabled:cursor-not-allowed disabled:opacity-40 md:size-7"
       {...props}
     >
       <Icon className="size-4" />

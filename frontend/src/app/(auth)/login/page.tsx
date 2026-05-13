@@ -46,35 +46,35 @@ function LoginForm() {
   }
 
   return (
-    <div className="relative w-full max-w-sm border-2 border-border bg-card p-6 shadow-[4px_4px_0_0_var(--border)]">
+    <div className="border-border bg-card relative w-full max-w-sm border-2 p-6 shadow-[4px_4px_0_0_var(--border)]">
       <div className="mb-6 space-y-1">
-        <div className="inline-flex items-center gap-2 border-2 border-border bg-background px-2.5 py-1 font-pixel text-[12px] uppercase tracking-[0.14em]">
+        <div className="border-border bg-background font-pixel inline-flex items-center gap-2 border-2 px-2.5 py-1 text-[12px] tracking-[0.14em] uppercase">
           <span className="size-2 bg-[color:var(--lime)]" />
           {t("tagSignIn")}
         </div>
-        <h1 className="font-display text-3xl font-bold leading-tight">
+        <h1 className="font-display text-3xl leading-tight font-bold">
           {t.rich("loginTitle", {
             em: (chunks) => <span className="italic">{chunks}</span>,
           })}
         </h1>
-        <p className="text-sm text-muted-foreground">{t("loginIntro")}</p>
+        <p className="text-muted-foreground text-sm">{t("loginIntro")}</p>
       </div>
 
       <form onSubmit={onSubmit} className="space-y-4">
         <div className="space-y-1.5">
-          <label htmlFor="username" className="block text-xs font-semibold uppercase tracking-wider">
+          <label
+            htmlFor="username"
+            className="block text-xs font-semibold tracking-wider uppercase"
+          >
             {t("username")}
           </label>
-          <input
-            id="username"
-            name="username"
-            autoComplete="username"
-            required
-            className={INPUT}
-          />
+          <input id="username" name="username" autoComplete="username" required className={INPUT} />
         </div>
         <div className="space-y-1.5">
-          <label htmlFor="password" className="block text-xs font-semibold uppercase tracking-wider">
+          <label
+            htmlFor="password"
+            className="block text-xs font-semibold tracking-wider uppercase"
+          >
             {t("password")}
           </label>
           <input
@@ -91,9 +91,12 @@ function LoginForm() {
           {submitting ? t("signingIn") : t("signIn")}
         </button>
 
-        <p className="text-center text-sm text-muted-foreground">
+        <p className="text-muted-foreground text-center text-sm">
           {t("noAccount")}{" "}
-          <Link href="/register" className="font-medium text-foreground underline underline-offset-4">
+          <Link
+            href="/register"
+            className="text-foreground font-medium underline underline-offset-4"
+          >
             {t("createOne")}
           </Link>
         </p>

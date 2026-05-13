@@ -81,24 +81,24 @@ export function TerminalBar() {
   );
 
   const StreamState = isSending ? (
-    <span className="inline-flex items-center gap-1.5 text-foreground">
+    <span className="text-foreground inline-flex items-center gap-1.5">
       <Dot className="animate-pulse bg-[color:var(--lime)]" />
       Streaming
       {typeof tokensPerSec === "number" && (
-        <span className="ml-1 font-mono normal-case tracking-normal text-muted-foreground">
+        <span className="text-muted-foreground ml-1 font-mono tracking-normal normal-case">
           {tokensPerSec}&thinsp;t/s
         </span>
       )}
     </span>
   ) : (
-    <span className="inline-flex items-center gap-1.5 text-muted-foreground">
+    <span className="text-muted-foreground inline-flex items-center gap-1.5">
       <Dot className="bg-[color:var(--muted-foreground)] opacity-60" />
       Idle
     </span>
   );
 
   return (
-    <div className="shrink-0 border-t-2 border-border bg-card font-pixel uppercase">
+    <div className="border-border bg-card font-pixel shrink-0 border-t-2 uppercase">
       {/* Row 1 — locality + weather (always visible). On sm+ this single row
           carries the entire bar. */}
       <div className="flex h-9 items-center gap-2 overflow-hidden px-3 text-[12px] tracking-[0.1em] sm:h-7 sm:gap-3 sm:px-4 sm:text-[11px] sm:tracking-[0.14em]">
@@ -106,7 +106,7 @@ export function TerminalBar() {
           <Dot className="bg-[color:var(--lime)]" />
           <span className="shrink-0">Local</span>
           {locality && (
-            <span className="min-w-0 text-muted-foreground">
+            <span className="text-muted-foreground min-w-0">
               <span className="text-muted-foreground">· </span>
               <span className="text-foreground">{truncate(locality, 24)}</span>
             </span>
@@ -118,33 +118,33 @@ export function TerminalBar() {
             same line. Hidden on mobile (rendered as row 2 below). */}
         <span className="hidden sm:contents">
           <Sep />
-          <span className="font-mono tabular-nums text-foreground/80">{clock}</span>
+          <span className="text-foreground/80 font-mono tabular-nums">{clock}</span>
           <Sep />
-          <span className="inline-flex items-center gap-1.5 text-muted-foreground">
+          <span className="text-muted-foreground inline-flex items-center gap-1.5">
             <span className="text-foreground">Model</span>
-            <span className="font-mono normal-case tracking-normal text-foreground/80">
+            <span className="text-foreground/80 font-mono tracking-normal normal-case">
               {truncate(modelName, 32)}
             </span>
           </span>
           <Sep />
           {StreamState}
           {appVersion && (
-            <span className="ml-auto inline-flex items-center gap-3 text-muted-foreground">
+            <span className="text-muted-foreground ml-auto inline-flex items-center gap-3">
               <Sep />
-              <span className="font-mono normal-case tracking-normal">{appVersion}</span>
+              <span className="font-mono tracking-normal normal-case">{appVersion}</span>
             </span>
           )}
         </span>
       </div>
 
       {/* Row 2 — mobile only. Clock + stream state + model.  */}
-      <div className="flex h-9 items-center gap-2 overflow-hidden border-t border-border/40 px-3 text-[12px] tracking-[0.1em] sm:hidden">
-        <span className="font-mono tabular-nums text-foreground/80">{clock}</span>
+      <div className="border-border/40 flex h-9 items-center gap-2 overflow-hidden border-t px-3 text-[12px] tracking-[0.1em] sm:hidden">
+        <span className="text-foreground/80 font-mono tabular-nums">{clock}</span>
         <Sep />
         {StreamState}
-        <span className="ml-auto inline-flex min-w-0 items-center gap-1.5 text-muted-foreground">
-          <span className="shrink-0 text-foreground">Model</span>
-          <span className="min-w-0 truncate font-mono normal-case tracking-normal text-foreground/80">
+        <span className="text-muted-foreground ml-auto inline-flex min-w-0 items-center gap-1.5">
+          <span className="text-foreground shrink-0">Model</span>
+          <span className="text-foreground/80 min-w-0 truncate font-mono tracking-normal normal-case">
             {truncate(modelName, 18)}
           </span>
         </span>

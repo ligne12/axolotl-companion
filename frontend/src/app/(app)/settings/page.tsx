@@ -43,7 +43,7 @@ function Segmented<T extends string>({
     <div
       role="radiogroup"
       aria-label={ariaLabel}
-      className="inline-flex items-center border-2 border-border bg-card p-0.5"
+      className="border-border bg-card inline-flex items-center border-2 p-0.5"
     >
       {options.map((opt) => {
         const active = value === opt.value;
@@ -55,7 +55,7 @@ function Segmented<T extends string>({
             aria-checked={active}
             onClick={() => onChange(opt.value)}
             className={cn(
-              "inline-flex min-w-[3rem] items-center justify-center px-3 py-1.5 font-pixel text-[12px] uppercase tracking-[0.14em] transition-colors",
+              "font-pixel inline-flex min-w-[3rem] items-center justify-center px-3 py-1.5 text-[12px] tracking-[0.14em] uppercase transition-colors",
               active
                 ? "bg-[color:var(--lime)] text-[color:var(--lime-foreground)]"
                 : "text-muted-foreground hover:text-foreground",
@@ -144,12 +144,12 @@ export default function ProfilePage() {
   return (
     <form onSubmit={onSubmit} className="relative space-y-8">
       <header className="space-y-2">
-        <h1 className="font-display text-3xl font-bold leading-tight">
+        <h1 className="font-display text-3xl leading-tight font-bold">
           {t.rich("title", {
             em: (chunks) => <span className="italic">{chunks}</span>,
           })}
         </h1>
-        <p className="text-sm text-muted-foreground">{t("intro")}</p>
+        <p className="text-muted-foreground text-sm">{t("intro")}</p>
       </header>
 
       <div className="space-y-5">
@@ -168,7 +168,7 @@ export default function ProfilePage() {
             required
             disabled={meQuery.isPending}
           />
-          <p className="text-xs text-muted-foreground">
+          <p className="text-muted-foreground text-xs">
             {t.rich("usernameHelp", {
               code: (chunks) => <code>{chunks}</code>,
             })}
@@ -186,7 +186,7 @@ export default function ProfilePage() {
             disabled
             readOnly
           />
-          <p className="text-xs text-muted-foreground">{t("emailHelp")}</p>
+          <p className="text-muted-foreground text-xs">{t("emailHelp")}</p>
         </div>
 
         <div className="space-y-1.5">
@@ -202,7 +202,7 @@ export default function ProfilePage() {
             placeholder="Montpellier"
             disabled={meQuery.isPending}
           />
-          <p className="text-xs text-muted-foreground">
+          <p className="text-muted-foreground text-xs">
             {t.rich("localityHelp", {
               code: (chunks) => <code>{chunks}</code>,
             })}
@@ -220,7 +220,7 @@ export default function ProfilePage() {
               { value: "12h", label: "AM / PM" },
             ]}
           />
-          <p className="text-xs text-muted-foreground">{t("timeFormatHelp")}</p>
+          <p className="text-muted-foreground text-xs">{t("timeFormatHelp")}</p>
         </div>
 
         <div className="space-y-1.5">
@@ -234,7 +234,7 @@ export default function ProfilePage() {
               { value: "F", label: "°F" },
             ]}
           />
-          <p className="text-xs text-muted-foreground">{t("temperatureHelp")}</p>
+          <p className="text-muted-foreground text-xs">{t("temperatureHelp")}</p>
         </div>
       </div>
 
@@ -244,21 +244,25 @@ export default function ProfilePage() {
             // Mobile: full-width, sticky at bottom of the scroll container
             // so it stays in reach while filling the form. Desktop: inline,
             // right-aligned under the input column.
-            "sticky bottom-0 -mx-4 flex justify-stretch border-t-2 border-border bg-background px-4 py-3 md:static md:mx-0 md:max-w-sm md:justify-end md:border-0 md:bg-transparent md:p-0 md:pt-2",
+            "border-border bg-background sticky bottom-0 -mx-4 flex justify-stretch border-t-2 px-4 py-3 md:static md:mx-0 md:max-w-sm md:justify-end md:border-0 md:bg-transparent md:p-0 md:pt-2",
           )}
         >
           <button
             type="submit"
             disabled={save.isPending}
             className={cn(
-              "inline-flex w-full items-center justify-center gap-2 border-2 border-border bg-primary px-5 py-2.5 text-sm font-semibold text-primary-foreground md:w-auto",
+              "border-border bg-primary text-primary-foreground inline-flex w-full items-center justify-center gap-2 border-2 px-5 py-2.5 text-sm font-semibold md:w-auto",
               "shadow-[3px_3px_0_0_var(--lime)] transition-[transform,box-shadow] duration-100",
               "hover:shadow-[4px_4px_0_0_var(--lime)]",
               "active:translate-x-[2px] active:translate-y-[2px] active:shadow-[1px_1px_0_0_var(--lime)]",
               "disabled:cursor-not-allowed disabled:opacity-60",
             )}
           >
-            {save.isPending ? <Check className="size-4 animate-pulse" /> : <Save className="size-4" />}
+            {save.isPending ? (
+              <Check className="size-4 animate-pulse" />
+            ) : (
+              <Save className="size-4" />
+            )}
             {save.isPending ? tc("saving") : tc("saveChanges")}
           </button>
         </div>

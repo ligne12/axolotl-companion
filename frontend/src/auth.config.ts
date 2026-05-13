@@ -23,7 +23,8 @@ export const authConfig = {
       const { pathname } = request.nextUrl;
 
       const isAuthPage = pathname.startsWith("/login") || pathname.startsWith("/register");
-      const isPublic = pathname === "/" || pathname.startsWith("/_next") || pathname.startsWith("/api/auth");
+      const isPublic =
+        pathname === "/" || pathname.startsWith("/_next") || pathname.startsWith("/api/auth");
 
       if (isAuthPage) {
         if (isLoggedIn) {

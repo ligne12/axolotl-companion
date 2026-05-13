@@ -11,12 +11,7 @@ import { Markdown } from "@/components/ui/markdown";
 import { Modal } from "@/components/ui/modal";
 import { useApi } from "@/hooks/use-api";
 import { cn } from "@/lib/utils";
-import type {
-  PersonaCreate,
-  PersonaPublic,
-  PersonaUpdate,
-  UserPublic,
-} from "@/types/api";
+import type { PersonaCreate, PersonaPublic, PersonaUpdate, UserPublic } from "@/types/api";
 
 const INPUT =
   "w-full border-2 border-border bg-card px-3 py-2 text-sm outline-none transition-[box-shadow] duration-100 focus:shadow-[3px_3px_0_0_var(--lime)] placeholder:text-muted-foreground disabled:cursor-not-allowed disabled:opacity-60";
@@ -70,8 +65,7 @@ export default function PersonasPage() {
   });
 
   const deleteMut = useMutation({
-    mutationFn: (id: number) =>
-      api<void>(`/v1/personas/${id}`, { method: "DELETE" }),
+    mutationFn: (id: number) => api<void>(`/v1/personas/${id}`, { method: "DELETE" }),
     onSuccess: () => {
       qc.invalidateQueries({ queryKey: ["personas"] });
       qc.invalidateQueries({ queryKey: ["auth", "me"] });
@@ -89,9 +83,7 @@ export default function PersonasPage() {
     onSuccess: (next) => {
       qc.setQueryData<UserPublic>(["auth", "me"], next);
       toast.success(
-        next.default_persona_id === null
-          ? t("toasts.defaultCleared")
-          : t("toasts.defaultUpdated"),
+        next.default_persona_id === null ? t("toasts.defaultCleared") : t("toasts.defaultUpdated"),
       );
     },
     onError: () => toast.error(t("toasts.errDefault")),
@@ -121,12 +113,12 @@ export default function PersonasPage() {
     <div className="space-y-6">
       <header className="flex flex-wrap items-end justify-between gap-4">
         <div className="space-y-2">
-          <h1 className="font-display text-3xl font-bold leading-tight">
+          <h1 className="font-display text-3xl leading-tight font-bold">
             {t.rich("title", {
               em: (chunks) => <span className="italic">{chunks}</span>,
             })}
           </h1>
-          <p className="max-w-xl text-sm text-muted-foreground">{t("intro")}</p>
+          <p className="text-muted-foreground max-w-xl text-sm">{t("intro")}</p>
         </div>
         <button className={PRIMARY} onClick={startCreate} type="button">
           <Plus className="size-4" />
@@ -134,12 +126,10 @@ export default function PersonasPage() {
         </button>
       </header>
 
-      {personas.isPending && (
-        <p className="text-sm text-muted-foreground">{tc("loading")}</p>
-      )}
+      {personas.isPending && <p className="text-muted-foreground text-sm">{tc("loading")}</p>}
 
       {!personas.isPending && list.length === 0 && (
-        <div className="rounded-xl border-2 border-dashed border-border p-8 text-center text-sm text-muted-foreground">
+        <div className="border-border text-muted-foreground rounded-xl border-2 border-dashed p-8 text-center text-sm">
           {t("empty")}
         </div>
       )}
@@ -151,7 +141,7 @@ export default function PersonasPage() {
             <li
               key={p.id}
               className={cn(
-                "group relative flex h-full flex-col gap-2 rounded-xl border-2 border-border bg-card p-4 transition-[transform,box-shadow] duration-100 hover:-translate-x-[1px] hover:-translate-y-[1px]",
+                "group border-border bg-card relative flex h-full flex-col gap-2 rounded-xl border-2 p-4 transition-[transform,box-shadow] duration-100 hover:-translate-x-[1px] hover:-translate-y-[1px]",
                 isDefault
                   ? "shadow-[3px_3px_0_0_var(--lime)] hover:shadow-[5px_5px_0_0_var(--lime)]"
                   : "shadow-[3px_3px_0_0_var(--border)] hover:shadow-[5px_5px_0_0_var(--lime)]",
@@ -161,7 +151,7 @@ export default function PersonasPage() {
                 <h2 className="font-display text-base font-semibold">{p.name}</h2>
                 {isDefault && (
                   <span
-                    className="inline-flex items-center gap-1 border-2 border-border bg-[color:var(--lime)] px-1.5 py-0.5 font-pixel text-[10px] uppercase tracking-widest text-[color:var(--lime-foreground)]"
+                    className="border-border font-pixel inline-flex items-center gap-1 border-2 bg-[color:var(--lime)] px-1.5 py-0.5 text-[10px] tracking-widest text-[color:var(--lime-foreground)] uppercase"
                     title={t("defaultTitle")}
                   >
                     <Pin className="size-3" />
@@ -170,7 +160,7 @@ export default function PersonasPage() {
                 )}
                 {p.is_builtin && (
                   <span
-                    className="inline-flex items-center gap-1 border-2 border-border bg-background px-1.5 py-0.5 font-pixel text-[10px] uppercase tracking-widest text-muted-foreground"
+                    className="border-border bg-background font-pixel text-muted-foreground inline-flex items-center gap-1 border-2 px-1.5 py-0.5 text-[10px] tracking-widest uppercase"
                     title={t("builtInTitle")}
                   >
                     <Lock className="size-3" />
@@ -180,7 +170,7 @@ export default function PersonasPage() {
               </div>
               <Markdown
                 text={p.system_prompt}
-                className="line-clamp-3 overflow-hidden text-xs text-muted-foreground [&_*]:!m-0 [&_*+*]:!mt-0 [&>*]:inline"
+                className="text-muted-foreground line-clamp-3 overflow-hidden text-xs [&_*]:!m-0 [&_*+*]:!mt-0 [&>*]:inline"
               />
 
               <div className="mt-auto flex justify-end gap-1 pt-2 transition-opacity md:opacity-0 md:group-hover:opacity-100 md:focus-within:opacity-100">
@@ -193,11 +183,15 @@ export default function PersonasPage() {
                   className={cn(
                     "inline-flex size-11 items-center justify-center transition-[transform,colors] duration-75 active:scale-90 md:size-7",
                     isDefault
-                      ? "text-[color:var(--lime-foreground)] bg-[color:var(--lime)] border-2 border-border"
+                      ? "border-border border-2 bg-[color:var(--lime)] text-[color:var(--lime-foreground)]"
                       : "text-muted-foreground hover:text-foreground",
                   )}
                 >
-                  {isDefault ? <PinOff className="size-4 md:size-3.5" /> : <Pin className="size-4 md:size-3.5" />}
+                  {isDefault ? (
+                    <PinOff className="size-4 md:size-3.5" />
+                  ) : (
+                    <Pin className="size-4 md:size-3.5" />
+                  )}
                 </button>
                 {!p.is_builtin && (
                   <>
@@ -205,7 +199,7 @@ export default function PersonasPage() {
                       type="button"
                       aria-label={tc("edit")}
                       onClick={() => startEdit(p)}
-                      className="inline-flex size-11 items-center justify-center text-muted-foreground transition-transform duration-75 hover:text-foreground active:scale-90 md:size-7"
+                      className="text-muted-foreground hover:text-foreground inline-flex size-11 items-center justify-center transition-transform duration-75 active:scale-90 md:size-7"
                     >
                       <Pencil className="size-4 md:size-3.5" />
                     </button>
@@ -213,7 +207,7 @@ export default function PersonasPage() {
                       type="button"
                       aria-label={tc("delete")}
                       onClick={() => setPendingDelete(p)}
-                      className="inline-flex size-11 items-center justify-center text-muted-foreground transition-transform duration-75 hover:text-destructive active:scale-90 md:size-7"
+                      className="text-muted-foreground hover:text-destructive inline-flex size-11 items-center justify-center transition-transform duration-75 active:scale-90 md:size-7"
                     >
                       <Trash2 className="size-4 md:size-3.5" />
                     </button>
@@ -258,16 +252,12 @@ export default function PersonasPage() {
                 rows={7}
                 className={cn(INPUT, "resize-none font-sans")}
                 value={editor.system_prompt}
-                onChange={(e) =>
-                  setEditor({ ...editor, system_prompt: e.target.value })
-                }
+                onChange={(e) => setEditor({ ...editor, system_prompt: e.target.value })}
                 maxLength={20_000}
                 required
                 placeholder={t("modal.promptPlaceholder")}
               />
-              <p className="text-xs text-muted-foreground">
-                {t("modal.systemPromptHelp")}
-              </p>
+              <p className="text-muted-foreground text-xs">{t("modal.systemPromptHelp")}</p>
             </div>
             <Modal.Footer>
               <Modal.Cancel>{tc("cancel")}</Modal.Cancel>
@@ -289,9 +279,7 @@ export default function PersonasPage() {
           if (!o) setPendingDelete(null);
         }}
         title={t("delete.title")}
-        description={
-          pendingDelete ? t("delete.description", { name: pendingDelete.name }) : ""
-        }
+        description={pendingDelete ? t("delete.description", { name: pendingDelete.name }) : ""}
         confirmLabel={tc("delete")}
         variant="destructive"
         onConfirm={() => {

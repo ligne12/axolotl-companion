@@ -19,14 +19,7 @@ import { cn } from "@/lib/utils";
 type Tab = {
   href: string;
   /** Translation key under ``settings.tabs.*``. */
-  key:
-    | "profile"
-    | "personas"
-    | "tools"
-    | "mcp"
-    | "model"
-    | "reasoning"
-    | "sandbox";
+  key: "profile" | "personas" | "tools" | "mcp" | "model" | "reasoning" | "sandbox";
   Icon: React.ComponentType<{ className?: string }>;
   soon?: boolean;
 };
@@ -49,7 +42,7 @@ export default function SettingsLayout({ children }: { children: React.ReactNode
       <div className="mx-auto flex w-full max-w-5xl flex-col gap-6 px-4 py-6 md:flex-row md:gap-8 md:py-14">
         {/* Sidebar tabs */}
         <aside className="md:w-52 md:shrink-0">
-          <div className="inline-flex w-fit items-center gap-2 border-2 border-border bg-card px-2.5 py-1 font-pixel text-[11px] uppercase tracking-[0.14em] md:text-[12px]">
+          <div className="border-border bg-card font-pixel inline-flex w-fit items-center gap-2 border-2 px-2.5 py-1 text-[11px] tracking-[0.14em] uppercase md:text-[12px]">
             <span className="size-2 bg-[color:var(--lime)]" />
             {t("tag")}
           </div>
@@ -60,7 +53,7 @@ export default function SettingsLayout({ children }: { children: React.ReactNode
               // more to scroll. No visual change once at the end.
               "[mask-image:linear-gradient(to_right,black_calc(100%-24px),transparent)] md:[mask-image:none]",
               // Hide native scrollbar (mobile only).
-              "[-ms-overflow-style:none] [&::-webkit-scrollbar]:hidden [scrollbar-width:none] md:[scrollbar-width:auto]",
+              "[-ms-overflow-style:none] [scrollbar-width:none] md:[scrollbar-width:auto] [&::-webkit-scrollbar]:hidden",
             )}
           >
             {TABS.map((tab) => {
@@ -71,17 +64,17 @@ export default function SettingsLayout({ children }: { children: React.ReactNode
                   key={tab.href}
                   href={tab.href}
                   className={cn(
-                    "group flex min-h-11 items-center gap-2 whitespace-nowrap rounded-md border-2 px-3 py-2 text-sm transition-[transform,box-shadow] duration-100 active:scale-[0.97] md:min-h-0 md:px-3 md:py-2",
+                    "group flex min-h-11 items-center gap-2 rounded-md border-2 px-3 py-2 text-sm whitespace-nowrap transition-[transform,box-shadow] duration-100 active:scale-[0.97] md:min-h-0 md:px-3 md:py-2",
                     isActive
                       ? "border-border bg-card shadow-[2px_2px_0_0_var(--lime)]"
-                      : "border-transparent hover:border-border/40 hover:bg-card/60",
+                      : "hover:border-border/40 hover:bg-card/60 border-transparent",
                   )}
                 >
                   <Icon className="size-4 shrink-0" />
                   <span className="flex-1">{t(`tabs.${tab.key}`)}</span>
                   {tab.soon && (
                     <Construction
-                      className="size-3.5 shrink-0 text-muted-foreground"
+                      className="text-muted-foreground size-3.5 shrink-0"
                       aria-label="Coming soon"
                     />
                   )}

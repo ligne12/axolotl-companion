@@ -53,11 +53,7 @@ export const viewport: Viewport = {
   ],
 };
 
-export default async function RootLayout({
-  children,
-}: {
-  readonly children: React.ReactNode;
-}) {
+export default async function RootLayout({ children }: { readonly children: React.ReactNode }) {
   // ``next-intl`` reads the locale from the cookie / Accept-Language via
   // the per-request config in ``src/i18n/request.ts``; both helpers
   // resolve through that, so adding a new locale only touches that file
@@ -78,61 +74,49 @@ export default async function RootLayout({
           href="https://api.fontshare.com/v2/css?f[]=clash-display@500,600,700&display=swap"
         />
       </head>
-      <body className="h-dvh overflow-hidden bg-background text-foreground antialiased">
-       <NextIntlClientProvider locale={locale} messages={messages}>
-        <ThemeProvider
-          attribute="class"
-          defaultTheme="system"
-          enableSystem
-          disableTransitionOnChange
-        >
-          <AppBackground />
-          <SessionProvider>
-            <QueryProvider>
-              <GlobalClickSpark>
-                {children}
-              </GlobalClickSpark>
-              <Toaster
-                position="top-right"
-                offset={16}
-                gap={10}
-                icons={{
-                  success: (
-                    <Check
-                      className="size-4 text-[color:var(--lime)]"
-                      strokeWidth={3}
-                    />
-                  ),
-                  error: (
-                    <AlertCircle className="size-4 text-[color:var(--destructive)]" />
-                  ),
-                  info: <Info className="size-4 text-muted-foreground" />,
-                  warning: (
-                    <TriangleAlert className="size-4 text-[color:var(--lime)]" />
-                  ),
-                }}
-                toastOptions={{
-                  classNames: {
-                    toast:
-                      "!border-2 !border-border !bg-card !text-foreground !rounded-md !shadow-[3px_3px_0_0_var(--border)] !font-sans !p-3.5 !gap-3",
-                    title: "!text-sm !leading-5",
-                    description: "!text-xs !text-muted-foreground !mt-0.5",
-                    success: "!shadow-[3px_3px_0_0_var(--lime)]",
-                    error: "!shadow-[3px_3px_0_0_var(--destructive)]",
-                    warning: "!shadow-[3px_3px_0_0_var(--lime)]",
-                    info: "!shadow-[3px_3px_0_0_var(--border)]",
-                    actionButton:
-                      "!border-2 !border-border !bg-card !text-foreground !rounded-md !shadow-[2px_2px_0_0_var(--border)] !text-xs !px-2 !py-1 !font-pixel !uppercase !tracking-[0.12em]",
-                    cancelButton: "!text-xs !text-muted-foreground",
-                    closeButton:
-                      "!border-2 !border-border !bg-card !text-foreground !rounded-md",
-                  },
-                }}
-              />
-            </QueryProvider>
-          </SessionProvider>
-        </ThemeProvider>
-       </NextIntlClientProvider>
+      <body className="bg-background text-foreground h-dvh overflow-hidden antialiased">
+        <NextIntlClientProvider locale={locale} messages={messages}>
+          <ThemeProvider
+            attribute="class"
+            defaultTheme="system"
+            enableSystem
+            disableTransitionOnChange
+          >
+            <AppBackground />
+            <SessionProvider>
+              <QueryProvider>
+                <GlobalClickSpark>{children}</GlobalClickSpark>
+                <Toaster
+                  position="top-right"
+                  offset={16}
+                  gap={10}
+                  icons={{
+                    success: <Check className="size-4 text-[color:var(--lime)]" strokeWidth={3} />,
+                    error: <AlertCircle className="size-4 text-[color:var(--destructive)]" />,
+                    info: <Info className="text-muted-foreground size-4" />,
+                    warning: <TriangleAlert className="size-4 text-[color:var(--lime)]" />,
+                  }}
+                  toastOptions={{
+                    classNames: {
+                      toast:
+                        "!border-2 !border-border !bg-card !text-foreground !rounded-md !shadow-[3px_3px_0_0_var(--border)] !font-sans !p-3.5 !gap-3",
+                      title: "!text-sm !leading-5",
+                      description: "!text-xs !text-muted-foreground !mt-0.5",
+                      success: "!shadow-[3px_3px_0_0_var(--lime)]",
+                      error: "!shadow-[3px_3px_0_0_var(--destructive)]",
+                      warning: "!shadow-[3px_3px_0_0_var(--lime)]",
+                      info: "!shadow-[3px_3px_0_0_var(--border)]",
+                      actionButton:
+                        "!border-2 !border-border !bg-card !text-foreground !rounded-md !shadow-[2px_2px_0_0_var(--border)] !text-xs !px-2 !py-1 !font-pixel !uppercase !tracking-[0.12em]",
+                      cancelButton: "!text-xs !text-muted-foreground",
+                      closeButton: "!border-2 !border-border !bg-card !text-foreground !rounded-md",
+                    },
+                  }}
+                />
+              </QueryProvider>
+            </SessionProvider>
+          </ThemeProvider>
+        </NextIntlClientProvider>
       </body>
     </html>
   );

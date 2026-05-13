@@ -33,7 +33,7 @@ const GROUPS: { name: string; items: Shortcut[] }[] = [
 
 function Kbd({ children }: { children: React.ReactNode }) {
   return (
-    <span className="inline-flex min-w-[1.4rem] items-center justify-center border-2 border-border bg-background px-1.5 py-0.5 font-pixel text-[11px] uppercase tracking-wider">
+    <span className="border-border bg-background font-pixel inline-flex min-w-[1.4rem] items-center justify-center border-2 px-1.5 py-0.5 text-[11px] tracking-wider uppercase">
       {children}
     </span>
   );
@@ -51,7 +51,7 @@ export function ShortcutsOverlay({
       <div className="space-y-5">
         {GROUPS.map((g) => (
           <div key={g.name}>
-            <h3 className="mb-2 font-pixel text-[10px] uppercase tracking-[0.14em] text-muted-foreground">
+            <h3 className="font-pixel text-muted-foreground mb-2 text-[10px] tracking-[0.14em] uppercase">
               {g.name}
             </h3>
             <ul className="space-y-2">

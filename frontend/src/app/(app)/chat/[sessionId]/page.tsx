@@ -29,11 +29,5 @@ export default async function ChatSessionPage({
     throw err;
   }
 
-  return (
-    <ChatWindow
-      sessionId={sessionId}
-      initialMessages={detail.messages}
-      token={token}
-    />
-  );
+  return <ChatWindow sessionId={sessionId} initialMessages={detail.messages} token={token} />;
 }

@@ -1,7 +1,7 @@
 "use client";
 
-import React, { useState, useEffect, useRef } from 'react';
-import type { ReactNode, HTMLAttributes } from 'react';
+import React, { useState, useEffect, useRef } from "react";
+import type { ReactNode, HTMLAttributes } from "react";
 
 interface MagnetProps extends HTMLAttributes<HTMLDivElement> {
   children: ReactNode;
@@ -19,10 +19,10 @@ const Magnet: React.FC<MagnetProps> = ({
   padding = 100,
   disabled = false,
   magnetStrength = 2,
-  activeTransition = 'transform 0.3s ease-out',
-  inactiveTransition = 'transform 0.5s ease-in-out',
-  wrapperClassName = '',
-  innerClassName = '',
+  activeTransition = "transform 0.3s ease-out",
+  inactiveTransition = "transform 0.5s ease-in-out",
+  wrapperClassName = "",
+  innerClassName = "",
   ...props
 }) => {
   const [isActive, setIsActive] = useState<boolean>(false);
@@ -56,9 +56,9 @@ const Magnet: React.FC<MagnetProps> = ({
       }
     };
 
-    window.addEventListener('mousemove', handleMouseMove);
+    window.addEventListener("mousemove", handleMouseMove);
     return () => {
-      window.removeEventListener('mousemove', handleMouseMove);
+      window.removeEventListener("mousemove", handleMouseMove);
     };
   }, [padding, disabled, magnetStrength]);
 
@@ -68,7 +68,7 @@ const Magnet: React.FC<MagnetProps> = ({
     <div
       ref={magnetRef}
       className={wrapperClassName}
-      style={{ position: 'relative', display: 'inline-block' }}
+      style={{ position: "relative", display: "inline-block" }}
       {...props}
     >
       <div
@@ -76,7 +76,7 @@ const Magnet: React.FC<MagnetProps> = ({
         style={{
           transform: `translate3d(${position.x}px, ${position.y}px, 0)`,
           transition: transitionStyle,
-          willChange: 'transform'
+          willChange: "transform",
         }}
       >
         {children}

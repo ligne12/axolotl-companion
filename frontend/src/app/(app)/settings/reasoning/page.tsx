@@ -64,19 +64,19 @@ export default function ReasoningSettingsPage() {
   return (
     <div className="space-y-8">
       <header className="space-y-2">
-        <h1 className="font-display text-3xl font-bold leading-tight">
+        <h1 className="font-display text-3xl leading-tight font-bold">
           {t.rich("title", {
             em: (chunks) => <span className="italic">{chunks}</span>,
           })}
         </h1>
-        <p className="text-sm text-muted-foreground">
+        <p className="text-muted-foreground text-sm">
           {t.rich("intro", {
             code: (chunks) => <code>{chunks}</code>,
           })}
         </p>
       </header>
 
-      <div className="flex items-start gap-3 border-2 border-border bg-card p-4 shadow-[3px_3px_0_0_var(--border)]">
+      <div className="border-border bg-card flex items-start gap-3 border-2 p-4 shadow-[3px_3px_0_0_var(--border)]">
         <Brain className="mt-0.5 size-5 shrink-0 text-[color:var(--lime)]" />
         <div className="space-y-0.5 text-xs">
           <p className="font-display text-sm font-semibold">
@@ -108,20 +108,20 @@ export default function ReasoningSettingsPage() {
               <span
                 aria-hidden
                 className={cn(
-                  "mt-1 size-3 shrink-0 border-2 border-border",
+                  "border-border mt-1 size-3 shrink-0 border-2",
                   active ? "bg-[color:var(--lime)]" : "bg-background",
                 )}
               />
               <div className="min-w-0 flex-1 space-y-0.5">
                 <div className="flex items-center justify-between gap-3">
-                  <span className="font-pixel text-[12px] uppercase tracking-[0.14em]">
+                  <span className="font-pixel text-[12px] tracking-[0.14em] uppercase">
                     {opt.label}
                   </span>
                   {opt.value === "default" && (
-                    <RotateCcw className="size-3.5 text-muted-foreground" />
+                    <RotateCcw className="text-muted-foreground size-3.5" />
                   )}
                 </div>
-                <p className="text-xs text-muted-foreground">{opt.sub}</p>
+                <p className="text-muted-foreground text-xs">{opt.sub}</p>
               </div>
             </button>
           );

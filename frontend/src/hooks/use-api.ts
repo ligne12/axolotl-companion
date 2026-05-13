@@ -11,10 +11,7 @@ export function useApi() {
   const token = session?.accessToken ?? null;
 
   return useCallback(
-    function call<T>(
-      path: string,
-      opts: Parameters<typeof apiFetch>[1] = {},
-    ): Promise<T> {
+    function call<T>(path: string, opts: Parameters<typeof apiFetch>[1] = {}): Promise<T> {
       return apiFetch<T>(path, { ...opts, token });
     },
     [token],

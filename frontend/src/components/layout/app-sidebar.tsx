@@ -1,7 +1,17 @@
 "use client";
 
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
-import { Check, Home, LogOut, MessageSquarePlus, Pencil, Search, Settings, Trash2, X } from "lucide-react";
+import {
+  Check,
+  Home,
+  LogOut,
+  MessageSquarePlus,
+  Pencil,
+  Search,
+  Settings,
+  Trash2,
+  X,
+} from "lucide-react";
 import { AnimatePresence, motion } from "motion/react";
 import { useTranslations } from "next-intl";
 import Link from "next/link";
@@ -59,8 +69,8 @@ function SessionRow({
       className={cn(
         "group flex items-center gap-2 rounded-md px-2.5 py-1.5 text-sm transition-colors",
         active
-          ? "border-2 border-border bg-card text-foreground shadow-[2px_2px_0_0_var(--lime)]"
-          : "border-2 border-transparent hover:border-border/40 hover:bg-card/60",
+          ? "border-border bg-card text-foreground border-2 shadow-[2px_2px_0_0_var(--lime)]"
+          : "hover:border-border/40 hover:bg-card/60 border-2 border-transparent",
       )}
     >
       {editing ? (
@@ -78,7 +88,7 @@ function SessionRow({
             }}
             onBlur={() => void save()}
             maxLength={200}
-            className="flex-1 min-w-0 rounded-sm border-2 border-border bg-background px-1 text-sm outline-none focus:shadow-[2px_2px_0_0_var(--lime)]"
+            className="border-border bg-background min-w-0 flex-1 rounded-sm border-2 px-1 text-sm outline-none focus:shadow-[2px_2px_0_0_var(--lime)]"
           />
           <button
             type="button"
@@ -120,7 +130,7 @@ function SessionRow({
           <button
             type="button"
             aria-label={tc("rename")}
-            className="opacity-0 transition group-hover:opacity-100 hover:text-foreground"
+            className="hover:text-foreground opacity-0 transition group-hover:opacity-100"
             onClick={(e) => {
               e.preventDefault();
               setEditing(true);
@@ -131,7 +141,7 @@ function SessionRow({
           <button
             type="button"
             aria-label={tc("delete")}
-            className="opacity-0 transition group-hover:opacity-100 hover:text-destructive"
+            className="hover:text-destructive opacity-0 transition group-hover:opacity-100"
             onClick={(e) => {
               e.preventDefault();
               setConfirmOpen(true);
@@ -170,9 +180,7 @@ export function AppSidebar() {
       const target = e.target as HTMLElement | null;
       const typing =
         target &&
-        (target.tagName === "INPUT" ||
-          target.tagName === "TEXTAREA" ||
-          target.isContentEditable);
+        (target.tagName === "INPUT" || target.tagName === "TEXTAREA" || target.isContentEditable);
       if (e.key === "/" && !typing) {
         e.preventDefault();
         filterRef.current?.focus();
@@ -237,12 +245,14 @@ export function AppSidebar() {
   });
 
   return (
-    <aside className="flex h-dvh w-64 flex-col border-r-2 border-border bg-background">
+    <aside className="border-border bg-background flex h-dvh w-64 flex-col border-r-2">
       <Link
         href="/home"
-        className="flex items-center gap-2 border-b-2 border-border px-4 py-3 transition hover:bg-card"
+        className="border-border hover:bg-card flex items-center gap-2 border-b-2 px-4 py-3 transition"
       >
-        <span aria-hidden className="text-xl">🪷</span>
+        <span aria-hidden className="text-xl">
+          🪷
+        </span>
         <span className="font-display text-lg font-bold">Axolotl</span>
       </Link>
 
@@ -252,7 +262,7 @@ export function AppSidebar() {
           onClick={() => createSession.mutate()}
           disabled={createSession.isPending}
           className={cn(
-            "flex w-full items-center justify-center gap-2 border-2 border-border bg-primary px-3 py-2 text-sm font-semibold text-primary-foreground",
+            "border-border bg-primary text-primary-foreground flex w-full items-center justify-center gap-2 border-2 px-3 py-2 text-sm font-semibold",
             "shadow-[3px_3px_0_0_var(--lime)] transition-[transform,box-shadow] duration-100",
             "hover:-translate-x-[1px] hover:-translate-y-[1px] hover:shadow-[4px_4px_0_0_var(--lime)]",
             "active:translate-x-[1px] active:translate-y-[1px] active:shadow-[1px_1px_0_0_var(--lime)]",
@@ -266,18 +276,18 @@ export function AppSidebar() {
       {/* Filter input */}
       <div className="px-3 pb-2">
         <div className="relative">
-          <Search className="pointer-events-none absolute left-2 top-1/2 size-3.5 -translate-y-1/2 text-muted-foreground" />
+          <Search className="text-muted-foreground pointer-events-none absolute top-1/2 left-2 size-3.5 -translate-y-1/2" />
           <input
             ref={filterRef}
             value={filter}
             onChange={(e) => setFilter(e.target.value)}
             placeholder={t("filterPlaceholder")}
-            className="h-8 w-full border-2 border-border bg-card pl-7 pr-8 text-[13px] outline-none transition-[box-shadow] duration-100 focus:shadow-[3px_3px_0_0_var(--lime)] placeholder:text-muted-foreground"
+            className="border-border bg-card placeholder:text-muted-foreground h-8 w-full border-2 pr-8 pl-7 text-[13px] transition-[box-shadow] duration-100 outline-none focus:shadow-[3px_3px_0_0_var(--lime)]"
             aria-label={t("filterLabel")}
           />
           <span
             aria-hidden
-            className="pointer-events-none absolute right-1.5 top-1/2 -translate-y-1/2 border border-border/40 bg-background px-1 py-0.5 font-pixel text-[9px] uppercase tracking-widest text-muted-foreground"
+            className="border-border/40 bg-background font-pixel text-muted-foreground pointer-events-none absolute top-1/2 right-1.5 -translate-y-1/2 border px-1 py-0.5 text-[9px] tracking-widest uppercase"
           >
             /
           </span>
@@ -288,46 +298,42 @@ export function AppSidebar() {
         {(() => {
           const all = sessionsQuery.data ?? [];
           const q = filter.trim().toLowerCase();
-          const filtered = q
-            ? all.filter((s) => s.title.toLowerCase().includes(q))
-            : all;
+          const filtered = q ? all.filter((s) => s.title.toLowerCase().includes(q)) : all;
           return (
             <>
               <ul className="space-y-1 pb-2">
                 <AnimatePresence initial={false}>
                   {filtered.map((s, i) => (
-              <motion.div
-                key={s.id}
-                layout
-                initial={{ opacity: 0, y: -4 }}
-                animate={{ opacity: 1, y: 0 }}
-                exit={{ opacity: 0, y: -4 }}
-                transition={{ duration: 0.18, delay: Math.min(i, 8) * 0.025 }}
-              >
-                <SessionRow
-                  session={s}
-                  active={pathname === `/chat/${s.id}`}
-                  onDelete={(id) => deleteSession.mutate(id)}
-                  onRename={async (id, title) => {
-                    await renameSession.mutateAsync({ id, title });
-                  }}
-                />
-              </motion.div>
-            ))}
-          </AnimatePresence>
+                    <motion.div
+                      key={s.id}
+                      layout
+                      initial={{ opacity: 0, y: -4 }}
+                      animate={{ opacity: 1, y: 0 }}
+                      exit={{ opacity: 0, y: -4 }}
+                      transition={{ duration: 0.18, delay: Math.min(i, 8) * 0.025 }}
+                    >
+                      <SessionRow
+                        session={s}
+                        active={pathname === `/chat/${s.id}`}
+                        onDelete={(id) => deleteSession.mutate(id)}
+                        onRename={async (id, title) => {
+                          await renameSession.mutateAsync({ id, title });
+                        }}
+                      />
+                    </motion.div>
+                  ))}
+                </AnimatePresence>
               </ul>
               {all.length === 0 && (
-                <p className="px-2 py-3 text-xs text-muted-foreground">
-                  {t("noConversations")}
-                </p>
+                <p className="text-muted-foreground px-2 py-3 text-xs">{t("noConversations")}</p>
               )}
               {q && filtered.length === 0 && all.length > 0 && (
-                <p className="px-2 py-3 font-pixel text-[11px] uppercase tracking-wider text-muted-foreground">
+                <p className="font-pixel text-muted-foreground px-2 py-3 text-[11px] tracking-wider uppercase">
                   {t("noMatch", { query: filter })}
                 </p>
               )}
               {q && filtered.length > 0 && (
-                <p className="px-2 pb-3 font-mono text-[10px] tabular-nums text-muted-foreground">
+                <p className="text-muted-foreground px-2 pb-3 font-mono text-[10px] tabular-nums">
                   {filtered.length} / {all.length}
                 </p>
               )}
@@ -336,14 +342,14 @@ export function AppSidebar() {
         })()}
       </div>
 
-      <div className="space-y-1 border-t-2 border-border p-3">
+      <div className="border-border space-y-1 border-t-2 p-3">
         <Link
           href="/home"
           className={cn(
             "flex items-center gap-2 rounded-md border-2 px-2 py-1.5 text-sm transition-colors",
             pathname === "/home"
               ? "border-border bg-card shadow-[2px_2px_0_0_var(--lime)]"
-              : "border-transparent hover:border-border/40 hover:bg-card/60",
+              : "hover:border-border/40 hover:bg-card/60 border-transparent",
           )}
         >
           <Home className="size-4" /> {t("home")}
@@ -354,7 +360,7 @@ export function AppSidebar() {
             "flex items-center gap-2 rounded-md border-2 px-2 py-1.5 text-sm transition-colors",
             pathname.startsWith("/settings")
               ? "border-border bg-card shadow-[2px_2px_0_0_var(--lime)]"
-              : "border-transparent hover:border-border/40 hover:bg-card/60",
+              : "hover:border-border/40 hover:bg-card/60 border-transparent",
           )}
         >
           <Settings className="size-4" /> {t("settings")}
@@ -364,11 +370,11 @@ export function AppSidebar() {
           <LocaleSwitcher />
         </div>
         <div className="flex items-center justify-between px-2 py-1.5 text-sm">
-          <span className="truncate text-muted-foreground">{user?.user?.name}</span>
+          <span className="text-muted-foreground truncate">{user?.user?.name}</span>
           <button
             type="button"
             onClick={() => signOut({ callbackUrl: "/login" })}
-            className="text-muted-foreground transition hover:text-foreground"
+            className="text-muted-foreground hover:text-foreground transition"
             aria-label={t("signOut")}
           >
             <LogOut className="size-4" />

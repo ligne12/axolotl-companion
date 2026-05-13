@@ -1,5 +1,5 @@
 // @ts-nocheck -- vendored React Bits component
-import { useCallback, useEffect, useMemo, useRef } from 'react';
+import { useCallback, useEffect, useMemo, useRef } from "react";
 import {
   Color,
   Mesh,
@@ -9,8 +9,8 @@ import {
   ShaderMaterial,
   Vector2,
   Vector3,
-  WebGLRenderer
-} from 'three';
+  WebGLRenderer,
+} from "three";
 
 const vertexShader = `
 void main() {
@@ -81,7 +81,7 @@ void main() {
   float invPixelRes = 1.0 / uPixelResolution;
   float pixelSize = max(1.0, floor(0.5 + uResolution.x * invPixelRes));
   float invPixelSize = 1.0 / pixelSize;
-  
+
   vec2 fragCoord = floor(gl_FragCoord.xy * invPixelSize);
   vec2 res = uResolution * invPixelSize;
   float invResX = 1.0 / res.x;
@@ -113,14 +113,14 @@ void main() {
   float t = 0.0;
   for (int i = 0; i < 128; i++) {
     if (t >= uFarPlane) break;
-    
+
     vec3 fpos = floor(pos);
     uint cellCoord = coord3(fpos);
     float cellHash = hash3(cellCoord).x;
 
     if (cellHash < uDensity) {
       vec3 h = hash3(cellCoord);
-      
+
       // Optimized flake position calculation
       vec3 sinArg1 = fpos.yzx * 0.073;
       vec3 sinArg2 = fpos.zxy * 0.27;
@@ -128,16 +128,16 @@ void main() {
       flakePos = flakePos * 0.8 + 0.1 + fpos;
 
       float toIntersection = dot(flakePos - pos, camK) * invRayDotCamK;
-      
+
       if (toIntersection > 0.0) {
         vec3 testPos = pos + ray * toIntersection - flakePos;
         float testX = dot(testPos, camI);
         float testY = dot(testPos, camJ);
         vec2 testUV = abs(vec2(testX, testY));
-        
+
         float depth = dot(flakePos - camPos, camK);
         float flakeSize = max(uFlakeSize, uMinFlakeSize * depth * halfInvResX);
-        
+
         // Avoid branching with step functions where possible
         float dist;
         if (uVariant < 0.5) {
@@ -181,14 +181,14 @@ interface PixelSnowProps {
   brightness?: number;
   gamma?: number;
   density?: number;
-  variant?: 'square' | 'round' | 'snowflake';
+  variant?: "square" | "round" | "snowflake";
   direction?: number;
   className?: string;
   style?: React.CSSProperties;
 }
 
 export default function PixelSnow({
-  color = '#ffffff',
+  color = "#ffffff",
   flakeSize = 0.01,
   minFlakeSize = 1.25,
   pixelResolution = 200,
@@ -198,10 +198,10 @@ export default function PixelSnow({
   brightness = 1,
   gamma = 0.4545,
   density = 0.3,
-  variant = 'square',
+  variant = "square",
   direction = 125,
-  className = '',
-  style = {}
+  className = "",
+  style = {},
 }: PixelSnowProps) {
   const containerRef = useRef<HTMLDivElement>(null);
   const animationRef = useRef<number>(0);
@@ -212,7 +212,7 @@ export default function PixelSnow({
 
   // Memoize shader variant value
   const variantValue = useMemo(() => {
-    return variant === 'round' ? 1.0 : variant === 'snowflake' ? 2.0 : 0.0;
+    return variant === "round" ? 1.0 : variant === "snowflake" ? 2.0 : 0.0;
   }, [variant]);
 
   // Memoize color conversion
@@ -248,7 +248,7 @@ export default function PixelSnow({
       ([entry]) => {
         isVisibleRef.current = entry.isIntersecting;
       },
-      { threshold: 0 }
+      { threshold: 0 },
     );
 
     observer.observe(container);
@@ -266,9 +266,9 @@ export default function PixelSnow({
       antialias: false,
       alpha: true,
       premultipliedAlpha: false,
-      powerPreference: 'high-performance',
+      powerPreference: "high-performance",
       stencil: false,
-      depth: false
+      depth: false,
     });
 
     renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2));
@@ -294,16 +294,16 @@ export default function PixelSnow({
         uGamma: { value: gamma },
         uDensity: { value: density },
         uVariant: { value: variantValue },
-        uDirection: { value: (direction * Math.PI) / 180 }
+        uDirection: { value: (direction * Math.PI) / 180 },
       },
-      transparent: true
+      transparent: true,
     });
     materialRef.current = material;
 
     const geometry = new PlaneGeometry(2, 2);
     scene.add(new Mesh(geometry, material));
 
-    window.addEventListener('resize', handleResize);
+    window.addEventListener("resize", handleResize);
 
     const startTime = performance.now();
     const animate = () => {
@@ -319,7 +319,7 @@ export default function PixelSnow({
 
     return () => {
       cancelAnimationFrame(animationRef.current);
-      window.removeEventListener('resize', handleResize);
+      window.removeEventListener("resize", handleResize);
       if (resizeTimeoutRef.current) {
         clearTimeout(resizeTimeoutRef.current);
       }
@@ -364,13 +364,13 @@ export default function PixelSnow({
     density,
     variantValue,
     direction,
-    colorVector
+    colorVector,
   ]);
 
   return (
     <div
       ref={containerRef}
-      className={`absolute inset-0 w-full h-full transform-gpu will-change-transform backface-hidden ${className}`}
+      className={`absolute inset-0 h-full w-full transform-gpu will-change-transform backface-hidden ${className}`}
       style={style}
     />
   );

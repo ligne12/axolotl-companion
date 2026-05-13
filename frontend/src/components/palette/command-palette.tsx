@@ -84,15 +84,15 @@ export function CommandPalette({
   return (
     <Dialog.Root open={open} onOpenChange={onOpenChange}>
       <Dialog.Portal>
-        <Dialog.Overlay className="fixed inset-0 z-40 bg-black/55 data-[state=open]:animate-[axo-fade-in_200ms_ease-out] data-[state=closed]:animate-[axo-fade-out_180ms_ease-in]" />
+        <Dialog.Overlay className="fixed inset-0 z-40 bg-black/55 data-[state=closed]:animate-[axo-fade-out_180ms_ease-in] data-[state=open]:animate-[axo-fade-in_200ms_ease-out]" />
         <Dialog.Content
           aria-describedby={undefined}
           className={cn(
             // Shift right by half the sidebar width on desktop so the palette
             // sits in the optical centre of the main column, not the viewport.
-            "fixed left-1/2 md:left-[calc(50%+8rem)] top-[22%] z-50 -translate-x-1/2",
+            "fixed top-[22%] left-1/2 z-50 -translate-x-1/2 md:left-[calc(50%+8rem)]",
             "w-[min(92vw,34rem)]",
-            "overflow-hidden border-2 border-border bg-card rounded-xl",
+            "border-border bg-card overflow-hidden rounded-xl border-2",
             "shadow-[4px_4px_0_0_var(--border)]",
             "focus:outline-none",
             "data-[state=open]:animate-[axo-fade-in_200ms_ease-out]",
@@ -109,16 +109,16 @@ export function CommandPalette({
           >
             <Command.Input
               placeholder="Search sessions or run a command…"
-              className="h-11 w-full border-b-2 border-border bg-card px-4 text-sm outline-none placeholder:text-muted-foreground"
+              className="border-border bg-card placeholder:text-muted-foreground h-11 w-full border-b-2 px-4 text-sm outline-none"
             />
             <Command.List className="max-h-[60vh] overflow-y-auto py-1">
-              <Command.Empty className="px-4 py-6 text-center font-pixel text-[11px] uppercase tracking-wider text-muted-foreground">
+              <Command.Empty className="font-pixel text-muted-foreground px-4 py-6 text-center text-[11px] tracking-wider uppercase">
                 No match
               </Command.Empty>
 
               <Command.Group
                 heading="Actions"
-                className="[&_[cmdk-group-heading]]:px-4 [&_[cmdk-group-heading]]:pb-1 [&_[cmdk-group-heading]]:pt-3 [&_[cmdk-group-heading]]:font-pixel [&_[cmdk-group-heading]]:text-[10px] [&_[cmdk-group-heading]]:uppercase [&_[cmdk-group-heading]]:tracking-[0.14em] [&_[cmdk-group-heading]]:text-muted-foreground"
+                className="[&_[cmdk-group-heading]]:font-pixel [&_[cmdk-group-heading]]:text-muted-foreground [&_[cmdk-group-heading]]:px-4 [&_[cmdk-group-heading]]:pt-3 [&_[cmdk-group-heading]]:pb-1 [&_[cmdk-group-heading]]:text-[10px] [&_[cmdk-group-heading]]:tracking-[0.14em] [&_[cmdk-group-heading]]:uppercase"
               >
                 <PaletteItem
                   icon={MessageSquarePlus}
@@ -160,7 +160,7 @@ export function CommandPalette({
               {personasQuery.data && personasQuery.data.length > 0 && (
                 <Command.Group
                   heading="Start as persona"
-                  className="[&_[cmdk-group-heading]]:px-4 [&_[cmdk-group-heading]]:pb-1 [&_[cmdk-group-heading]]:pt-3 [&_[cmdk-group-heading]]:font-pixel [&_[cmdk-group-heading]]:text-[10px] [&_[cmdk-group-heading]]:uppercase [&_[cmdk-group-heading]]:tracking-[0.14em] [&_[cmdk-group-heading]]:text-muted-foreground"
+                  className="[&_[cmdk-group-heading]]:font-pixel [&_[cmdk-group-heading]]:text-muted-foreground [&_[cmdk-group-heading]]:px-4 [&_[cmdk-group-heading]]:pt-3 [&_[cmdk-group-heading]]:pb-1 [&_[cmdk-group-heading]]:text-[10px] [&_[cmdk-group-heading]]:tracking-[0.14em] [&_[cmdk-group-heading]]:uppercase"
                 >
                   {personasQuery.data.map((p) => (
                     <PaletteItem
@@ -177,7 +177,7 @@ export function CommandPalette({
               {sessionsQuery.data && sessionsQuery.data.length > 0 && (
                 <Command.Group
                   heading="Sessions"
-                  className="[&_[cmdk-group-heading]]:px-4 [&_[cmdk-group-heading]]:pb-1 [&_[cmdk-group-heading]]:pt-3 [&_[cmdk-group-heading]]:font-pixel [&_[cmdk-group-heading]]:text-[10px] [&_[cmdk-group-heading]]:uppercase [&_[cmdk-group-heading]]:tracking-[0.14em] [&_[cmdk-group-heading]]:text-muted-foreground"
+                  className="[&_[cmdk-group-heading]]:font-pixel [&_[cmdk-group-heading]]:text-muted-foreground [&_[cmdk-group-heading]]:px-4 [&_[cmdk-group-heading]]:pt-3 [&_[cmdk-group-heading]]:pb-1 [&_[cmdk-group-heading]]:text-[10px] [&_[cmdk-group-heading]]:tracking-[0.14em] [&_[cmdk-group-heading]]:uppercase"
                 >
                   {sessionsQuery.data.map((s) => (
                     <PaletteItem
@@ -220,7 +220,7 @@ function PaletteItem({
       <Icon className="size-4 shrink-0" />
       <span className="flex-1 truncate">{label}</span>
       {shortcut && (
-        <span className="font-pixel text-[10px] uppercase tracking-widest text-muted-foreground group-data-[selected=true]:text-[color:var(--lime-foreground)]/80">
+        <span className="font-pixel text-muted-foreground text-[10px] tracking-widest uppercase group-data-[selected=true]:text-[color:var(--lime-foreground)]/80">
           {shortcut}
         </span>
       )}
