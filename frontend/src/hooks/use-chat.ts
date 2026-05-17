@@ -66,6 +66,15 @@ export function useChat(
   const setStoreTps = useChatStatus((s) => s.setTokensPerSec);
   const setStoreTool = useChatStatus((s) => s.setCurrentTool);
   const flagStoreError = useChatStatus((s) => s.flagError);
+  const bumpEnergy = useChatStatus((s) => s.bumpEnergy);
+  const resetStatus = useChatStatus((s) => s.reset);
+
+  // Switching to a different conversation should not carry the
+  // previous chat's vibe — reset energy + transient state on mount /
+  // session change. ``mascotHidden`` is preserved (the user's call).
+  useEffect(() => {
+    resetStatus();
+  }, [sessionId, resetStatus]);
   useEffect(() => {
     setStoreSending(isSending);
     if (!isSending) {
@@ -277,6 +286,7 @@ export function useChat(
               clearInterval(tickRef.current);
               tickRef.current = null;
             }
+            bumpEnergy(+1);
             setStreaming(null);
             return;
           }
@@ -284,6 +294,7 @@ export function useChat(
             const d = data as { message: string };
             setError(d.message);
             flagStoreError();
+            bumpEnergy(-2);
             setStreaming(null);
           }
         };
@@ -315,6 +326,7 @@ export function useChat(
         if ((err as { name?: string }).name !== "AbortError") {
           setError((err as Error).message);
           flagStoreError();
+          bumpEnergy(-2);
         }
       } finally {
         if (tickRef.current) {
@@ -326,7 +338,7 @@ export function useChat(
         controllerRef.current = null;
       }
     },
-    [sessionId, token, setStoreTool, flagStoreError],
+    [sessionId, token, setStoreTool, flagStoreError, bumpEnergy],
   );
 
   const regenerate = useCallback(async () => {
