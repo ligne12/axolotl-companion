@@ -22,9 +22,9 @@ from urllib.parse import urlparse
 
 import httpx
 import structlog
-from lxml import etree  # type: ignore[import-untyped]
-from lxml import html as lxml_html  # type: ignore[import-untyped]
-from readability import Document  # type: ignore[import-untyped]
+from lxml import etree
+from lxml import html as lxml_html
+from readability import Document
 
 from axolotl.llm.tools.base import Tool
 
