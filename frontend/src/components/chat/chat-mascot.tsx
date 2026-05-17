@@ -32,8 +32,8 @@ const LONG_PRESS_MS = 500;
 
 /** Edge of the inner canvas in px for each size mode. The outer button
  *  wraps with 4 px of padding, so the tile itself is +8 px on each axis. */
-const SMALL_PX = 56;
-const LARGE_PX = 104;
+const SMALL_PX = 84;
+const LARGE_PX = 168;
 
 /**
  * Small persistent mascot pinned next to the chat composer. Reads
@@ -102,10 +102,11 @@ export function ChatMascot() {
       aria-label={t("toggleSizeHint")}
       title={t("toggleSizeHint")}
       animate={{ width: tileEdge, height: tileEdge }}
-      // Slight bounce on resize — spring overshoots by ~5 % before
-      // settling. Mass + damping tuned so the rebound is felt but
-      // never jittery.
-      transition={{ type: "spring", stiffness: 320, damping: 18, mass: 0.7 }}
+      // Smoother spring — lower stiffness + higher damping so the
+      // tile glides through the resize with a gentle overshoot
+      // instead of snapping. Mass adds inertia for the "weighty"
+      // feel.
+      transition={{ type: "spring", stiffness: 180, damping: 20, mass: 1.1 }}
       className="border-border bg-card flex shrink-0 items-center justify-center rounded-xl border-2 p-1 shadow-[3px_3px_0_0_var(--border)] hover:shadow-[4px_4px_0_0_var(--border)]"
     >
       <Axolotl3D mood={mood} size={px} className="!h-full !w-full" />

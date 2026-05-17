@@ -4,7 +4,6 @@ import { Send, SlidersHorizontal, Square } from "lucide-react";
 import { useTranslations } from "next-intl";
 import { useRef, useState } from "react";
 
-import { ChatMascot } from "@/components/chat/chat-mascot";
 import { useHaptic } from "@/hooks/use-haptic";
 import { cn } from "@/lib/utils";
 
@@ -44,8 +43,7 @@ export function ChatInput({
     // bottom-of-shell separator. Extra bottom padding lifts the input
     // away from the footer's LOCAL line.
     <div className="px-3 pt-3 pb-8">
-      <div className="mx-auto flex max-w-3xl flex-col items-stretch gap-2 md:flex-row md:items-end">
-        <ChatMascot />
+      <div className="mx-auto flex max-w-3xl items-end gap-2">
         {onOpenControls && (
           <button
             type="button"

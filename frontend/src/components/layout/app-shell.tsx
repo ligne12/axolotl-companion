@@ -12,8 +12,12 @@ import { KeyboardShortcutsProvider } from "@/components/providers/keyboard-short
 import { Button } from "@/components/ui/button";
 import { cn } from "@/lib/utils";
 
-const SIDEBAR_COLLAPSED_PX = 28;
+// Fully hidden by default — a separate 4 px lime strip on the
+// viewport's left edge provides the hover affordance.
+const SIDEBAR_COLLAPSED_PX = 0;
 const SIDEBAR_EXPANDED_PX = 256;
+/** Width of the lime hover-trigger strip when the sidebar is hidden. */
+const HOVER_TRIGGER_PX = 8;
 
 /**
  * Match-media listener exposed as a React state. Server-renders to
@@ -71,33 +75,36 @@ export function AppShell({ children }: { children: React.ReactNode }) {
           />
         )}
 
-        {/* Sidebar wrapper — single rendered tree, animated width/x. */}
+        {/* Sidebar wrapper — single rendered tree, animated width/x.
+            Floats above the main content on desktop so the chat
+            doesn't reflow when the panel slides in / out. */}
         <motion.div
-          className={cn(
-            "fixed inset-y-0 left-0 z-40 h-dvh overflow-hidden md:relative md:inset-y-auto md:left-auto",
-          )}
+          className={cn("fixed inset-y-0 left-0 z-40 h-dvh overflow-hidden md:absolute")}
           animate={{ width: sidebarWidth, x: sidebarX }}
           initial={false}
           transition={transition}
           onMouseEnter={() => desktop && setHovered(true)}
           onMouseLeave={() => desktop && setHovered(false)}
         >
-          {/* Inner column stays at full width so AppSidebar renders
-              normally; the parent's overflow:hidden + animated width
-              do the reveal. */}
           <div className="h-full w-64">
             <AppSidebar />
           </div>
         </motion.div>
 
-        {/* Collapsed peek — a thin lime strip on the far left when
-            the desktop sidebar is hidden, gives the user a target to
-            hover. Hidden on mobile (the hamburger does that job)
-            and once the sidebar is expanded. */}
+        {/* Hover-trigger strip — only desktop, only when the sidebar
+            is collapsed. A faint lime band on the leftmost edge that
+            grows the cursor's hover target wide enough to mouse into
+            comfortably without showing visible UI when not needed. */}
         {desktop && !hovered && (
           <div
             aria-hidden
-            className="pointer-events-none absolute inset-y-0 left-0 z-30 hidden w-px bg-[color:var(--lime)]/60 md:block"
+            onMouseEnter={() => setHovered(true)}
+            className="absolute inset-y-0 left-0 z-30 hidden md:block"
+            style={{
+              width: HOVER_TRIGGER_PX,
+              background:
+                "linear-gradient(to right, color-mix(in srgb, var(--lime) 55%, transparent) 0%, transparent 100%)",
+            }}
           />
         )}
 
