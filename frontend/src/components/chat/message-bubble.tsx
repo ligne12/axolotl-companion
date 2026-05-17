@@ -4,7 +4,6 @@ import { Check, Copy, Pin, Plug, RotateCw, Search, Wrench } from "lucide-react";
 import { useTranslations } from "next-intl";
 import { useState } from "react";
 
-import { deriveMessageMood, MoodGlyph } from "@/components/chat/mood-glyph";
 import { PinDialog } from "@/components/chat/pin-dialog";
 import DecryptedText from "@/components/reactbits/decrypted-text";
 import { Button } from "@/components/ui/button";
@@ -316,7 +315,6 @@ export function MessageBubble({
   const timings = message.metadata?.timings;
   const reasoningMs = timings?.reasoning_ms ?? undefined;
   const totalMs = timings?.total_ms ?? timings?.round_ms ?? undefined;
-  const mood = deriveMessageMood(message);
 
   if (message.role === "tool") return null;
 
@@ -389,7 +387,6 @@ export function MessageBubble({
 
         {(message.content || typeof totalMs === "number") && (
           <div className="mt-1 flex w-full items-center gap-1">
-            {mood && <MoodGlyph mood={mood} />}
             {message.content && (
               <div className="flex gap-1 opacity-0 transition-opacity group-hover:opacity-100">
                 <Button variant="ghost" size="sm" className="h-7 px-2" onClick={copy}>
