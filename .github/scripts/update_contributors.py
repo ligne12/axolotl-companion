@@ -146,11 +146,12 @@ def render(contributors: list[tuple[str, str]]) -> str:
 def main() -> int:
     text = README.read_text(encoding="utf-8")
     if START not in text or END not in text:
-        print(
-            f"README markers not found: place {START!r} and {END!r} where you want the table rendered.",
-            file=sys.stderr,
-        )
-        return 1
+        # Markers absent = the Contributors section is intentionally
+        # disabled. Exit cleanly so the workflow doesn't fail on every
+        # push to main; re-add the markers in README to bring the
+        # table back.
+        print(f"README markers absent ({START!r} / {END!r}) — nothing to render.")
+        return 0
 
     contributors = gather()
     if not contributors:
