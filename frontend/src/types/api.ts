@@ -92,29 +92,11 @@ export interface SessionDetail extends SessionPublic {
 }
 
 // -----------------------------------------------------------------------------
-// Pins — hand-written until the next ``make gen-api-types`` run picks them
-// up from the OpenAPI schema. Shape matches ``backend/src/axolotl/schemas/pin.py``.
+// Pins — sourced from the regenerated OpenAPI schema.
 // -----------------------------------------------------------------------------
-export interface PinPublic {
-  id: number;
-  title: string;
-  position: number;
-  created_at: string;
-  message_id: string; // UUID
-  session_id: string; // UUID
-  role: MessageRole;
-  excerpt: string;
-}
-
-export interface PinCreate {
-  message_id: string;
-  title: string;
-}
-
-export interface PinUpdate {
-  title?: string;
-  position?: number;
-}
+export type PinPublic = components["schemas"]["PinPublic"];
+export type PinCreate = components["schemas"]["PinCreate"];
+export type PinUpdate = components["schemas"]["PinUpdate"];
 
 // -----------------------------------------------------------------------------
 // SSE chat stream — protocol lives outside OpenAPI, described by hand
