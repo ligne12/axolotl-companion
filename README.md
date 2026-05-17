@@ -267,6 +267,20 @@ non-binding, each entry sized as a standalone slice:
 - **Conversation branching, persona evolution, export / import** —
   smaller items, see `plan.md`.
 
+## 👥 Contributors
+
+The table below is refreshed automatically by
+[`.github/workflows/contributors.yml`](.github/workflows/contributors.yml)
+from the git log — direct authors **and** ``Co-Authored-By`` trailers
+on merge commits. Anyone who shows up has touched a commit that landed
+on `main`.
+
+<!-- CONTRIBUTORS:START -->
+<table>
+  <tr><td align="center" width="120"><a href="https://github.com/ligne12"><img src="https://github.com/ligne12.png?size=80" width="80" height="80" alt="ligne12" style="border-radius: 50%" /></a><br /><sub><b>ligne12</b></sub></td></tr>
+</table>
+<!-- CONTRIBUTORS:END -->
+
 ## 📄 License
 
 MIT — see [LICENSE](LICENSE).
