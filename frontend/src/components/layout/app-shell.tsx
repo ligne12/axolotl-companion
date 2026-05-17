@@ -1,18 +1,19 @@
 "use client";
 
-import { Menu, X } from "lucide-react";
-import { AnimatePresence, motion, useReducedMotion } from "motion/react";
+import { ChevronLeft, ChevronRight, Menu, X } from "lucide-react";
+import { motion, useReducedMotion } from "motion/react";
 import { usePathname } from "next/navigation";
 import { useEffect, useState } from "react";
 
 import { AppSidebar } from "@/components/layout/app-sidebar";
 import { LotusLogo } from "@/components/layout/lotus-logo";
-import { SidebarRail } from "@/components/layout/sidebar-rail";
 import { TerminalBar } from "@/components/layout/terminal-bar";
 import { KeyboardShortcutsProvider } from "@/components/providers/keyboard-shortcuts";
 import { Button } from "@/components/ui/button";
+import { cn } from "@/lib/utils";
 
-const SIDEBAR_PANEL_PX = 256;
+const SIDEBAR_COLLAPSED_PX = 56;
+const SIDEBAR_EXPANDED_PX = 256;
 
 /**
  * Match-media listener exposed as a React state. Server-renders to
@@ -34,7 +35,7 @@ function useIsDesktop(): boolean {
 
 export function AppShell({ children }: { children: React.ReactNode }) {
   const [drawerOpen, setDrawerOpen] = useState(false);
-  const [panelOpen, setPanelOpen] = useState(false);
+  const [expanded, setExpanded] = useState(false);
   const pathname = usePathname();
   const desktop = useIsDesktop();
   const reduceMotion = useReducedMotion();
@@ -42,22 +43,29 @@ export function AppShell({ children }: { children: React.ReactNode }) {
   // close the mobile drawer + desktop panel whenever the route changes
   useEffect(() => {
     setDrawerOpen(false);
-    setPanelOpen(false);
+    setExpanded(false);
   }, [pathname]);
 
-  // The rail's Search icon (and any future call site) dispatch this
-  // event to toggle the panel — click-driven, no hover involvement.
+  // Any sub-component (e.g. the Search button inside the sidebar) can
+  // dispatch this event to toggle the expanded state — click-driven,
+  // no hover involvement.
   useEffect(() => {
     if (!desktop) return;
-    const onToggle = () => setPanelOpen((v) => !v);
+    const onToggle = () => setExpanded((v) => !v);
     window.addEventListener("sidebar:toggle", onToggle);
     return () => window.removeEventListener("sidebar:toggle", onToggle);
   }, [desktop]);
 
-  // Slight overshoot on the slide-in, no spring when prefers-reduced-motion.
   const transition = reduceMotion
     ? { duration: 0 }
-    : { type: "spring" as const, stiffness: 280, damping: 24, mass: 0.6 };
+    : { type: "spring" as const, stiffness: 280, damping: 28, mass: 0.7 };
+
+  const sidebarWidth = desktop
+    ? expanded
+      ? SIDEBAR_EXPANDED_PX
+      : SIDEBAR_COLLAPSED_PX
+    : SIDEBAR_EXPANDED_PX;
+  const sidebarX = desktop ? 0 : drawerOpen ? 0 : -SIDEBAR_EXPANDED_PX;
 
   return (
     <KeyboardShortcutsProvider>
@@ -72,51 +80,54 @@ export function AppShell({ children }: { children: React.ReactNode }) {
           />
         )}
 
-        {/* Desktop : 56 px rail always visible. Click on the rail's
-            search icon toggles the full panel; no hover trigger. */}
-        {desktop && <SidebarRail />}
+        {/* Sidebar — single morphing tree. On desktop the wrapper width
+            animates 56 ↔ 256 and ``<AppSidebar>`` re-renders content
+            accordingly (icons stay anchored to the left, labels +
+            sessions list fade in / out). On mobile the wrapper is
+            fixed at 256 and slides off-screen via translateX. */}
+        <motion.aside
+          className={cn(
+            !desktop && "fixed inset-y-0 left-0 z-40",
+            "h-dvh shrink-0 overflow-hidden",
+          )}
+          animate={{ width: sidebarWidth, x: sidebarX }}
+          initial={false}
+          transition={transition}
+        >
+          <div className="h-full w-64">
+            <AppSidebar collapsed={desktop && !expanded} />
+          </div>
+        </motion.aside>
 
-        {/* Mobile drawer — full 256 px sidebar slides in via translateX. */}
-        {!desktop && (
-          <motion.div
-            className="fixed inset-y-0 left-0 z-40 h-dvh overflow-hidden"
-            animate={{ x: drawerOpen ? 0 : -SIDEBAR_PANEL_PX }}
-            initial={false}
-            transition={transition}
-          >
-            <div className="h-full w-64">
-              <AppSidebar />
-            </div>
-          </motion.div>
+        {/* Desktop click-away catcher. Only mounted while the sidebar
+            is expanded so the main content stays interactive when the
+            sidebar is in its collapsed rail mode. */}
+        {desktop && expanded && (
+          <button
+            type="button"
+            aria-label="Collapse sidebar"
+            onClick={() => setExpanded(false)}
+            className="absolute inset-0 z-20 cursor-default bg-transparent"
+            style={{ left: SIDEBAR_EXPANDED_PX }}
+          />
         )}
 
-        {/* Desktop click-to-open overlay : the full ``AppSidebar``
-            slides in from the rail's left edge. A transparent backdrop
-            catches clicks outside the panel and closes it. */}
-        <AnimatePresence>
-          {desktop && panelOpen && (
-            <>
-              <button
-                type="button"
-                aria-label="Close sidebar"
-                onClick={() => setPanelOpen(false)}
-                className="absolute inset-0 z-30 cursor-default bg-transparent"
-              />
-              <motion.div
-                key="sidebar-overlay"
-                className="absolute inset-y-0 left-0 z-40 h-dvh overflow-hidden"
-                initial={{ x: -SIDEBAR_PANEL_PX }}
-                animate={{ x: 0 }}
-                exit={{ x: -SIDEBAR_PANEL_PX }}
-                transition={transition}
-              >
-                <div className="h-full w-64">
-                  <AppSidebar />
-                </div>
-              </motion.div>
-            </>
-          )}
-        </AnimatePresence>
+        {/* Floating toggle handle on desktop — small chevron that
+            straddles the sidebar's right edge. Always visible so the
+            user has an unambiguous expand/collapse affordance besides
+            the Search icon. */}
+        {desktop && (
+          <button
+            type="button"
+            onClick={() => setExpanded((v) => !v)}
+            aria-label={expanded ? "Collapse sidebar" : "Expand sidebar"}
+            title={expanded ? "Collapse sidebar" : "Expand sidebar"}
+            className="border-border bg-card text-muted-foreground hover:text-foreground absolute top-1/2 z-40 inline-flex size-6 -translate-y-1/2 items-center justify-center rounded-full border-2 shadow-[2px_2px_0_0_var(--border)] transition-[left,box-shadow] duration-200 ease-out"
+            style={{ left: sidebarWidth - 12 }}
+          >
+            {expanded ? <ChevronLeft className="size-3" /> : <ChevronRight className="size-3" />}
+          </button>
+        )}
 
         <div className="flex min-w-0 flex-1 flex-col">
           {/* Mobile top bar with hamburger */}

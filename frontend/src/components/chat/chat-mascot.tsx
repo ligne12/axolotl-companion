@@ -24,27 +24,30 @@ const Axolotl3D = dynamic(
 
 const LONG_PRESS_MS = 500;
 
-/** Compact and expanded edge sizes in px for the Three.js canvas. We
- *  drive width/height (not ``scale``) so the GLB re-renders crisp at
- *  every size instead of stretching pixels. ``MOBILE_PX`` is the
- *  always-on size below the ``md`` breakpoint so the chibi never
- *  blows past the composer's row on small screens. */
+/** Three.js canvas resolution — fixed at the largest size we ever show.
+ *  The visible chibi is then scaled down with a CSS transform so the
+ *  GPU does the morphing instead of the renderer re-allocating buffers
+ *  on every animation frame (which was the source of the visible
+ *  stutter during the resize spring). */
+const CANVAS_PX = 160;
 const MOBILE_PX = 56;
 const SMALL_PX = 80;
 const LARGE_PX = 160;
 
 /**
- * Chibi mascot pinned next to the controls button. Reads ``useMood()``
- * so it cycles through the seven-state grammar (idle / listening /
- * thinking / searching / typing / happy / confused).
+ * Chibi mascot pinned next to the controls button.
  *
  * Two gestures :
- *  - **Click / tap** toggles ``mascotLarge`` on the chat-status store
- *    so other surfaces (``ChatInput``'s textarea row) can shrink to
- *    accommodate the larger chibi without it ever covering the
- *    composer.
+ *  - **Click / tap** toggles ``mascotLarge`` on the chat-status
+ *    store so ``ChatInput`` can shrink the composer row to make
+ *    room.
  *  - **Long-press** (~500 ms) hides the mascot for the rest of the
  *    browser session.
+ *
+ * The DOM box (a ``<motion.button>``) drives the flex layout; the
+ * inner Three.js canvas stays a fixed ``CANVAS_PX`` so we never
+ * re-allocate WebGL buffers mid-animation. A CSS ``scale``
+ * synchronised with the same spring smoothes the visual size.
  */
 export function ChatMascot() {
   const mood = useMood();
@@ -56,9 +59,6 @@ export function ChatMascot() {
   const timerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
   const longPressedRef = useRef(false);
 
-  // On mobile (< md), keep the chibi at its compact size always —
-  // the chat composer's row is too tight for the 80 → 160 swing to
-  // fit alongside controls + textarea + send.
   const [isDesktop, setIsDesktop] = useState(false);
   useEffect(() => {
     const mq = window.matchMedia("(min-width: 768px)");
@@ -97,11 +97,12 @@ export function ChatMascot() {
     longPressedRef.current = false;
   };
 
-  // Mobile clamps to ``MOBILE_PX``. Desktop honours the
-  // ``mascotLarge`` toggle.
   const edge = !isDesktop ? MOBILE_PX : large ? LARGE_PX : SMALL_PX;
-  // Outer button = canvas + 8 px padding (2 × 4).
+  // Tile = canvas + 8 px padding (4 each side).
   const tileEdge = edge + 8;
+  // CSS scale to fit the fixed-resolution canvas in the current tile.
+  const innerScale = edge / CANVAS_PX;
+  const spring = { type: "spring" as const, stiffness: 220, damping: 24, mass: 0.9 };
 
   return (
     <motion.button
@@ -113,18 +114,20 @@ export function ChatMascot() {
       onContextMenu={(e) => e.preventDefault()}
       aria-label={t("toggleSizeHint")}
       title={t("toggleSizeHint")}
-      // ``width/height`` instead of ``scale``: the inner Three.js
-      // canvas re-renders at the target resolution so the chibi stays
-      // crisp at every size. Sibling flex items (controls / textarea
-      // / send) automatically shrink because the row's gap eats the
-      // extra width — see ``ChatInput`` for the matching ``max-w``
-      // adjustment that keeps everything fitting on one line.
       animate={{ width: tileEdge, height: tileEdge }}
-      transition={{ type: "spring", stiffness: 220, damping: 22, mass: 0.9 }}
-      style={{ transformOrigin: "bottom left" }}
-      className="border-border bg-card relative z-30 flex shrink-0 items-center justify-center self-end rounded-xl border-2 p-1 shadow-[3px_3px_0_0_var(--border)] hover:shadow-[4px_4px_0_0_var(--border)]"
+      transition={spring}
+      className="border-border bg-card relative z-30 flex shrink-0 items-center justify-center self-end overflow-hidden rounded-xl border-2 shadow-[3px_3px_0_0_var(--border)] hover:shadow-[4px_4px_0_0_var(--border)]"
     >
-      <Axolotl3D mood={mood} size={edge} className="!h-full !w-full" />
+      {/* Inner canvas wrapper. The DOM rect stays ``CANVAS_PX``; only
+          the ``scale`` transform animates. Centered inside the tile
+          via flex on the parent. */}
+      <motion.div
+        animate={{ scale: innerScale }}
+        transition={spring}
+        style={{ width: CANVAS_PX, height: CANVAS_PX, transformOrigin: "center" }}
+      >
+        <Axolotl3D mood={mood} size={CANVAS_PX} className="!h-full !w-full" />
+      </motion.div>
     </motion.button>
   );
 }

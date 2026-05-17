@@ -165,7 +165,14 @@ function SessionRow({
   );
 }
 
-export function AppSidebar() {
+/**
+ * Single morphing sidebar — same component renders the icon-only rail
+ * (when ``collapsed``) and the full panel (when expanded). The outer
+ * width animation lives in ``AppShell``; this component swaps content
+ * via CSS opacity + a couple of conditional sub-renders so the two
+ * states share visual anchors (logo, icons stay in place).
+ */
+export function AppSidebar({ collapsed = false }: { collapsed?: boolean }) {
   const api = useApi();
   const router = useRouter();
   const pathname = usePathname();
@@ -246,13 +253,20 @@ export function AppSidebar() {
   });
 
   return (
-    <aside className="border-border bg-background flex h-dvh w-64 flex-col border-r-2">
+    <aside className="border-border bg-background flex h-dvh w-64 flex-col overflow-hidden border-r-2">
       <Link
         href="/home"
         className="border-border hover:bg-card flex items-center gap-2 border-b-2 px-4 py-3 transition"
       >
-        <LotusLogo className="size-7" />
-        <span className="font-display text-lg font-bold">Axolotl</span>
+        <LotusLogo className="size-7 shrink-0" />
+        <span
+          className={cn(
+            "font-display text-lg font-bold whitespace-nowrap transition-opacity duration-150",
+            collapsed && "opacity-0",
+          )}
+        >
+          Axolotl
+        </span>
       </Link>
 
       <div className="p-3">
@@ -261,19 +275,36 @@ export function AppSidebar() {
           onClick={() => createSession.mutate()}
           disabled={createSession.isPending}
           className={cn(
-            "border-border bg-primary text-primary-foreground flex w-full items-center justify-center gap-2 border-2 px-3 py-2 text-sm font-semibold",
+            "border-border bg-primary text-primary-foreground flex w-full items-center gap-2 border-2 px-3 py-2 text-sm font-semibold",
             "shadow-[3px_3px_0_0_var(--lime)] transition-[transform,box-shadow] duration-100",
             "hover:-translate-x-[1px] hover:-translate-y-[1px] hover:shadow-[4px_4px_0_0_var(--lime)]",
             "active:translate-x-[1px] active:translate-y-[1px] active:shadow-[1px_1px_0_0_var(--lime)]",
             "disabled:cursor-not-allowed disabled:opacity-60",
+            collapsed ? "justify-center" : "justify-center",
           )}
         >
-          <MessageSquarePlus className="size-4" /> {t("newChat")}
+          <MessageSquarePlus className="size-4 shrink-0" />
+          <span
+            className={cn(
+              "whitespace-nowrap transition-opacity duration-150",
+              collapsed && "hidden",
+            )}
+          >
+            {t("newChat")}
+          </span>
         </button>
       </div>
 
-      {/* Filter input */}
-      <div className="px-3 pb-2">
+      {/* Filter input — hidden when collapsed. ``overflow-hidden`` on
+          the outer ``<aside>`` plus a ``max-h: 0`` here lets the
+          rest of the layout collapse cleanly without leaving a
+          ghost gap. */}
+      <div
+        className={cn(
+          "overflow-hidden px-3 transition-[max-height,opacity,padding] duration-200",
+          collapsed ? "max-h-0 pb-0 opacity-0" : "max-h-16 pb-2 opacity-100",
+        )}
+      >
         <div className="relative">
           <Search className="text-muted-foreground pointer-events-none absolute top-1/2 left-2 size-3.5 -translate-y-1/2" />
           <input
@@ -293,7 +324,12 @@ export function AppSidebar() {
         </div>
       </div>
 
-      <div className="flex-1 overflow-y-auto px-3">
+      <div
+        className={cn(
+          "flex-1 overflow-y-auto px-3 transition-opacity duration-150",
+          collapsed && "pointer-events-none opacity-0",
+        )}
+      >
         {(() => {
           const all = sessionsQuery.data ?? [];
           const q = filter.trim().toLowerCase();
@@ -351,7 +387,8 @@ export function AppSidebar() {
               : "hover:border-border/40 hover:bg-card/60 border-transparent",
           )}
         >
-          <Home className="size-4" /> {t("home")}
+          <Home className="size-4 shrink-0" />
+          <span className={cn("whitespace-nowrap", collapsed && "hidden")}>{t("home")}</span>
         </Link>
         <Link
           href="/settings"
@@ -362,18 +399,33 @@ export function AppSidebar() {
               : "hover:border-border/40 hover:bg-card/60 border-transparent",
           )}
         >
-          <Settings className="size-4" /> {t("settings")}
+          <Settings className="size-4 shrink-0" />
+          <span className={cn("whitespace-nowrap", collapsed && "hidden")}>{t("settings")}</span>
         </Link>
+        {collapsed ? (
+          <div className="flex flex-col items-start gap-1 px-1 py-1.5">
+            <ThemeToggle compact />
+            <LocaleSwitcher compact />
+          </div>
+        ) : (
+          <div className="flex items-center justify-between gap-2 px-2 py-1.5 text-sm">
+            <ThemeToggle />
+            <LocaleSwitcher />
+          </div>
+        )}
         <div className="flex items-center justify-between gap-2 px-2 py-1.5 text-sm">
-          <ThemeToggle />
-          <LocaleSwitcher />
-        </div>
-        <div className="flex items-center justify-between px-2 py-1.5 text-sm">
-          <span className="text-muted-foreground truncate">{user?.user?.name}</span>
+          <span
+            className={cn(
+              "text-muted-foreground truncate whitespace-nowrap",
+              collapsed && "hidden",
+            )}
+          >
+            {user?.user?.name}
+          </span>
           <button
             type="button"
             onClick={() => signOut({ callbackUrl: "/login" })}
-            className="text-muted-foreground hover:text-foreground transition"
+            className="text-muted-foreground hover:text-foreground shrink-0 transition"
             aria-label={t("signOut")}
           >
             <LogOut className="size-4" />

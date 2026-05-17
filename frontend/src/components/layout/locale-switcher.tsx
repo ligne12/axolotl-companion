@@ -17,10 +17,39 @@ const LABELS: Record<Locale, string> = {
  * locale, the active one wears the lime inset. Writes the cookie via a
  * server action and lets ``revalidatePath('/', 'layout')`` swap the
  * messages for the next render.
+ *
+ * In ``compact`` mode the two segments collapse into a single button
+ * that swaps to the other locale on click — used by the collapsed
+ * sidebar rail.
  */
-export function LocaleSwitcher({ className }: { className?: string }) {
+export function LocaleSwitcher({
+  className,
+  compact = false,
+}: {
+  className?: string;
+  compact?: boolean;
+}) {
   const current = useLocale() as Locale;
   const [pending, startTransition] = useTransition();
+
+  if (compact) {
+    const other: Locale = current === "fr" ? "en" : "fr";
+    return (
+      <button
+        type="button"
+        disabled={pending}
+        onClick={() => startTransition(() => setLocale(other))}
+        aria-label="Language"
+        title={`→ ${LABELS[other]}`}
+        className={cn(
+          "font-pixel border-border bg-card text-foreground inline-flex size-7 items-center justify-center border-2 text-[10px] tracking-[0.14em] uppercase disabled:cursor-not-allowed disabled:opacity-60",
+          className,
+        )}
+      >
+        {LABELS[current]}
+      </button>
+    );
+  }
 
   return (
     <div
