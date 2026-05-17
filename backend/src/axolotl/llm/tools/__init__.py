@@ -5,6 +5,7 @@ from __future__ import annotations
 from typing import Any
 
 from axolotl.llm.tools.base import Tool, ToolRegistry
+from axolotl.llm.tools.clock import CurrentTimeTool
 from axolotl.llm.tools.weather import GetWeatherTool
 from axolotl.llm.tools.web_search import WebSearchTool
 
@@ -13,6 +14,7 @@ from axolotl.llm.tools.web_search import WebSearchTool
 registry = ToolRegistry()
 registry.register(WebSearchTool())
 registry.register(GetWeatherTool())
+registry.register(CurrentTimeTool())
 
 
 async def execute_tool(name: str, arguments: dict[str, Any]) -> dict[str, Any]:
