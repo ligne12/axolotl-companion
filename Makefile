@@ -3,7 +3,7 @@
 # =============================================================================
 
 .DEFAULT_GOAL := help
-.PHONY: help dev dev-hmr rebuild prod stop down clean logs test lint fmt backend-shell db-migrate db-reset backup obs openapi-export gen-api-types check-api-types
+.PHONY: help dev dev-hmr rebuild rebuild-backend prod stop down clean logs test lint fmt backend-shell db-migrate db-reset backup obs openapi-export gen-api-types check-api-types
 
 # -----------------------------------------------------------------------------
 COMPOSE := docker compose
@@ -41,6 +41,15 @@ rebuild: ## Rebuild frontend without Docker cache + restart (fixes stale .next n
 	@echo "  Frontend rebuilt from scratch. If the browser still loops,"
 	@echo "  unregister the service worker once: DevTools → Application →"
 	@echo "  Service Workers → Unregister, then hard-reload."
+
+rebuild-backend: ## Rebuild backend image + restart (after pyproject.toml deps change)
+	$(COMPOSE) build backend
+	$(COMPOSE) up -d backend
+	@echo ""
+	@echo "  Backend rebuilt with the current pyproject.toml deps."
+	@echo "  ``uvicorn --reload`` only watches src/ changes; new deps in"
+	@echo "  pyproject.toml require an image rebuild, which is what this"
+	@echo "  target does."
 
 prod: ## Start the stack in prod mode
 	$(COMPOSE_PROD) up -d --build
