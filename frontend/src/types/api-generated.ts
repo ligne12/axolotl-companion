@@ -273,6 +273,55 @@ export interface paths {
         patch: operations["update_persona_v1_personas__persona_id__patch"];
         trace?: never;
     };
+    "/v1/pins": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * List Pins
+         * @description List the user's pinned messages, ordered by ``position`` then creation.
+         */
+        get: operations["list_pins_v1_pins_get"];
+        put?: never;
+        /**
+         * Create Pin
+         * @description Pin a message. 404 if the message belongs to another user's session,
+         *     409 if already pinned.
+         */
+        post: operations["create_pin_v1_pins_post"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/v1/pins/{pin_id}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        post?: never;
+        /**
+         * Delete Pin
+         * @description Unpin a message. 404 if the pin doesn't belong to the caller.
+         */
+        delete: operations["delete_pin_v1_pins__pin_id__delete"];
+        options?: never;
+        head?: never;
+        /**
+         * Update Pin
+         * @description Patch the pin's title and/or position.
+         */
+        patch: operations["update_pin_v1_pins__pin_id__patch"];
+        trace?: never;
+    };
     "/v1/sessions": {
         parameters: {
             query?: never;
@@ -619,6 +668,64 @@ export interface components {
             } | null;
             /** System Prompt */
             system_prompt?: string | null;
+        };
+        /**
+         * PinCreate
+         * @description Body for ``POST /v1/pins``.
+         */
+        PinCreate: {
+            /**
+             * Message Id
+             * Format: uuid
+             */
+            message_id: string;
+            /** Title */
+            title: string;
+        };
+        /**
+         * PinPublic
+         * @description Serialised pin as returned by the API.
+         *
+         *     Carries enough denormalised message context (``session_id``, an
+         *     excerpt, role) so the home dashboard can render the card without a
+         *     second request per pin.
+         */
+        PinPublic: {
+            /**
+             * Created At
+             * Format: date-time
+             */
+            created_at: string;
+            /** Excerpt */
+            excerpt: string;
+            /** Id */
+            id: number;
+            /**
+             * Message Id
+             * Format: uuid
+             */
+            message_id: string;
+            /** Position */
+            position: number;
+            /** Role */
+            role: string;
+            /**
+             * Session Id
+             * Format: uuid
+             */
+            session_id: string;
+            /** Title */
+            title: string;
+        };
+        /**
+         * PinUpdate
+         * @description Body for ``PATCH /v1/pins/{id}`` — partial update.
+         */
+        PinUpdate: {
+            /** Position */
+            position?: number | null;
+            /** Title */
+            title?: string | null;
         };
         /** RefreshRequest */
         RefreshRequest: {
@@ -1391,6 +1498,123 @@ export interface operations {
                 };
                 content: {
                     "application/json": components["schemas"]["PersonaPublic"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    list_pins_v1_pins_get: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["PinPublic"][];
+                };
+            };
+        };
+    };
+    create_pin_v1_pins_post: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["PinCreate"];
+            };
+        };
+        responses: {
+            /** @description Successful Response */
+            201: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["PinPublic"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    delete_pin_v1_pins__pin_id__delete: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                pin_id: number;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            204: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    update_pin_v1_pins__pin_id__patch: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                pin_id: number;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["PinUpdate"];
+            };
+        };
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["PinPublic"];
                 };
             };
             /** @description Validation Error */

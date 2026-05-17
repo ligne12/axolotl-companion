@@ -92,6 +92,13 @@ export interface SessionDetail extends SessionPublic {
 }
 
 // -----------------------------------------------------------------------------
+// Pins — sourced from the regenerated OpenAPI schema.
+// -----------------------------------------------------------------------------
+export type PinPublic = components["schemas"]["PinPublic"];
+export type PinCreate = components["schemas"]["PinCreate"];
+export type PinUpdate = components["schemas"]["PinUpdate"];
+
+// -----------------------------------------------------------------------------
 // SSE chat stream — protocol lives outside OpenAPI, described by hand
 // -----------------------------------------------------------------------------
 export type SSEEventType =

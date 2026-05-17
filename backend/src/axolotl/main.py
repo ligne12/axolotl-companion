@@ -82,6 +82,7 @@ def create_app() -> FastAPI:
     from axolotl.api.v1 import config as config_router
     from axolotl.api.v1 import mcp as mcp_router
     from axolotl.api.v1 import personas as personas_router
+    from axolotl.api.v1 import pins as pins_router
     from axolotl.api.v1 import sessions as sessions_router
     from axolotl.api.v1 import tools as tools_router
 
@@ -90,6 +91,7 @@ def create_app() -> FastAPI:
     app.include_router(tools_router.router, prefix="/v1/tools", tags=["tools"])
     app.include_router(personas_router.router, prefix="/v1/personas", tags=["personas"])
     app.include_router(mcp_router.router, prefix="/v1/mcp", tags=["mcp"])
+    app.include_router(pins_router.router, prefix="/v1/pins", tags=["pins"])
     app.include_router(config_router.router, prefix="/v1/config", tags=["config"])
 
     return app

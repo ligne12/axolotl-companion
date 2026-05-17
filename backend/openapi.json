@@ -601,6 +601,112 @@
         "title": "PersonaUpdate",
         "type": "object"
       },
+      "PinCreate": {
+        "description": "Body for ``POST /v1/pins``.",
+        "properties": {
+          "message_id": {
+            "format": "uuid",
+            "title": "Message Id",
+            "type": "string"
+          },
+          "title": {
+            "maxLength": 200,
+            "minLength": 1,
+            "title": "Title",
+            "type": "string"
+          }
+        },
+        "required": [
+          "message_id",
+          "title"
+        ],
+        "title": "PinCreate",
+        "type": "object"
+      },
+      "PinPublic": {
+        "description": "Serialised pin as returned by the API.\n\nCarries enough denormalised message context (``session_id``, an\nexcerpt, role) so the home dashboard can render the card without a\nsecond request per pin.",
+        "properties": {
+          "created_at": {
+            "format": "date-time",
+            "title": "Created At",
+            "type": "string"
+          },
+          "excerpt": {
+            "title": "Excerpt",
+            "type": "string"
+          },
+          "id": {
+            "title": "Id",
+            "type": "integer"
+          },
+          "message_id": {
+            "format": "uuid",
+            "title": "Message Id",
+            "type": "string"
+          },
+          "position": {
+            "title": "Position",
+            "type": "integer"
+          },
+          "role": {
+            "title": "Role",
+            "type": "string"
+          },
+          "session_id": {
+            "format": "uuid",
+            "title": "Session Id",
+            "type": "string"
+          },
+          "title": {
+            "title": "Title",
+            "type": "string"
+          }
+        },
+        "required": [
+          "id",
+          "title",
+          "position",
+          "created_at",
+          "message_id",
+          "session_id",
+          "role",
+          "excerpt"
+        ],
+        "title": "PinPublic",
+        "type": "object"
+      },
+      "PinUpdate": {
+        "description": "Body for ``PATCH /v1/pins/{id}`` \u2014 partial update.",
+        "properties": {
+          "position": {
+            "anyOf": [
+              {
+                "minimum": 0.0,
+                "type": "integer"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Position"
+          },
+          "title": {
+            "anyOf": [
+              {
+                "maxLength": 200,
+                "minLength": 1,
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Title"
+          }
+        },
+        "title": "PinUpdate",
+        "type": "object"
+      },
       "RefreshRequest": {
         "properties": {
           "refresh_token": {
@@ -1994,6 +2100,179 @@
         "summary": "Update Persona",
         "tags": [
           "personas"
+        ]
+      }
+    },
+    "/v1/pins": {
+      "get": {
+        "description": "List the user's pinned messages, ordered by ``position`` then creation.",
+        "operationId": "list_pins_v1_pins_get",
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "items": {
+                    "$ref": "#/components/schemas/PinPublic"
+                  },
+                  "title": "Response List Pins V1 Pins Get",
+                  "type": "array"
+                }
+              }
+            },
+            "description": "Successful Response"
+          }
+        },
+        "security": [
+          {
+            "OAuth2PasswordBearer": []
+          }
+        ],
+        "summary": "List Pins",
+        "tags": [
+          "pins"
+        ]
+      },
+      "post": {
+        "description": "Pin a message. 404 if the message belongs to another user's session,\n409 if already pinned.",
+        "operationId": "create_pin_v1_pins_post",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/PinCreate"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "201": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/PinPublic"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "security": [
+          {
+            "OAuth2PasswordBearer": []
+          }
+        ],
+        "summary": "Create Pin",
+        "tags": [
+          "pins"
+        ]
+      }
+    },
+    "/v1/pins/{pin_id}": {
+      "delete": {
+        "description": "Unpin a message. 404 if the pin doesn't belong to the caller.",
+        "operationId": "delete_pin_v1_pins__pin_id__delete",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "pin_id",
+            "required": true,
+            "schema": {
+              "title": "Pin Id",
+              "type": "integer"
+            }
+          }
+        ],
+        "responses": {
+          "204": {
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "security": [
+          {
+            "OAuth2PasswordBearer": []
+          }
+        ],
+        "summary": "Delete Pin",
+        "tags": [
+          "pins"
+        ]
+      },
+      "patch": {
+        "description": "Patch the pin's title and/or position.",
+        "operationId": "update_pin_v1_pins__pin_id__patch",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "pin_id",
+            "required": true,
+            "schema": {
+              "title": "Pin Id",
+              "type": "integer"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/PinUpdate"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/PinPublic"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "security": [
+          {
+            "OAuth2PasswordBearer": []
+          }
+        ],
+        "summary": "Update Pin",
+        "tags": [
+          "pins"
         ]
       }
     },
