@@ -88,6 +88,11 @@
       "days": "il y a {count, plural, one {# j} other {# j}}"
     }
   },
+  "mascot": {
+    "longPressHint": "Appuyez longuement pour masquer la mascotte",
+    "hidden": "Mascotte masquée",
+    "hiddenDescription": "Rechargez la page pour la faire revenir."
+  },
   "pins": {
     "section": {
       "title": "Épinglés"
