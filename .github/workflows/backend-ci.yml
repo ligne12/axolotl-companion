@@ -86,7 +86,7 @@ jobs:
             || (echo "✗ backend/openapi.json is out of date. Run 'make gen-api-types' and commit."; exit 1)
 
       - name: Upload coverage
-        uses: codecov/codecov-action@v5
+        uses: codecov/codecov-action@v6
         with:
           files: ./backend/coverage.xml
           flags: backend
