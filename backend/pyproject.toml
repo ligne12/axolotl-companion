@@ -28,6 +28,7 @@ dependencies = [
     "slowapi>=0.1.9",
     "prometheus-fastapi-instrumentator>=7.0.0",
     "langfuse>=2.60.0",
+    "sympy>=1.13.0",
 ]
 
 [dependency-groups]
