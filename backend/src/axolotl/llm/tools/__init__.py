@@ -5,12 +5,14 @@ from __future__ import annotations
 from typing import Any
 
 from axolotl.llm.tools.base import Tool, ToolRegistry
+from axolotl.llm.tools.weather import GetWeatherTool
 from axolotl.llm.tools.web_search import WebSearchTool
 
 # Global registry — built-in tools are registered here. To add a new tool,
 # implement a subclass of ``Tool`` and register it below.
 registry = ToolRegistry()
 registry.register(WebSearchTool())
+registry.register(GetWeatherTool())
 
 
 async def execute_tool(name: str, arguments: dict[str, Any]) -> dict[str, Any]:
