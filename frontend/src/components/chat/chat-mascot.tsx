@@ -20,7 +20,7 @@ const Axolotl3D = dynamic(
     loading: () => (
       <div
         aria-hidden
-        className="border-border bg-card size-14 shrink-0 rounded-xl border-2 shadow-[3px_3px_0_0_var(--border)]"
+        className="border-border bg-card size-[80px] shrink-0 rounded-xl border-2 shadow-[3px_3px_0_0_var(--border)]"
       />
     ),
   },
@@ -30,21 +30,25 @@ const Axolotl3D = dynamic(
  *  (hide) rather than a click (toggle size). */
 const LONG_PRESS_MS = 500;
 
-/** Edge of the inner canvas in px for each size mode. The outer button
- *  wraps with 4 px of padding, so the tile itself is +8 px on each axis. */
-const SMALL_PX = 84;
-const LARGE_PX = 168;
+/** Edge of the inner canvas in px for the compact baseline. The large
+ *  state applies a CSS ``scale`` transform — the DOM box stays at this
+ *  size so the chat composer's layout never shifts when the user
+ *  clicks to enlarge. */
+const BASE_PX = 80;
+/** Visual scale on the ``large`` state — the chibi visually grows
+ *  from 80 → 160 px without affecting the surrounding flex. */
+const LARGE_SCALE = 2.0;
 
 /**
- * Small persistent mascot pinned next to the chat composer. Reads
- * ``useMood()`` so it matches the home hero's seven-state grammar
- * (idle / listening / thinking / searching / typing / happy /
- * confused).
+ * Persistent chibi mascot pinned next to the controls button in the
+ * chat composer. Reads ``useMood()`` so it cycles through the seven-
+ * state grammar (idle / listening / thinking / searching / typing /
+ * happy / confused).
  *
- * Two gestures :
- *  - **Click / tap** toggles between ``small`` and ``large`` so the
- *    user can pop the chibi forward when they want to admire it and
- *    tuck it back to keep the chat readable.
+ * Two gestures:
+ *  - **Click / tap** toggles a ``scale`` transform between 1× and 2×,
+ *    pivot-anchored to the bottom-left so the tile grows upward into
+ *    the chat area without shifting the textarea or the scroll mask.
  *  - **Long-press** (~500 ms) hides the mascot for the rest of the
  *    browser session, with a toast pointing at "reload to bring back".
  */
@@ -88,9 +92,6 @@ export function ChatMascot() {
     longPressedRef.current = false;
   };
 
-  const px = large ? LARGE_PX : SMALL_PX;
-  const tileEdge = px + 8;
-
   return (
     <motion.button
       type="button"
@@ -101,15 +102,20 @@ export function ChatMascot() {
       onContextMenu={(e) => e.preventDefault()}
       aria-label={t("toggleSizeHint")}
       title={t("toggleSizeHint")}
-      animate={{ width: tileEdge, height: tileEdge }}
-      // Smoother spring — lower stiffness + higher damping so the
-      // tile glides through the resize with a gentle overshoot
-      // instead of snapping. Mass adds inertia for the "weighty"
-      // feel.
+      // ``scale`` instead of width/height: the DOM box keeps the
+      // ``BASE_PX`` footprint while the chibi grows visually upward
+      // and rightward. Pivot at bottom-left so the baseline stays
+      // glued to the composer's bottom edge.
+      animate={{ scale: large ? LARGE_SCALE : 1 }}
       transition={{ type: "spring", stiffness: 180, damping: 20, mass: 1.1 }}
-      className="border-border bg-card flex shrink-0 items-center justify-center rounded-xl border-2 p-1 shadow-[3px_3px_0_0_var(--border)] hover:shadow-[4px_4px_0_0_var(--border)]"
+      style={{
+        width: BASE_PX,
+        height: BASE_PX,
+        transformOrigin: "bottom left",
+      }}
+      className="border-border bg-card relative z-30 flex shrink-0 items-center justify-center rounded-xl border-2 p-1 shadow-[3px_3px_0_0_var(--border)] hover:shadow-[4px_4px_0_0_var(--border)]"
     >
-      <Axolotl3D mood={mood} size={px} className="!h-full !w-full" />
+      <Axolotl3D mood={mood} size={BASE_PX - 8} className="!h-full !w-full" />
     </motion.button>
   );
 }

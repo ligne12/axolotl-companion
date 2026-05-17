@@ -4,7 +4,6 @@ import { useEffect, useMemo, useRef, useState } from "react";
 
 import { ChatControlsDrawer } from "@/components/chat/chat-controls-drawer";
 import { ChatInput } from "@/components/chat/chat-input";
-import { ChatMascot } from "@/components/chat/chat-mascot";
 import { MessageBubble, StreamingBubble } from "@/components/chat/message-bubble";
 import { LotusLogo } from "@/components/layout/lotus-logo";
 import { useChat } from "@/hooks/use-chat";
@@ -60,15 +59,7 @@ export function ChatWindow({
   }, [visible]);
 
   return (
-    <div className="relative flex h-full flex-col">
-      {/* Mascot floats above the composer, in front of the messages.
-          Pulled OUT of the chat-input flex so resizing the tile doesn't
-          shift the scroll mask or push the textarea around. */}
-      <div className="pointer-events-none absolute right-3 bottom-24 z-30 md:right-auto md:left-4">
-        <div className="pointer-events-auto">
-          <ChatMascot />
-        </div>
-      </div>
+    <div className="flex h-full flex-col">
       <div
         ref={scrollRef}
         className="relative flex-1 overflow-y-auto [mask-image:linear-gradient(to_bottom,transparent_0,black_32px,black_calc(100%-32px),transparent_100%)]"

@@ -1,23 +1,18 @@
 "use client";
 
 import { Menu, X } from "lucide-react";
-import { motion, useReducedMotion } from "motion/react";
+import { AnimatePresence, motion, useReducedMotion } from "motion/react";
 import { usePathname } from "next/navigation";
 import { useEffect, useState } from "react";
 
 import { AppSidebar } from "@/components/layout/app-sidebar";
 import { LotusLogo } from "@/components/layout/lotus-logo";
+import { SidebarRail } from "@/components/layout/sidebar-rail";
 import { TerminalBar } from "@/components/layout/terminal-bar";
 import { KeyboardShortcutsProvider } from "@/components/providers/keyboard-shortcuts";
 import { Button } from "@/components/ui/button";
-import { cn } from "@/lib/utils";
 
-// Fully hidden by default — a separate 4 px lime strip on the
-// viewport's left edge provides the hover affordance.
-const SIDEBAR_COLLAPSED_PX = 0;
-const SIDEBAR_EXPANDED_PX = 256;
-/** Width of the lime hover-trigger strip when the sidebar is hidden. */
-const HOVER_TRIGGER_PX = 8;
+const SIDEBAR_PANEL_PX = 256;
 
 /**
  * Match-media listener exposed as a React state. Server-renders to
@@ -49,18 +44,20 @@ export function AppShell({ children }: { children: React.ReactNode }) {
     setDrawerOpen(false);
   }, [pathname]);
 
-  // Desktop: width swings 28 ↔ 256 on hover; mobile: width fixed at
-  // 256 and the wrapper slides off-screen when the drawer is closed.
-  const sidebarWidth = desktop
-    ? hovered
-      ? SIDEBAR_EXPANDED_PX
-      : SIDEBAR_COLLAPSED_PX
-    : SIDEBAR_EXPANDED_PX;
-  const sidebarX = desktop ? 0 : drawerOpen ? 0 : -SIDEBAR_EXPANDED_PX;
-  // Slight overshoot when expanding, no bounce when ``prefers-reduced-motion``.
+  // The rail's Search icon dispatches this event when clicked — explicit
+  // expand affordance for users who reach for keyboard / tap instead of
+  // a hover gesture.
+  useEffect(() => {
+    if (!desktop) return;
+    const onExpand = () => setHovered(true);
+    window.addEventListener("sidebar:expand", onExpand);
+    return () => window.removeEventListener("sidebar:expand", onExpand);
+  }, [desktop]);
+
+  // Slight overshoot on the slide-in, no spring when prefers-reduced-motion.
   const transition = reduceMotion
     ? { duration: 0 }
-    : { type: "spring" as const, stiffness: 280, damping: 22, mass: 0.6 };
+    : { type: "spring" as const, stiffness: 280, damping: 24, mass: 0.6 };
 
   return (
     <KeyboardShortcutsProvider>
@@ -75,38 +72,54 @@ export function AppShell({ children }: { children: React.ReactNode }) {
           />
         )}
 
-        {/* Sidebar wrapper — single rendered tree, animated width/x.
-            Floats above the main content on desktop so the chat
-            doesn't reflow when the panel slides in / out. */}
-        <motion.div
-          className={cn("fixed inset-y-0 left-0 z-40 h-dvh overflow-hidden md:absolute")}
-          animate={{ width: sidebarWidth, x: sidebarX }}
-          initial={false}
-          transition={transition}
-          onMouseEnter={() => desktop && setHovered(true)}
-          onMouseLeave={() => desktop && setHovered(false)}
-        >
-          <div className="h-full w-64">
-            <AppSidebar />
+        {/* Desktop : 56 px rail always visible. Hovering it surfaces the
+            full ``AppSidebar`` as an overlay that slides in from the
+            left edge. The rail itself sits in the flow so the main
+            content reflows to its right and never jumps when the panel
+            opens / closes. */}
+        {desktop && (
+          <div onMouseEnter={() => setHovered(true)}>
+            <SidebarRail />
           </div>
-        </motion.div>
-
-        {/* Hover-trigger strip — only desktop, only when the sidebar
-            is collapsed. A faint lime band on the leftmost edge that
-            grows the cursor's hover target wide enough to mouse into
-            comfortably without showing visible UI when not needed. */}
-        {desktop && !hovered && (
-          <div
-            aria-hidden
-            onMouseEnter={() => setHovered(true)}
-            className="absolute inset-y-0 left-0 z-30 hidden md:block"
-            style={{
-              width: HOVER_TRIGGER_PX,
-              background:
-                "linear-gradient(to right, color-mix(in srgb, var(--lime) 55%, transparent) 0%, transparent 100%)",
-            }}
-          />
         )}
+
+        {/* Mobile drawer — full 256 px sidebar slides in via translateX. */}
+        {!desktop && (
+          <motion.div
+            className="fixed inset-y-0 left-0 z-40 h-dvh overflow-hidden"
+            animate={{ x: drawerOpen ? 0 : -SIDEBAR_PANEL_PX }}
+            initial={false}
+            transition={transition}
+          >
+            <div className="h-full w-64">
+              <AppSidebar />
+            </div>
+          </motion.div>
+        )}
+
+        {/* Desktop hover overlay — same ``AppSidebar`` but as an
+            absolutely-positioned, animated layer above the rail.
+            Mounts / unmounts via ``AnimatePresence`` so unhovered the
+            tree is empty (TanStack queries inside still live on
+            ``SidebarRail``'s side via mounted state — only the visual
+            panel is gated). */}
+        <AnimatePresence>
+          {desktop && hovered && (
+            <motion.div
+              key="sidebar-overlay"
+              className="absolute inset-y-0 left-0 z-40 h-dvh overflow-hidden"
+              initial={{ x: -SIDEBAR_PANEL_PX }}
+              animate={{ x: 0 }}
+              exit={{ x: -SIDEBAR_PANEL_PX }}
+              transition={transition}
+              onMouseLeave={() => setHovered(false)}
+            >
+              <div className="h-full w-64">
+                <AppSidebar />
+              </div>
+            </motion.div>
+          )}
+        </AnimatePresence>
 
         <div className="flex min-w-0 flex-1 flex-col">
           {/* Mobile top bar with hamburger */}
