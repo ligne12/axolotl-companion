@@ -330,7 +330,10 @@ export function MessageBubble({
   }
 
   return (
-    <div className={cn("group flex flex-col", isUser ? "items-end" : "items-start")}>
+    <div
+      id={`m-${message.id}`}
+      className={cn("group flex scroll-mt-24 flex-col", isUser ? "items-end" : "items-start")}
+    >
       <div className="flex max-w-[80%] min-w-0 flex-col">
         <div className={isUser ? USER_BUBBLE : ASSIST_BUBBLE}>
           {hasReasoning && (
