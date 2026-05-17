@@ -230,12 +230,34 @@
     "mcpBadge": "mcp",
     "categories": {
       "search": "recherche",
-      "general": "général"
+      "general": "général",
+      "info": "info",
+      "math": "maths"
     },
     "builtIns": {
       "web_search": {
         "title": "Recherche web",
         "description": "Recherche sur le web via DuckDuckGo. À utiliser UNIQUEMENT quand l'information demandée est récente, précise, ou hors de votre périmètre d'entraînement. Renvoie jusqu'à N résultats (URL, titre, extrait)."
+      },
+      "get_weather": {
+        "title": "Météo",
+        "description": "Consulte les conditions actuelles et les prévisions courtes pour un lieu nommé via l'API Open-Meteo (gratuite, sans clé). Paris, Tokyo ou « ville, pays » fonctionnent tels quels."
+      },
+      "current_time": {
+        "title": "Heure actuelle",
+        "description": "Renvoie la date et l'heure courantes dans n'importe quel fuseau IANA, avec un compte à rebours optionnel vers un horodatage cible. Pratique pour « 09:00 Paris en heure de Tokyo » ou « combien de jours avant Noël »."
+      },
+      "calculator": {
+        "title": "Calculatrice",
+        "description": "Évalue une expression mathématique avec SymPy — arithmétique, algèbre, calcul. Le modèle est mauvais en additions à 4 chiffres : on délègue proprement. Supporte factor, solve, integrate, diff…"
+      },
+      "wikipedia_search": {
+        "title": "Wikipédia",
+        "description": "Recherche sur Wikipédia et renvoie les meilleurs résultats avec URLs canoniques et extraits nettoyés. Choisit la bonne édition linguistique ; plus propre que la recherche web pour les questions encyclopédiques."
+      },
+      "fetch_url": {
+        "title": "Ouvrir une URL",
+        "description": "Ouvre une page web et renvoie son corps d'article lisible — navigation, pied de page et publicités strippés. À utiliser après une recherche pour creuser un résultat précis."
       }
     }
   },

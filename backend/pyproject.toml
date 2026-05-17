@@ -28,6 +28,9 @@ dependencies = [
     "slowapi>=0.1.9",
     "prometheus-fastapi-instrumentator>=7.0.0",
     "langfuse>=2.60.0",
+    "sympy>=1.13.0",
+    "readability-lxml>=0.8.1",
+    "lxml-html-clean>=0.4.0",
 ]
 
 [dependency-groups]
@@ -97,6 +100,18 @@ warn_unused_configs = true
 disallow_untyped_defs = true
 plugins = ["pydantic.mypy"]
 exclude = ["src/axolotl/db/migrations/versions/"]
+
+# Third-party libraries without ``py.typed`` markers or with incomplete /
+# floating stubs across versions. Centralising the ignore here avoids
+# scattering ``# type: ignore[import-untyped]`` on every import site
+# (and avoids "unused-ignore" churn when a lib eventually ships stubs).
+[[tool.mypy.overrides]]
+module = [
+    "lxml.*",
+    "readability.*",
+    "sympy.*",
+]
+ignore_missing_imports = true
 
 
 # -----------------------------------------------------------------------------
