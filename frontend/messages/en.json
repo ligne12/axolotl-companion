@@ -230,12 +230,34 @@
     "mcpBadge": "mcp",
     "categories": {
       "search": "search",
-      "general": "general"
+      "general": "general",
+      "info": "info",
+      "math": "math"
     },
     "builtIns": {
       "web_search": {
         "title": "Web search",
         "description": "Search the web via DuckDuckGo. Use ONLY when the information needed is recent, specific, or clearly outside your training data. Returns up to N results with URL, title and snippet."
+      },
+      "get_weather": {
+        "title": "Weather",
+        "description": "Look up current conditions and a short forecast for a named place via the free Open-Meteo API. No key, no fuss — Paris, Tokyo, or 'city, country' all work."
+      },
+      "current_time": {
+        "title": "Current time",
+        "description": "Return the current date and time in any IANA timezone, with an optional countdown to a target timestamp. Pairs with planning questions like “what's 09:00 Paris in Tokyo” or “how many days until Christmas”."
+      },
+      "calculator": {
+        "title": "Calculator",
+        "description": "Evaluate a math expression with SymPy — arithmetic, algebra, calculus. The model is bad at 4-digit additions; this delegates cleanly. Supports things like factor, solve, integrate, diff."
+      },
+      "wikipedia_search": {
+        "title": "Wikipedia",
+        "description": "Search Wikipedia and return the top hits with canonical URLs and clean snippets. Picks the right language edition; cleaner than web search for encyclopaedic questions."
+      },
+      "fetch_url": {
+        "title": "Fetch URL",
+        "description": "Open one web page and return its readable article body — navigation, footer and ads stripped. Use after a search to dig into a single result."
       }
     }
   },
