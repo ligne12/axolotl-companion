@@ -3,8 +3,8 @@
 import { useTranslations } from "next-intl";
 import Link from "next/link";
 import { useRouter, useSearchParams } from "next/navigation";
-import { signIn } from "next-auth/react";
-import { Suspense, useState } from "react";
+import { signIn, signOut } from "next-auth/react";
+import { Suspense, useEffect, useRef, useState } from "react";
 import { toast } from "sonner";
 
 import { cn } from "@/lib/utils";
@@ -19,9 +19,28 @@ function LoginForm() {
   const router = useRouter();
   const params = useSearchParams();
   const callback = params.get("callbackUrl") ?? "/home";
+  const expired = params.get("expired") === "1";
   const t = useTranslations("auth");
 
   const [submitting, setSubmitting] = useState(false);
+  const cleanupRanRef = useRef(false);
+
+  // Belt-and-braces: when the middleware bounced us here because the
+  // session refresh blew up, the redirect already deleted the cookies
+  // server-side — but the NextAuth client cache (``useSession``) may
+  // still hold the dead session in memory. Calling ``signOut`` clears
+  // that and prevents subsequent navigations from carrying the
+  // phantom session via a re-fetch.
+  useEffect(() => {
+    if (!expired || cleanupRanRef.current) return;
+    cleanupRanRef.current = true;
+    void signOut({ redirect: false }).then(() => {
+      toast.info(t("sessionExpired"));
+      // Drop the ``?expired=1`` from the URL so a refresh doesn't
+      // re-trigger the toast.
+      router.replace("/login");
+    });
+  }, [expired, router, t]);
 
   async function onSubmit(event: React.FormEvent<HTMLFormElement>) {
     event.preventDefault();
