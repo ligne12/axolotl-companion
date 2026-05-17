@@ -277,7 +277,7 @@ on `main`.
 
 <!-- CONTRIBUTORS:START -->
 <table>
-  <tr><td align="center" width="120"><a href="https://github.com/ligne12"><img src="https://github.com/ligne12.png?size=80" width="80" height="80" alt="ligne12" style="border-radius: 50%" /></a><br /><sub><b>ligne12</b></sub></td><td align="center" width="120"><a href="https://github.com/ligne12"><img src="https://github.com/ligne12.png?size=80" width="80" height="80" alt="ligne12" style="border-radius: 50%" /></a><br /><sub><b>T</b></sub></td></tr>
+  <tr><td align="center" width="120"><a href="https://github.com/github-actions[bot]"><img src="https://github.com/github-actions[bot].png?size=80" width="80" height="80" alt="github-actions[bot]" style="border-radius: 50%" /></a><br /><sub><b>github-actions[bot]</b></sub></td><td align="center" width="120"><a href="https://github.com/ligne12"><img src="https://github.com/ligne12.png?size=80" width="80" height="80" alt="ligne12" style="border-radius: 50%" /></a><br /><sub><b>ligne12</b></sub></td><td align="center" width="120"><a href="https://github.com/ligne12"><img src="https://github.com/ligne12.png?size=80" width="80" height="80" alt="ligne12" style="border-radius: 50%" /></a><br /><sub><b>T</b></sub></td></tr>
 </table>
 <!-- CONTRIBUTORS:END -->
 
