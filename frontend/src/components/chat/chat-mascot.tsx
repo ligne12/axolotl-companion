@@ -3,16 +3,12 @@
 import { motion } from "motion/react";
 import dynamic from "next/dynamic";
 import { useTranslations } from "next-intl";
-import { useRef, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { toast } from "sonner";
 
 import { useMood } from "@/hooks/use-mood";
 import { useChatStatus } from "@/stores/chat-status";
 
-// Lazy-load the Three.js bundle the same way ``HomeHero`` does so the
-// chat shell stays light on first paint. The placeholder is a neutral
-// sized tile that matches the final mascot footprint, avoiding layout
-// shift when the GLB finishes hydrating.
 const Axolotl3D = dynamic(
   () => import("@/components/axolotl/axolotl-3d").then((m) => m.Axolotl3D),
   {
@@ -26,42 +22,51 @@ const Axolotl3D = dynamic(
   },
 );
 
-/** Threshold above which a pointerdown→pointerup pair counts as a long-press
- *  (hide) rather than a click (toggle size). */
 const LONG_PRESS_MS = 500;
 
-/** Edge of the inner canvas in px for the compact baseline. The large
- *  state applies a CSS ``scale`` transform — the DOM box stays at this
- *  size so the chat composer's layout never shifts when the user
- *  clicks to enlarge. */
-const BASE_PX = 80;
-/** Visual scale on the ``large`` state — the chibi visually grows
- *  from 80 → 160 px without affecting the surrounding flex. */
-const LARGE_SCALE = 2.0;
+/** Compact and expanded edge sizes in px for the Three.js canvas. We
+ *  drive width/height (not ``scale``) so the GLB re-renders crisp at
+ *  every size instead of stretching pixels. ``MOBILE_PX`` is the
+ *  always-on size below the ``md`` breakpoint so the chibi never
+ *  blows past the composer's row on small screens. */
+const MOBILE_PX = 56;
+const SMALL_PX = 80;
+const LARGE_PX = 160;
 
 /**
- * Persistent chibi mascot pinned next to the controls button in the
- * chat composer. Reads ``useMood()`` so it cycles through the seven-
- * state grammar (idle / listening / thinking / searching / typing /
- * happy / confused).
+ * Chibi mascot pinned next to the controls button. Reads ``useMood()``
+ * so it cycles through the seven-state grammar (idle / listening /
+ * thinking / searching / typing / happy / confused).
  *
- * Two gestures:
- *  - **Click / tap** toggles a ``scale`` transform between 1× and 2×,
- *    pivot-anchored to the bottom-left so the tile grows upward into
- *    the chat area without shifting the textarea or the scroll mask.
+ * Two gestures :
+ *  - **Click / tap** toggles ``mascotLarge`` on the chat-status store
+ *    so other surfaces (``ChatInput``'s textarea row) can shrink to
+ *    accommodate the larger chibi without it ever covering the
+ *    composer.
  *  - **Long-press** (~500 ms) hides the mascot for the rest of the
- *    browser session, with a toast pointing at "reload to bring back".
+ *    browser session.
  */
 export function ChatMascot() {
   const mood = useMood();
   const mascotHidden = useChatStatus((s) => s.mascotHidden);
   const setMascotHidden = useChatStatus((s) => s.setMascotHidden);
+  const large = useChatStatus((s) => s.mascotLarge);
+  const setLarge = useChatStatus((s) => s.setMascotLarge);
   const t = useTranslations("mascot");
   const timerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
-  // Whether the in-flight gesture already classified as a long-press
-  // — if so, ``pointerup`` must NOT also treat it as a click.
   const longPressedRef = useRef(false);
-  const [large, setLarge] = useState(false);
+
+  // On mobile (< md), keep the chibi at its compact size always —
+  // the chat composer's row is too tight for the 80 → 160 swing to
+  // fit alongside controls + textarea + send.
+  const [isDesktop, setIsDesktop] = useState(false);
+  useEffect(() => {
+    const mq = window.matchMedia("(min-width: 768px)");
+    const update = () => setIsDesktop(mq.matches);
+    update();
+    mq.addEventListener("change", update);
+    return () => mq.removeEventListener("change", update);
+  }, []);
 
   if (mascotHidden) return null;
 
@@ -81,7 +86,7 @@ export function ChatMascot() {
       timerRef.current = null;
     }
     if (longPressedRef.current) return;
-    setLarge((v) => !v);
+    setLarge(!large);
   };
 
   const cancelGesture = () => {
@@ -91,6 +96,12 @@ export function ChatMascot() {
     }
     longPressedRef.current = false;
   };
+
+  // Mobile clamps to ``MOBILE_PX``. Desktop honours the
+  // ``mascotLarge`` toggle.
+  const edge = !isDesktop ? MOBILE_PX : large ? LARGE_PX : SMALL_PX;
+  // Outer button = canvas + 8 px padding (2 × 4).
+  const tileEdge = edge + 8;
 
   return (
     <motion.button
@@ -102,20 +113,18 @@ export function ChatMascot() {
       onContextMenu={(e) => e.preventDefault()}
       aria-label={t("toggleSizeHint")}
       title={t("toggleSizeHint")}
-      // ``scale`` instead of width/height: the DOM box keeps the
-      // ``BASE_PX`` footprint while the chibi grows visually upward
-      // and rightward. Pivot at bottom-left so the baseline stays
-      // glued to the composer's bottom edge.
-      animate={{ scale: large ? LARGE_SCALE : 1 }}
-      transition={{ type: "spring", stiffness: 180, damping: 20, mass: 1.1 }}
-      style={{
-        width: BASE_PX,
-        height: BASE_PX,
-        transformOrigin: "bottom left",
-      }}
-      className="border-border bg-card relative z-30 flex shrink-0 items-center justify-center rounded-xl border-2 p-1 shadow-[3px_3px_0_0_var(--border)] hover:shadow-[4px_4px_0_0_var(--border)]"
+      // ``width/height`` instead of ``scale``: the inner Three.js
+      // canvas re-renders at the target resolution so the chibi stays
+      // crisp at every size. Sibling flex items (controls / textarea
+      // / send) automatically shrink because the row's gap eats the
+      // extra width — see ``ChatInput`` for the matching ``max-w``
+      // adjustment that keeps everything fitting on one line.
+      animate={{ width: tileEdge, height: tileEdge }}
+      transition={{ type: "spring", stiffness: 220, damping: 22, mass: 0.9 }}
+      style={{ transformOrigin: "bottom left" }}
+      className="border-border bg-card relative z-30 flex shrink-0 items-center justify-center self-end rounded-xl border-2 p-1 shadow-[3px_3px_0_0_var(--border)] hover:shadow-[4px_4px_0_0_var(--border)]"
     >
-      <Axolotl3D mood={mood} size={BASE_PX - 8} className="!h-full !w-full" />
+      <Axolotl3D mood={mood} size={edge} className="!h-full !w-full" />
     </motion.button>
   );
 }

@@ -34,24 +34,24 @@ function useIsDesktop(): boolean {
 
 export function AppShell({ children }: { children: React.ReactNode }) {
   const [drawerOpen, setDrawerOpen] = useState(false);
-  const [hovered, setHovered] = useState(false);
+  const [panelOpen, setPanelOpen] = useState(false);
   const pathname = usePathname();
   const desktop = useIsDesktop();
   const reduceMotion = useReducedMotion();
 
-  // close the mobile drawer whenever the route changes
+  // close the mobile drawer + desktop panel whenever the route changes
   useEffect(() => {
     setDrawerOpen(false);
+    setPanelOpen(false);
   }, [pathname]);
 
-  // The rail's Search icon dispatches this event when clicked — explicit
-  // expand affordance for users who reach for keyboard / tap instead of
-  // a hover gesture.
+  // The rail's Search icon (and any future call site) dispatch this
+  // event to toggle the panel — click-driven, no hover involvement.
   useEffect(() => {
     if (!desktop) return;
-    const onExpand = () => setHovered(true);
-    window.addEventListener("sidebar:expand", onExpand);
-    return () => window.removeEventListener("sidebar:expand", onExpand);
+    const onToggle = () => setPanelOpen((v) => !v);
+    window.addEventListener("sidebar:toggle", onToggle);
+    return () => window.removeEventListener("sidebar:toggle", onToggle);
   }, [desktop]);
 
   // Slight overshoot on the slide-in, no spring when prefers-reduced-motion.
@@ -72,16 +72,9 @@ export function AppShell({ children }: { children: React.ReactNode }) {
           />
         )}
 
-        {/* Desktop : 56 px rail always visible. Hovering it surfaces the
-            full ``AppSidebar`` as an overlay that slides in from the
-            left edge. The rail itself sits in the flow so the main
-            content reflows to its right and never jumps when the panel
-            opens / closes. */}
-        {desktop && (
-          <div onMouseEnter={() => setHovered(true)}>
-            <SidebarRail />
-          </div>
-        )}
+        {/* Desktop : 56 px rail always visible. Click on the rail's
+            search icon toggles the full panel; no hover trigger. */}
+        {desktop && <SidebarRail />}
 
         {/* Mobile drawer — full 256 px sidebar slides in via translateX. */}
         {!desktop && (
@@ -97,27 +90,31 @@ export function AppShell({ children }: { children: React.ReactNode }) {
           </motion.div>
         )}
 
-        {/* Desktop hover overlay — same ``AppSidebar`` but as an
-            absolutely-positioned, animated layer above the rail.
-            Mounts / unmounts via ``AnimatePresence`` so unhovered the
-            tree is empty (TanStack queries inside still live on
-            ``SidebarRail``'s side via mounted state — only the visual
-            panel is gated). */}
+        {/* Desktop click-to-open overlay : the full ``AppSidebar``
+            slides in from the rail's left edge. A transparent backdrop
+            catches clicks outside the panel and closes it. */}
         <AnimatePresence>
-          {desktop && hovered && (
-            <motion.div
-              key="sidebar-overlay"
-              className="absolute inset-y-0 left-0 z-40 h-dvh overflow-hidden"
-              initial={{ x: -SIDEBAR_PANEL_PX }}
-              animate={{ x: 0 }}
-              exit={{ x: -SIDEBAR_PANEL_PX }}
-              transition={transition}
-              onMouseLeave={() => setHovered(false)}
-            >
-              <div className="h-full w-64">
-                <AppSidebar />
-              </div>
-            </motion.div>
+          {desktop && panelOpen && (
+            <>
+              <button
+                type="button"
+                aria-label="Close sidebar"
+                onClick={() => setPanelOpen(false)}
+                className="absolute inset-0 z-30 cursor-default bg-transparent"
+              />
+              <motion.div
+                key="sidebar-overlay"
+                className="absolute inset-y-0 left-0 z-40 h-dvh overflow-hidden"
+                initial={{ x: -SIDEBAR_PANEL_PX }}
+                animate={{ x: 0 }}
+                exit={{ x: -SIDEBAR_PANEL_PX }}
+                transition={transition}
+              >
+                <div className="h-full w-64">
+                  <AppSidebar />
+                </div>
+              </motion.div>
+            </>
           )}
         </AnimatePresence>
 

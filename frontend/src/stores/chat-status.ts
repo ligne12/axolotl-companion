@@ -22,12 +22,17 @@ type ChatStatus = {
   energy: number;
   /** Per-session toggle: hide the inline mascot for a quieter UI. */
   mascotHidden: boolean;
+  /** True when the user clicked the inline mascot to enlarge it. Read
+   *  by ``ChatInput`` to shrink its content row so the composer doesn't
+   *  get covered when the chibi expands. */
+  mascotLarge: boolean;
   setIsSending: (v: boolean) => void;
   setTokensPerSec: (v: number | null) => void;
   setCurrentTool: (v: string | null) => void;
   flagError: () => void;
   bumpEnergy: (delta: number) => void;
   setMascotHidden: (v: boolean) => void;
+  setMascotLarge: (v: boolean) => void;
   reset: () => void;
 };
 
@@ -51,6 +56,7 @@ export const useChatStatus = create<ChatStatus>((set) => {
     lastError: false,
     energy: 0,
     mascotHidden: false,
+    mascotLarge: false,
     setIsSending: (isSending) => set({ isSending }),
     setTokensPerSec: (tokensPerSec) => set({ tokensPerSec }),
     setCurrentTool: (currentTool) => set({ currentTool }),
@@ -62,6 +68,7 @@ export const useChatStatus = create<ChatStatus>((set) => {
     bumpEnergy: (delta) =>
       set((s) => ({ energy: clamp(s.energy + delta, ENERGY_MIN, ENERGY_MAX) })),
     setMascotHidden: (mascotHidden) => set({ mascotHidden }),
+    setMascotLarge: (mascotLarge) => set({ mascotLarge }),
     reset: () => {
       if (errorTimer) {
         clearTimeout(errorTimer);

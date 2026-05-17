@@ -7,6 +7,7 @@ import { useRef, useState } from "react";
 import { ChatMascot } from "@/components/chat/chat-mascot";
 import { useHaptic } from "@/hooks/use-haptic";
 import { cn } from "@/lib/utils";
+import { useChatStatus } from "@/stores/chat-status";
 
 export function ChatInput({
   onSend,
@@ -26,6 +27,11 @@ export function ChatInput({
   const textareaRef = useRef<HTMLTextAreaElement>(null);
   const haptic = useHaptic();
   const t = useTranslations("chat");
+  // Mascot is a sibling in the flex row; when the user enlarges it,
+  // shrink the row's max-width so the textarea + send button + the
+  // bigger chibi all fit on one line without the mascot covering the
+  // composer.
+  const mascotLarge = useChatStatus((s) => s.mascotLarge);
 
   const submit = () => {
     const value = text.trim();
@@ -44,7 +50,15 @@ export function ChatInput({
     // bottom-of-shell separator. Extra bottom padding lifts the input
     // away from the footer's LOCAL line.
     <div className="px-3 pt-3 pb-8">
-      <div className="mx-auto flex max-w-3xl items-end gap-2">
+      <div
+        className={cn(
+          "mx-auto flex items-end gap-2 transition-[max-width] duration-300 ease-out",
+          // ``max-w-3xl`` baseline; when the chibi puffs up the row
+          // tightens so the textarea visibly shortens instead of the
+          // chibi covering the controls / send buttons.
+          mascotLarge ? "max-w-xl" : "max-w-3xl",
+        )}
+      >
         <ChatMascot />
         {onOpenControls && (
           <button
