@@ -53,10 +53,13 @@ export function ChatInput({
       <div
         className={cn(
           "mx-auto flex items-end gap-2 transition-[max-width] duration-300 ease-out",
-          // ``max-w-3xl`` baseline; when the chibi puffs up the row
-          // tightens so the textarea visibly shortens instead of the
-          // chibi covering the controls / send buttons.
-          mascotLarge ? "max-w-xl" : "max-w-3xl",
+          // Default row is contained at ``max-w-3xl`` so reading
+          // remains comfortable. When the chibi puffs up we *widen*
+          // the row instead of shrinking it — the textarea visibly
+          // gains room (rather than the chibi crowding the
+          // composer). The row stays bounded by the parent chat
+          // column on either side.
+          mascotLarge ? "max-w-none" : "max-w-3xl",
         )}
       >
         <ChatMascot />

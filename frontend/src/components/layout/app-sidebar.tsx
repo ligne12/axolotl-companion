@@ -269,18 +269,23 @@ export function AppSidebar({ collapsed = false }: { collapsed?: boolean }) {
         </span>
       </Link>
 
-      <div className="p-3">
+      <div className={cn("p-3", collapsed && "flex justify-center")}>
         <button
           type="button"
           onClick={() => createSession.mutate()}
           disabled={createSession.isPending}
+          aria-label={t("newChat")}
+          title={t("newChat")}
           className={cn(
-            "border-border bg-primary text-primary-foreground flex w-full items-center gap-2 border-2 px-3 py-2 text-sm font-semibold",
+            "border-border bg-primary text-primary-foreground inline-flex items-center justify-center gap-2 border-2 text-sm font-semibold",
             "shadow-[3px_3px_0_0_var(--lime)] transition-[transform,box-shadow] duration-100",
             "hover:-translate-x-[1px] hover:-translate-y-[1px] hover:shadow-[4px_4px_0_0_var(--lime)]",
             "active:translate-x-[1px] active:translate-y-[1px] active:shadow-[1px_1px_0_0_var(--lime)]",
             "disabled:cursor-not-allowed disabled:opacity-60",
-            collapsed ? "justify-center" : "justify-center",
+            // Collapsed: compact 36 px square icon button that fits in
+            // the 56 px rail with 10 px of breathing room each side.
+            // Expanded: stretches across the panel like before.
+            collapsed ? "size-9 shrink-0" : "w-full px-3 py-2",
           )}
         >
           <MessageSquarePlus className="size-4 shrink-0" />

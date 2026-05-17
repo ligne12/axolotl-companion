@@ -112,21 +112,29 @@ export function AppShell({ children }: { children: React.ReactNode }) {
           />
         )}
 
-        {/* Floating toggle handle on desktop — small chevron that
-            straddles the sidebar's right edge. Always visible so the
-            user has an unambiguous expand/collapse affordance besides
-            the Search icon. */}
+        {/* Pixel-neubru toggle handle — square 24×24 tile straddling
+            the sidebar's right edge, 2 px ink border with an L-shape
+            lime shadow that "pops" the chevron out of the panel. The
+            ``left`` animates synced with the sidebar width spring;
+            hover bumps the shadow for that pixel-press feel. */}
         {desktop && (
-          <button
+          <motion.button
             type="button"
             onClick={() => setExpanded((v) => !v)}
             aria-label={expanded ? "Collapse sidebar" : "Expand sidebar"}
             title={expanded ? "Collapse sidebar" : "Expand sidebar"}
-            className="border-border bg-card text-muted-foreground hover:text-foreground absolute top-1/2 z-40 inline-flex size-6 -translate-y-1/2 items-center justify-center rounded-full border-2 shadow-[2px_2px_0_0_var(--border)] transition-[left,box-shadow] duration-200 ease-out"
-            style={{ left: sidebarWidth - 12 }}
+            animate={{ left: sidebarWidth - 12 }}
+            transition={transition}
+            whileHover={{ x: 1, y: -1 }}
+            whileTap={{ x: 0, y: 0 }}
+            className="border-border bg-card text-foreground absolute top-1/2 z-40 inline-flex size-6 -translate-y-1/2 items-center justify-center border-2 shadow-[3px_3px_0_0_var(--lime)] hover:shadow-[4px_4px_0_0_var(--lime)] active:shadow-[1px_1px_0_0_var(--lime)]"
           >
-            {expanded ? <ChevronLeft className="size-3" /> : <ChevronRight className="size-3" />}
-          </button>
+            {expanded ? (
+              <ChevronLeft className="size-3.5" />
+            ) : (
+              <ChevronRight className="size-3.5" />
+            )}
+          </motion.button>
         )}
 
         <div className="flex min-w-0 flex-1 flex-col">
