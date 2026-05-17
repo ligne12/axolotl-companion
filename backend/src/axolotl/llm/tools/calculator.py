@@ -12,6 +12,7 @@ Supports anything ``sympy`` parses — ``2*3 + 5``, ``integrate(x**2, x)``,
 
 from __future__ import annotations
 
+from tokenize import TokenError
 from typing import Any
 
 import sympy as sp
@@ -84,7 +85,7 @@ class CalculatorTool(Tool):
                 transformations=_TRANSFORMATIONS,
                 evaluate=True,
             )
-        except (SyntaxError, sp.SympifyError, TypeError, ValueError) as exc:
+        except (SyntaxError, sp.SympifyError, TokenError, TypeError, ValueError) as exc:
             return {"error": f"Could not parse expression: {exc}"}
 
         result: dict[str, Any] = {

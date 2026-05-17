@@ -2,6 +2,7 @@
 
 from __future__ import annotations
 
+from collections.abc import Callable
 from typing import Any
 
 import httpx
@@ -9,9 +10,19 @@ import pytest
 
 from axolotl.llm.tools.fetch_url import FetchUrlTool
 
+_REAL_ASYNC_CLIENT = httpx.AsyncClient
 
-def _mock_transport(handler: Any) -> httpx.MockTransport:
-    return httpx.MockTransport(handler)
+
+def _patch_client(
+    monkeypatch: pytest.MonkeyPatch,
+    handler: Callable[[httpx.Request], httpx.Response],
+) -> None:
+    transport = httpx.MockTransport(handler)
+
+    def factory(**kw: Any) -> httpx.AsyncClient:
+        return _REAL_ASYNC_CLIENT(transport=transport, **kw)
+
+    monkeypatch.setattr(httpx, "AsyncClient", factory)
 
 
 @pytest.mark.asyncio
@@ -74,11 +85,7 @@ async def test_fetch_url_happy_path(monkeypatch: pytest.MonkeyPatch) -> None:
     # resolves to a public IP in CI) is treated as safe without depending
     # on DNS.
     monkeypatch.setattr("axolotl.llm.tools.fetch_url._is_safe_host", lambda _h: True)
-    monkeypatch.setattr(
-        httpx,
-        "AsyncClient",
-        lambda **kw: httpx.AsyncClient(transport=_mock_transport(handler), **kw),
-    )
+    _patch_client(monkeypatch, handler)
 
     out = await FetchUrlTool().run({"url": "https://example.com/article"})
 
@@ -102,11 +109,7 @@ async def test_fetch_url_max_chars_truncates(monkeypatch: pytest.MonkeyPatch) ->
         )
 
     monkeypatch.setattr("axolotl.llm.tools.fetch_url._is_safe_host", lambda _h: True)
-    monkeypatch.setattr(
-        httpx,
-        "AsyncClient",
-        lambda **kw: httpx.AsyncClient(transport=_mock_transport(handler), **kw),
-    )
+    _patch_client(monkeypatch, handler)
 
     out = await FetchUrlTool().run({"url": "https://example.com/big", "max_chars": 500})
     assert out["truncated"] is True
@@ -123,11 +126,7 @@ async def test_fetch_url_rejects_non_html_content_type(monkeypatch: pytest.Monke
         )
 
     monkeypatch.setattr("axolotl.llm.tools.fetch_url._is_safe_host", lambda _h: True)
-    monkeypatch.setattr(
-        httpx,
-        "AsyncClient",
-        lambda **kw: httpx.AsyncClient(transport=_mock_transport(handler), **kw),
-    )
+    _patch_client(monkeypatch, handler)
 
     out = await FetchUrlTool().run({"url": "https://example.com/binary"})
     assert "Unsupported content-type" in out["error"]

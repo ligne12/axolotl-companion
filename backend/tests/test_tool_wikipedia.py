@@ -2,6 +2,7 @@
 
 from __future__ import annotations
 
+from collections.abc import Callable
 from typing import Any
 
 import httpx
@@ -9,9 +10,19 @@ import pytest
 
 from axolotl.llm.tools.wikipedia import WikipediaSearchTool, _clean_snippet
 
+_REAL_ASYNC_CLIENT = httpx.AsyncClient
 
-def _mock_transport(handler: Any) -> httpx.MockTransport:
-    return httpx.MockTransport(handler)
+
+def _patch_client(
+    monkeypatch: pytest.MonkeyPatch,
+    handler: Callable[[httpx.Request], httpx.Response],
+) -> None:
+    transport = httpx.MockTransport(handler)
+
+    def factory(**kw: Any) -> httpx.AsyncClient:
+        return _REAL_ASYNC_CLIENT(transport=transport, **kw)
+
+    monkeypatch.setattr(httpx, "AsyncClient", factory)
 
 
 def test_clean_snippet_strips_highlights() -> None:
@@ -55,11 +66,7 @@ async def test_wikipedia_search_happy(monkeypatch: pytest.MonkeyPatch) -> None:
             },
         )
 
-    monkeypatch.setattr(
-        httpx,
-        "AsyncClient",
-        lambda **kw: httpx.AsyncClient(transport=_mock_transport(handler), **kw),
-    )
+    _patch_client(monkeypatch, handler)
 
     out = await WikipediaSearchTool().run({"query": "axolotl"})
 
@@ -80,11 +87,7 @@ async def test_wikipedia_language_routing(monkeypatch: pytest.MonkeyPatch) -> No
         captured["host"] = request.url.host
         return httpx.Response(200, json={"query": {"search": []}})
 
-    monkeypatch.setattr(
-        httpx,
-        "AsyncClient",
-        lambda **kw: httpx.AsyncClient(transport=_mock_transport(handler), **kw),
-    )
+    _patch_client(monkeypatch, handler)
 
     await WikipediaSearchTool().run({"query": "salamandre", "language": "fr"})
     assert captured["host"] == "fr.wikipedia.org"

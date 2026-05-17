@@ -2,6 +2,7 @@
 
 from __future__ import annotations
 
+from collections.abc import Callable
 from typing import Any
 
 import httpx
@@ -9,9 +10,24 @@ import pytest
 
 from axolotl.llm.tools.weather import GetWeatherTool
 
+# Capture the real class *before* any monkeypatch fires; otherwise the
+# factory below would recurse into itself (``httpx.AsyncClient`` after
+# patching IS the factory) and raise ``got multiple values for
+# transport``.
+_REAL_ASYNC_CLIENT = httpx.AsyncClient
 
-def _mock_transport(handler: Any) -> httpx.MockTransport:
-    return httpx.MockTransport(handler)
+
+def _patch_client(
+    monkeypatch: pytest.MonkeyPatch,
+    handler: Callable[[httpx.Request], httpx.Response],
+) -> None:
+    """Swap ``httpx.AsyncClient`` for one wired to the given mock handler."""
+    transport = httpx.MockTransport(handler)
+
+    def factory(**kw: Any) -> httpx.AsyncClient:
+        return _REAL_ASYNC_CLIENT(transport=transport, **kw)
+
+    monkeypatch.setattr(httpx, "AsyncClient", factory)
 
 
 @pytest.mark.asyncio
@@ -65,11 +81,7 @@ async def test_weather_happy_path(monkeypatch: pytest.MonkeyPatch) -> None:
             },
         )
 
-    monkeypatch.setattr(
-        httpx,
-        "AsyncClient",
-        lambda **kw: httpx.AsyncClient(transport=_mock_transport(handler), **kw),
-    )
+    _patch_client(monkeypatch, handler)
 
     result = await GetWeatherTool().run({"location": "Paris", "days": 3})
 
@@ -94,11 +106,7 @@ async def test_weather_unknown_location(monkeypatch: pytest.MonkeyPatch) -> None
     def handler(request: httpx.Request) -> httpx.Response:
         return httpx.Response(200, json={"results": []})
 
-    monkeypatch.setattr(
-        httpx,
-        "AsyncClient",
-        lambda **kw: httpx.AsyncClient(transport=_mock_transport(handler), **kw),
-    )
+    _patch_client(monkeypatch, handler)
 
     out = await GetWeatherTool().run({"location": "Nowhereland"})
     assert "Location not found" in out["error"]
@@ -121,11 +129,7 @@ async def test_weather_clamps_days(monkeypatch: pytest.MonkeyPatch) -> None:
             json={"current": {}, "daily": {"time": []}},
         )
 
-    monkeypatch.setattr(
-        httpx,
-        "AsyncClient",
-        lambda **kw: httpx.AsyncClient(transport=_mock_transport(handler), **kw),
-    )
+    _patch_client(monkeypatch, handler)
 
     await GetWeatherTool().run({"location": "X", "days": 99})
     assert captured["forecast_days"] == "7"
