@@ -154,10 +154,10 @@ export function SidebarRail() {
       </RailButton>
       <RailButton
         onClick={() => {
-          // Surfacing the hover panel via a click is the rail's
-          // explicit affordance — emit a custom event that AppShell
-          // listens for to flip ``hovered`` to true.
-          window.dispatchEvent(new CustomEvent("sidebar:expand"));
+          // Click-driven toggle of the full sidebar overlay (managed
+          // by ``AppShell``). Pressing the icon again while the panel
+          // is open closes it.
+          window.dispatchEvent(new CustomEvent("sidebar:toggle"));
         }}
         label={t("filterLabel")}
       >
