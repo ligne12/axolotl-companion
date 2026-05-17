@@ -1,8 +1,10 @@
 "use client";
 
-import { Check, Copy, Plug, RotateCw, Search, Wrench } from "lucide-react";
+import { Check, Copy, Pin, Plug, RotateCw, Search, Wrench } from "lucide-react";
+import { useTranslations } from "next-intl";
 import { useState } from "react";
 
+import { PinDialog } from "@/components/chat/pin-dialog";
 import DecryptedText from "@/components/reactbits/decrypted-text";
 import { Button } from "@/components/ui/button";
 import { Markdown } from "@/components/ui/markdown";
@@ -308,6 +310,8 @@ export function MessageBubble({
   const hasReasoning = Boolean(message.reasoning);
   const hasToolCalls = Boolean(message.tool_calls?.length);
   const [copied, setCopied] = useState(false);
+  const [pinOpen, setPinOpen] = useState(false);
+  const t = useTranslations("pins");
   const timings = message.metadata?.timings;
   const reasoningMs = timings?.reasoning_ms ?? undefined;
   const totalMs = timings?.total_ms ?? timings?.round_ms ?? undefined;
@@ -386,6 +390,18 @@ export function MessageBubble({
                   {copied ? <Check className="size-3" /> : <Copy className="size-3" />}
                   <span className="ml-1 text-xs">{copied ? "Copied" : "Copy"}</span>
                 </Button>
+                {!isUser && (
+                  <Button
+                    variant="ghost"
+                    size="sm"
+                    className="h-7 px-2"
+                    onClick={() => setPinOpen(true)}
+                    aria-label={t("action.pin")}
+                  >
+                    <Pin className="size-3" />
+                    <span className="ml-1 text-xs">{t("action.pin")}</span>
+                  </Button>
+                )}
                 {isLast && onRegenerate && !isUser && (
                   <Button variant="ghost" size="sm" className="h-7 px-2" onClick={onRegenerate}>
                     <RotateCw className="size-3" />
@@ -402,6 +418,14 @@ export function MessageBubble({
           </div>
         )}
       </div>
+      {!isUser && message.content && (
+        <PinDialog
+          open={pinOpen}
+          onOpenChange={setPinOpen}
+          messageId={message.id}
+          messageContent={message.content}
+        />
+      )}
     </div>
   );
 }

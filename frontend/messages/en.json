@@ -88,6 +88,25 @@
       "days": "{count, plural, one {# d ago} other {# d ago}}"
     }
   },
+  "pins": {
+    "action": {
+      "pin": "Pin"
+    },
+    "modal": {
+      "title": "Pin to *home*",
+      "description": "Promote this message to a card on your home screen.",
+      "titleLabel": "Title",
+      "titleHelp": "A short label so you recognise the card at a glance.",
+      "titlePlaceholder": "e.g. Sourdough recipe",
+      "pin": "Pin",
+      "pinning": "Pinning…"
+    },
+    "toasts": {
+      "pinned": "Pinned to home",
+      "alreadyPinned": "This message is already pinned",
+      "errPin": "Could not pin"
+    }
+  },
   "auth": {
     "tagSignIn": "Sign in",
     "tagRegister": "Registration",

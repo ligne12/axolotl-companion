@@ -88,6 +88,25 @@
       "days": "il y a {count, plural, one {# j} other {# j}}"
     }
   },
+  "pins": {
+    "action": {
+      "pin": "Épingler"
+    },
+    "modal": {
+      "title": "Épingler à l'*accueil*",
+      "description": "Promouvoir ce message en carte sur votre écran d'accueil.",
+      "titleLabel": "Titre",
+      "titleHelp": "Une étiquette courte pour reconnaître la carte d'un coup d'œil.",
+      "titlePlaceholder": "ex. Recette de pain au levain",
+      "pin": "Épingler",
+      "pinning": "Épinglage…"
+    },
+    "toasts": {
+      "pinned": "Épinglé à l'accueil",
+      "alreadyPinned": "Ce message est déjà épinglé",
+      "errPin": "Impossible d'épingler"
+    }
+  },
   "auth": {
     "tagSignIn": "Connexion",
     "tagRegister": "Inscription",
