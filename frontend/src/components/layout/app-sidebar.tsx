@@ -273,7 +273,7 @@ export function AppSidebar({ collapsed = false }: { collapsed?: boolean }) {
         </span>
       </Link>
 
-      <div className={cn("p-3", collapsed && "flex justify-center")}>
+      <div className="p-3">
         <button
           type="button"
           onClick={() => createSession.mutate()}
@@ -310,7 +310,7 @@ export function AppSidebar({ collapsed = false }: { collapsed?: boolean }) {
           focus on the next render via the existing ``/`` shortcut
           path if the user keeps typing. */}
       {collapsed ? (
-        <div className="flex justify-center px-3 pb-2">
+        <div className="px-3 pb-2">
           <button
             type="button"
             onClick={() => window.dispatchEvent(new CustomEvent("sidebar:toggle"))}
@@ -398,8 +398,14 @@ export function AppSidebar({ collapsed = false }: { collapsed?: boolean }) {
 
       <div
         className={cn(
-          "border-border space-y-1 border-t-2 p-3",
-          collapsed && "flex flex-col items-center",
+          "border-border border-t-2 p-3",
+          // Inline-flex children (Theme / Locale toggles, Logout
+          // button) won't stack with ``space-y-*``; force a real
+          // flex-col when collapsed and left-align so the icons land
+          // in the visible 0 → 56 px viewport rather than centered in
+          // the 256-wide container that lives behind the motion
+          // wrapper's overflow clip.
+          collapsed ? "flex flex-col items-start gap-1" : "space-y-1",
         )}
       >
         <Link
