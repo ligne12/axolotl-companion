@@ -9,8 +9,6 @@ import { useRouter } from "next/navigation";
 import { useEffect, useState } from "react";
 import { toast } from "sonner";
 
-import type { AxolotlMood } from "@/components/axolotl/axolotl-3d";
-
 // Three.js bundle (~150 KB gz) is heavy; defer it from the initial paint.
 // A sized neutral tile fills the slot during SSR + first-load so the
 // hero layout doesn't pop.
@@ -32,8 +30,8 @@ import Magnet from "@/components/reactbits/magnet";
 import PixelSnow from "@/components/reactbits/pixel-snow";
 import TextType from "@/components/reactbits/text-type";
 import { useApi } from "@/hooks/use-api";
+import { useMood } from "@/hooks/use-mood";
 import { cn } from "@/lib/utils";
-import { useChatStatus } from "@/stores/chat-status";
 import type { SessionPublic } from "@/types/api";
 
 export function HomeHero({
@@ -53,39 +51,19 @@ export function HomeHero({
   // ``useTranslations.raw`` returns the array under "home.greetings" as-is
   // (next-intl array support) so TextType still gets a list of strings.
   const greetings = (t.raw("greetings") as string[]) ?? [];
+  // Locally-scoped "poke" window — a 3 s ``happy`` splash when the
+  // user clicks the mascot. Lives here rather than in the store
+  // because the gesture is hero-specific.
   const [pokedUntil, setPokedUntil] = useState<number>(0);
-  const [justFinishedUntil, setJustFinishedUntil] = useState<number>(0);
   const [, forceTick] = useState(0);
-  const isSending = useChatStatus((s) => s.isSending);
-  const tokensPerSec = useChatStatus((s) => s.tokensPerSec);
-  const currentTool = useChatStatus((s) => s.currentTool);
-  const lastError = useChatStatus((s) => s.lastError);
 
-  // Stamp a 3s "happy" window each time a stream completes.
   useEffect(() => {
-    if (!isSending) return;
-    return () => setJustFinishedUntil(Date.now() + 3000);
-  }, [isSending]);
-
-  // Re-render when the timed windows (poke, justFinished) elapse so the
-  // derived `mood` below can roll back to idle.
-  useEffect(() => {
-    const target = Math.max(pokedUntil, justFinishedUntil);
-    if (target <= Date.now()) return;
-    const t = setTimeout(() => forceTick((n) => n + 1), target - Date.now());
+    if (pokedUntil <= Date.now()) return;
+    const t = setTimeout(() => forceTick((n) => n + 1), pokedUntil - Date.now());
     return () => clearTimeout(t);
-  }, [pokedUntil, justFinishedUntil]);
+  }, [pokedUntil]);
 
-  const mood: AxolotlMood = (() => {
-    const now = Date.now();
-    if (lastError) return "confused";
-    if (now < pokedUntil) return "happy";
-    if (currentTool === "web_search") return "searching";
-    if (isSending && tokensPerSec !== null && tokensPerSec > 0) return "typing";
-    if (isSending) return "thinking";
-    if (now < justFinishedUntil) return "happy";
-    return "idle";
-  })();
+  const mood = useMood({ poke: Date.now() < pokedUntil });
 
   const createSession = useMutation({
     mutationFn: () =>

@@ -165,7 +165,14 @@ function SessionRow({
   );
 }
 
-export function AppSidebar() {
+/**
+ * Single morphing sidebar — same component renders the icon-only rail
+ * (when ``collapsed``) and the full panel (when expanded). The outer
+ * width animation lives in ``AppShell``; this component swaps content
+ * via CSS opacity + a couple of conditional sub-renders so the two
+ * states share visual anchors (logo, icons stay in place).
+ */
+export function AppSidebar({ collapsed = false }: { collapsed?: boolean }) {
   const api = useApi();
   const router = useRouter();
   const pathname = usePathname();
@@ -246,54 +253,102 @@ export function AppSidebar() {
   });
 
   return (
-    <aside className="border-border bg-background flex h-dvh w-64 flex-col border-r-2">
+    // No ``border-r-2`` here — that's now on the ``<motion.aside>``
+    // wrapper in ``AppShell`` so it stays anchored to the visible
+    // edge of the sidebar regardless of the collapsed / expanded
+    // width animation.
+    <aside className="bg-background flex h-dvh w-64 flex-col overflow-hidden">
       <Link
         href="/home"
-        className="border-border hover:bg-card flex items-center gap-2 border-b-2 px-4 py-3 transition"
+        className="border-border hover:bg-card flex items-center gap-2 border-b-2 px-2.5 py-3 transition"
       >
-        <LotusLogo className="size-7" />
-        <span className="font-display text-lg font-bold">Axolotl</span>
+        <LotusLogo className="size-9 shrink-0" />
+        <span
+          className={cn(
+            "font-display text-lg font-bold whitespace-nowrap transition-opacity duration-150",
+            collapsed && "opacity-0",
+          )}
+        >
+          Axolotl
+        </span>
       </Link>
 
-      <div className="p-3">
+      <div className="px-2.5 py-3">
         <button
           type="button"
           onClick={() => createSession.mutate()}
           disabled={createSession.isPending}
+          aria-label={t("newChat")}
+          title={t("newChat")}
           className={cn(
-            "border-border bg-primary text-primary-foreground flex w-full items-center justify-center gap-2 border-2 px-3 py-2 text-sm font-semibold",
+            "border-border bg-primary text-primary-foreground inline-flex items-center justify-center gap-2 border-2 text-sm font-semibold",
             "shadow-[3px_3px_0_0_var(--lime)] transition-[transform,box-shadow] duration-100",
             "hover:-translate-x-[1px] hover:-translate-y-[1px] hover:shadow-[4px_4px_0_0_var(--lime)]",
             "active:translate-x-[1px] active:translate-y-[1px] active:shadow-[1px_1px_0_0_var(--lime)]",
             "disabled:cursor-not-allowed disabled:opacity-60",
+            // Collapsed: compact 36 px square icon button that fits in
+            // the 56 px rail with 10 px of breathing room each side.
+            // Expanded: stretches across the panel like before.
+            collapsed ? "size-9 shrink-0" : "w-full px-3 py-2",
           )}
         >
-          <MessageSquarePlus className="size-4" /> {t("newChat")}
+          <MessageSquarePlus className="size-4 shrink-0" />
+          <span
+            className={cn(
+              "whitespace-nowrap transition-opacity duration-150",
+              collapsed && "hidden",
+            )}
+          >
+            {t("newChat")}
+          </span>
         </button>
       </div>
 
-      {/* Filter input */}
-      <div className="px-3 pb-2">
-        <div className="relative">
-          <Search className="text-muted-foreground pointer-events-none absolute top-1/2 left-2 size-3.5 -translate-y-1/2" />
-          <input
-            ref={filterRef}
-            value={filter}
-            onChange={(e) => setFilter(e.target.value)}
-            placeholder={t("filterPlaceholder")}
-            className="border-border bg-card placeholder:text-muted-foreground h-8 w-full border-2 pr-8 pl-7 text-[13px] transition-[box-shadow] duration-100 outline-none focus:shadow-[3px_3px_0_0_var(--lime)]"
+      {/* Filter input (expanded) → search icon button (collapsed).
+          Clicking the collapsed icon dispatches ``sidebar:toggle``
+          which expands the sidebar; the filter input then takes
+          focus on the next render via the existing ``/`` shortcut
+          path if the user keeps typing. */}
+      {collapsed ? (
+        <div className="px-2.5 pb-2">
+          <button
+            type="button"
+            onClick={() => window.dispatchEvent(new CustomEvent("sidebar:toggle"))}
             aria-label={t("filterLabel")}
-          />
-          <span
-            aria-hidden
-            className="border-border/40 bg-background font-pixel text-muted-foreground pointer-events-none absolute top-1/2 right-1.5 -translate-y-1/2 border px-1 py-0.5 text-[9px] tracking-widest uppercase"
+            title={t("filterLabel")}
+            className="border-border bg-card text-muted-foreground hover:text-foreground inline-flex size-9 shrink-0 items-center justify-center border-2 transition-colors"
           >
-            /
-          </span>
+            <Search className="size-4" />
+          </button>
         </div>
-      </div>
+      ) : (
+        <div className="px-3 pb-2">
+          <div className="relative">
+            <Search className="text-muted-foreground pointer-events-none absolute top-1/2 left-2 size-3.5 -translate-y-1/2" />
+            <input
+              ref={filterRef}
+              value={filter}
+              onChange={(e) => setFilter(e.target.value)}
+              placeholder={t("filterPlaceholder")}
+              className="border-border bg-card placeholder:text-muted-foreground h-8 w-full border-2 pr-8 pl-7 text-[13px] transition-[box-shadow] duration-100 outline-none focus:shadow-[3px_3px_0_0_var(--lime)]"
+              aria-label={t("filterLabel")}
+            />
+            <span
+              aria-hidden
+              className="border-border/40 bg-background font-pixel text-muted-foreground pointer-events-none absolute top-1/2 right-1.5 -translate-y-1/2 border px-1 py-0.5 text-[9px] tracking-widest uppercase"
+            >
+              /
+            </span>
+          </div>
+        </div>
+      )}
 
-      <div className="flex-1 overflow-y-auto px-3">
+      <div
+        className={cn(
+          "flex-1 overflow-y-auto px-3 transition-opacity duration-150",
+          collapsed && "pointer-events-none opacity-0",
+        )}
+      >
         {(() => {
           const all = sessionsQuery.data ?? [];
           const q = filter.trim().toLowerCase();
@@ -341,44 +396,90 @@ export function AppSidebar() {
         })()}
       </div>
 
-      <div className="border-border space-y-1 border-t-2 p-3">
+      <div
+        className={cn(
+          "border-border border-t-2",
+          // ``px-2.5 = 10 px`` lines up the 36 × 36 icon buttons at
+          // ``x = 10 → 46`` inside the 56 px-wide visible rail —
+          // optically centered. Inline-flex children (Theme / Locale
+          // toggles, Logout button) need a real flex-col with
+          // ``items-start`` to stack vertically; ``space-y-*`` alone
+          // doesn't force a new line on inline-level elements.
+          collapsed
+            ? "flex flex-col items-start gap-1 px-2.5 py-3"
+            : "space-y-1 p-3",
+        )}
+      >
         <Link
           href="/home"
+          aria-label={t("home")}
+          title={collapsed ? t("home") : undefined}
           className={cn(
-            "flex items-center gap-2 rounded-md border-2 px-2 py-1.5 text-sm transition-colors",
+            "flex items-center border-2 transition-colors",
+            collapsed ? "size-9 justify-center" : "w-full gap-2 rounded-md px-2 py-1.5 text-sm",
             pathname === "/home"
               ? "border-border bg-card shadow-[2px_2px_0_0_var(--lime)]"
-              : "hover:border-border/40 hover:bg-card/60 border-transparent",
+              : collapsed
+                ? "border-border bg-card hover:bg-card/60"
+                : "hover:border-border/40 hover:bg-card/60 border-transparent",
           )}
         >
-          <Home className="size-4" /> {t("home")}
+          <Home className="size-4 shrink-0" />
+          <span className={cn("whitespace-nowrap", collapsed && "hidden")}>{t("home")}</span>
         </Link>
         <Link
           href="/settings"
+          aria-label={t("settings")}
+          title={collapsed ? t("settings") : undefined}
           className={cn(
-            "flex items-center gap-2 rounded-md border-2 px-2 py-1.5 text-sm transition-colors",
+            "flex items-center border-2 transition-colors",
+            collapsed ? "size-9 justify-center" : "w-full gap-2 rounded-md px-2 py-1.5 text-sm",
             pathname.startsWith("/settings")
               ? "border-border bg-card shadow-[2px_2px_0_0_var(--lime)]"
-              : "hover:border-border/40 hover:bg-card/60 border-transparent",
+              : collapsed
+                ? "border-border bg-card hover:bg-card/60"
+                : "hover:border-border/40 hover:bg-card/60 border-transparent",
           )}
         >
-          <Settings className="size-4" /> {t("settings")}
+          <Settings className="size-4 shrink-0" />
+          <span className={cn("whitespace-nowrap", collapsed && "hidden")}>{t("settings")}</span>
         </Link>
-        <div className="flex items-center justify-between gap-2 px-2 py-1.5 text-sm">
-          <ThemeToggle />
-          <LocaleSwitcher />
-        </div>
-        <div className="flex items-center justify-between px-2 py-1.5 text-sm">
-          <span className="text-muted-foreground truncate">{user?.user?.name}</span>
+        {collapsed ? (
+          <>
+            <ThemeToggle compact />
+            <LocaleSwitcher compact />
+          </>
+        ) : (
+          <div className="flex items-center justify-between gap-2 px-2 py-1.5 text-sm">
+            <ThemeToggle />
+            <LocaleSwitcher />
+          </div>
+        )}
+        {collapsed ? (
           <button
             type="button"
             onClick={() => signOut({ callbackUrl: "/login" })}
-            className="text-muted-foreground hover:text-foreground transition"
             aria-label={t("signOut")}
+            title={t("signOut")}
+            className="border-border bg-card text-muted-foreground hover:text-foreground inline-flex size-9 items-center justify-center border-2 transition-colors"
           >
             <LogOut className="size-4" />
           </button>
-        </div>
+        ) : (
+          <div className="flex items-center justify-between gap-2 px-2 py-1.5 text-sm">
+            <span className="text-muted-foreground truncate whitespace-nowrap">
+              {user?.user?.name}
+            </span>
+            <button
+              type="button"
+              onClick={() => signOut({ callbackUrl: "/login" })}
+              className="text-muted-foreground hover:text-foreground shrink-0 transition"
+              aria-label={t("signOut")}
+            >
+              <LogOut className="size-4" />
+            </button>
+          </div>
+        )}
       </div>
     </aside>
   );

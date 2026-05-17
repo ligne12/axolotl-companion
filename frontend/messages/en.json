@@ -88,6 +88,11 @@
       "days": "{count, plural, one {# d ago} other {# d ago}}"
     }
   },
+  "mascot": {
+    "toggleSizeHint": "Click to resize · long-press to hide",
+    "hidden": "Mascot hidden",
+    "hiddenDescription": "Reload the page to bring it back."
+  },
   "pins": {
     "section": {
       "title": "Pinned"

@@ -4,6 +4,7 @@ import { Send, SlidersHorizontal, Square } from "lucide-react";
 import { useTranslations } from "next-intl";
 import { useRef, useState } from "react";
 
+import { ChatMascot } from "@/components/chat/chat-mascot";
 import { useHaptic } from "@/hooks/use-haptic";
 import { cn } from "@/lib/utils";
 
@@ -43,7 +44,13 @@ export function ChatInput({
     // bottom-of-shell separator. Extra bottom padding lifts the input
     // away from the footer's LOCAL line.
     <div className="px-3 pt-3 pb-8">
+      {/* Composer row stays bounded at ``max-w-3xl`` regardless of the
+          chibi state — total composer width is constant. The chibi
+          grows from 80 → 160 px inside this fixed row, the flex
+          ``flex-1`` textarea naturally shrinks to absorb the
+          difference. Controls + send buttons keep their 44 px tile. */}
       <div className="mx-auto flex max-w-3xl items-end gap-2">
+        <ChatMascot />
         {onOpenControls && (
           <button
             type="button"
