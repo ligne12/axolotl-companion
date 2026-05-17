@@ -42,7 +42,7 @@ export function LocaleSwitcher({
         aria-label="Language"
         title={`→ ${LABELS[other]}`}
         className={cn(
-          "font-pixel border-border bg-card text-foreground inline-flex size-7 items-center justify-center border-2 text-[10px] tracking-[0.14em] uppercase disabled:cursor-not-allowed disabled:opacity-60",
+          "font-pixel border-border bg-card text-foreground inline-flex size-9 items-center justify-center border-2 text-[11px] tracking-[0.14em] uppercase disabled:cursor-not-allowed disabled:opacity-60",
           className,
         )}
       >

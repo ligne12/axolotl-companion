@@ -47,11 +47,11 @@ export function ThemeToggle({
         aria-label={`Theme · ${opt.label}`}
         title={`Theme · ${opt.label}`}
         className={cn(
-          "border-border bg-card text-foreground inline-flex size-7 items-center justify-center border-2 transition-colors",
+          "border-border bg-card text-foreground inline-flex size-9 items-center justify-center border-2 transition-colors",
           className,
         )}
       >
-        <Icon className="size-3.5" />
+        <Icon className="size-4" />
       </button>
     );
   }
