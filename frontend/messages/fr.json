@@ -136,7 +136,8 @@
     "errInvalid": "Identifiants invalides",
     "errExists": "Nom d'utilisateur ou email déjà utilisé",
     "errRegister": "Inscription impossible",
-    "welcome": "Bienvenue !"
+    "welcome": "Bienvenue !",
+    "sessionExpired": "Votre session a expiré — reconnectez-vous."
   },
   "chat": {
     "controlsLabel": "Réglages du chat",

@@ -136,7 +136,8 @@
     "errInvalid": "Invalid credentials",
     "errExists": "Username or email already taken",
     "errRegister": "Could not register",
-    "welcome": "Welcome!"
+    "welcome": "Welcome!",
+    "sessionExpired": "Your session expired — please sign in again."
   },
   "chat": {
     "controlsLabel": "Chat controls",
