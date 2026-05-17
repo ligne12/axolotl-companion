@@ -45,9 +45,7 @@ def upgrade() -> None:
         sa.Column("created_at", sa.DateTime(timezone=True), nullable=False),
         sa.ForeignKeyConstraint(["user_id"], ["users.id"], ondelete="CASCADE"),
         sa.ForeignKeyConstraint(["message_id"], ["messages.id"], ondelete="CASCADE"),
-        sa.UniqueConstraint(
-            "user_id", "message_id", name="uq_pinned_messages_user_message"
-        ),
+        sa.UniqueConstraint("user_id", "message_id", name="uq_pinned_messages_user_message"),
     )
     op.create_index("ix_pinned_messages_user_id", "pinned_messages", ["user_id"])
     op.create_index(
