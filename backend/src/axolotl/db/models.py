@@ -290,3 +290,48 @@ class RefreshToken(SQLModel, table=True):
     user: User = Relationship(back_populates="refresh_tokens")
 
     __table_args__ = (UniqueConstraint("token_hash", name="uq_refresh_token_hash"),)
+
+
+# -----------------------------------------------------------------------------
+# PinnedMessage — promote any assistant message to a persistent card on /home.
+# Recipe, TODO, code snippet — the axolotl becomes a light dashboard.
+#
+# Same message can only be pinned once per user (unique constraint). The
+# message FK is ON DELETE CASCADE so if the source session / message is
+# deleted, the pin disappears with it — no dangling cards.
+# -----------------------------------------------------------------------------
+class PinnedMessage(SQLModel, table=True):
+    __tablename__ = "pinned_messages"
+
+    id: int | None = Field(
+        default=None,
+        sa_column=Column(BigInteger, primary_key=True, autoincrement=True),
+    )
+    user_id: int = Field(
+        sa_column=Column(
+            BigInteger,
+            ForeignKey("users.id", ondelete="CASCADE"),
+            nullable=False,
+            index=True,
+        ),
+    )
+    message_id: UUID = Field(
+        sa_column=Column(
+            PG_UUID(as_uuid=True),
+            ForeignKey("messages.id", ondelete="CASCADE"),
+            nullable=False,
+        ),
+    )
+    title: str = Field(max_length=200)
+    # Manual ordering of pinned cards on the home dashboard. Lower values
+    # come first; the API exposes a PATCH endpoint to update it.
+    position: int = Field(default=0, sa_column=Column(BigInteger, nullable=False))
+    created_at: datetime = Field(
+        default_factory=utcnow,
+        sa_column=Column(DateTime(timezone=True), nullable=False),
+    )
+
+    __table_args__ = (
+        UniqueConstraint("user_id", "message_id", name="uq_pinned_messages_user_message"),
+        Index("ix_pinned_messages_user_position", "user_id", "position"),
+    )
