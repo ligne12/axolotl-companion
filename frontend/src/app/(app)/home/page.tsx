@@ -2,6 +2,7 @@ import { redirect } from "next/navigation";
 
 import { auth } from "@/auth";
 import { HomeHero } from "@/components/home/home-hero";
+import { PinnedSection } from "@/components/home/pinned-section";
 import { RecentSessions } from "@/components/home/recent-sessions";
 import { apiFetch, ApiError } from "@/lib/api";
 import type { SessionPublic } from "@/types/api";
@@ -25,6 +26,7 @@ export default async function HomePage() {
     <div className="h-full overflow-y-auto">
       <div className="mx-auto flex w-full max-w-4xl flex-col gap-10 px-4 py-10 md:py-16">
         <HomeHero name={name} hasSessions={recent.length > 0} lastSessionId={recent[0]?.id} />
+        <PinnedSection />
         <RecentSessions sessions={recent} />
       </div>
     </div>

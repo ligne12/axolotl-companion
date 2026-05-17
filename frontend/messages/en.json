@@ -89,8 +89,15 @@
     }
   },
   "pins": {
+    "section": {
+      "title": "Pinned"
+    },
     "action": {
       "pin": "Pin"
+    },
+    "card": {
+      "jumpToSource": "Jump to source",
+      "unpin": "Unpin"
     },
     "modal": {
       "title": "Pin to *home*",
@@ -104,7 +111,9 @@
     "toasts": {
       "pinned": "Pinned to home",
       "alreadyPinned": "This message is already pinned",
-      "errPin": "Could not pin"
+      "errPin": "Could not pin",
+      "unpinned": "Unpinned",
+      "errUnpin": "Could not unpin"
     }
   },
   "auth": {
