@@ -89,7 +89,7 @@
     }
   },
   "mascot": {
-    "longPressHint": "Appuyez longuement pour masquer la mascotte",
+    "toggleSizeHint": "Clic pour redimensionner · maintenir pour masquer",
     "hidden": "Mascotte masquée",
     "hiddenDescription": "Rechargez la page pour la faire revenir."
   },

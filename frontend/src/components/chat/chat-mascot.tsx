@@ -1,12 +1,12 @@
 "use client";
 
+import { motion } from "motion/react";
 import dynamic from "next/dynamic";
 import { useTranslations } from "next-intl";
-import { useRef } from "react";
+import { useRef, useState } from "react";
 import { toast } from "sonner";
 
 import { useMood } from "@/hooks/use-mood";
-import { cn } from "@/lib/utils";
 import { useChatStatus } from "@/stores/chat-status";
 
 // Lazy-load the Three.js bundle the same way ``HomeHero`` does so the
@@ -20,24 +20,33 @@ const Axolotl3D = dynamic(
     loading: () => (
       <div
         aria-hidden
-        className="border-border bg-card size-12 shrink-0 rounded-xl border-2 shadow-[3px_3px_0_0_var(--border)] md:size-14"
+        className="border-border bg-card size-14 shrink-0 rounded-xl border-2 shadow-[3px_3px_0_0_var(--border)]"
       />
     ),
   },
 );
 
+/** Threshold above which a pointerdown→pointerup pair counts as a long-press
+ *  (hide) rather than a click (toggle size). */
 const LONG_PRESS_MS = 500;
+
+/** Edge of the inner canvas in px for each size mode. The outer button
+ *  wraps with 4 px of padding, so the tile itself is +8 px on each axis. */
+const SMALL_PX = 56;
+const LARGE_PX = 104;
 
 /**
  * Small persistent mascot pinned next to the chat composer. Reads
  * ``useMood()`` so it matches the home hero's seven-state grammar
  * (idle / listening / thinking / searching / typing / happy /
- * confused) but at ~56-72 px instead of 150 px.
+ * confused).
  *
- * Long-press toggles ``mascotHidden`` on the chat-status store —
- * users who prefer a quieter UI can press-and-hold for half a second
- * and the mascot rolls up. A short toast mentions that a page reload
- * brings it back (the flag is not persisted to localStorage).
+ * Two gestures :
+ *  - **Click / tap** toggles between ``small`` and ``large`` so the
+ *    user can pop the chibi forward when they want to admire it and
+ *    tuck it back to keep the chat readable.
+ *  - **Long-press** (~500 ms) hides the mascot for the rest of the
+ *    browser session, with a toast pointing at "reload to bring back".
  */
 export function ChatMascot() {
   const mood = useMood();
@@ -45,45 +54,61 @@ export function ChatMascot() {
   const setMascotHidden = useChatStatus((s) => s.setMascotHidden);
   const t = useTranslations("mascot");
   const timerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+  // Whether the in-flight gesture already classified as a long-press
+  // — if so, ``pointerup`` must NOT also treat it as a click.
+  const longPressedRef = useRef(false);
+  const [large, setLarge] = useState(false);
 
   if (mascotHidden) return null;
 
-  const armLongPress = () => {
+  const onPointerDown = () => {
+    longPressedRef.current = false;
     if (timerRef.current) clearTimeout(timerRef.current);
     timerRef.current = setTimeout(() => {
+      longPressedRef.current = true;
       setMascotHidden(true);
       toast(t("hidden"), { description: t("hiddenDescription") });
     }, LONG_PRESS_MS);
   };
 
-  const cancelLongPress = () => {
+  const onPointerUp = () => {
     if (timerRef.current) {
       clearTimeout(timerRef.current);
       timerRef.current = null;
     }
+    if (longPressedRef.current) return;
+    setLarge((v) => !v);
   };
 
+  const cancelGesture = () => {
+    if (timerRef.current) {
+      clearTimeout(timerRef.current);
+      timerRef.current = null;
+    }
+    longPressedRef.current = false;
+  };
+
+  const px = large ? LARGE_PX : SMALL_PX;
+  const tileEdge = px + 8;
+
   return (
-    <button
+    <motion.button
       type="button"
-      // Pointer events cover mouse + touch + pen in one path. We don't
-      // emit any click action — the only gesture is the long-press
-      // hide. Keep the button semantic for screen readers.
-      onPointerDown={armLongPress}
-      onPointerUp={cancelLongPress}
-      onPointerLeave={cancelLongPress}
-      onPointerCancel={cancelLongPress}
+      onPointerDown={onPointerDown}
+      onPointerUp={onPointerUp}
+      onPointerLeave={cancelGesture}
+      onPointerCancel={cancelGesture}
       onContextMenu={(e) => e.preventDefault()}
-      aria-label={t("longPressHint")}
-      title={t("longPressHint")}
-      className={cn(
-        "border-border bg-card shrink-0 rounded-xl border-2 p-1 shadow-[3px_3px_0_0_var(--border)] transition-[transform,box-shadow] duration-100 hover:-translate-x-[1px] hover:-translate-y-[1px] hover:shadow-[4px_4px_0_0_var(--border)] active:translate-x-[1px] active:translate-y-[1px] active:shadow-[1px_1px_0_0_var(--border)]",
-        // Mobile: smaller footprint, sits above the input via the
-        // wrapping flex's column direction in ``ChatInput``.
-        "size-12 md:size-14",
-      )}
+      aria-label={t("toggleSizeHint")}
+      title={t("toggleSizeHint")}
+      animate={{ width: tileEdge, height: tileEdge }}
+      // Slight bounce on resize — spring overshoots by ~5 % before
+      // settling. Mass + damping tuned so the rebound is felt but
+      // never jittery.
+      transition={{ type: "spring", stiffness: 320, damping: 18, mass: 0.7 }}
+      className="border-border bg-card flex shrink-0 items-center justify-center rounded-xl border-2 p-1 shadow-[3px_3px_0_0_var(--border)] hover:shadow-[4px_4px_0_0_var(--border)]"
     >
-      <Axolotl3D mood={mood} size={48} className="md:!h-[56px] md:!w-[56px]" />
-    </button>
+      <Axolotl3D mood={mood} size={px} className="!h-full !w-full" />
+    </motion.button>
   );
 }

@@ -89,7 +89,7 @@
     }
   },
   "mascot": {
-    "longPressHint": "Long-press to hide the mascot",
+    "toggleSizeHint": "Click to resize · long-press to hide",
     "hidden": "Mascot hidden",
     "hiddenDescription": "Reload the page to bring it back."
   },
