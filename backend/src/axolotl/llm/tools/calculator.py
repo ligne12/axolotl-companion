@@ -14,8 +14,8 @@ from __future__ import annotations
 
 from typing import Any
 
-import sympy as sp
-from sympy.parsing.sympy_parser import (
+import sympy as sp  # type: ignore[import-untyped]
+from sympy.parsing.sympy_parser import (  # type: ignore[import-untyped]
     parse_expr,
     standard_transformations,
 )
