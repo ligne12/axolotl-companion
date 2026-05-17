@@ -9,6 +9,7 @@ from axolotl.llm.tools.calculator import CalculatorTool
 from axolotl.llm.tools.clock import CurrentTimeTool
 from axolotl.llm.tools.weather import GetWeatherTool
 from axolotl.llm.tools.web_search import WebSearchTool
+from axolotl.llm.tools.wikipedia import WikipediaSearchTool
 
 # Global registry — built-in tools are registered here. To add a new tool,
 # implement a subclass of ``Tool`` and register it below.
@@ -17,6 +18,7 @@ registry.register(WebSearchTool())
 registry.register(GetWeatherTool())
 registry.register(CurrentTimeTool())
 registry.register(CalculatorTool())
+registry.register(WikipediaSearchTool())
 
 
 async def execute_tool(name: str, arguments: dict[str, Any]) -> dict[str, Any]:
