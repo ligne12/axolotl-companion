@@ -7,7 +7,6 @@ import { useRef, useState } from "react";
 import { ChatMascot } from "@/components/chat/chat-mascot";
 import { useHaptic } from "@/hooks/use-haptic";
 import { cn } from "@/lib/utils";
-import { useChatStatus } from "@/stores/chat-status";
 
 export function ChatInput({
   onSend,
@@ -27,11 +26,6 @@ export function ChatInput({
   const textareaRef = useRef<HTMLTextAreaElement>(null);
   const haptic = useHaptic();
   const t = useTranslations("chat");
-  // Mascot is a sibling in the flex row; when the user enlarges it,
-  // shrink the row's max-width so the textarea + send button + the
-  // bigger chibi all fit on one line without the mascot covering the
-  // composer.
-  const mascotLarge = useChatStatus((s) => s.mascotLarge);
 
   const submit = () => {
     const value = text.trim();
@@ -50,18 +44,12 @@ export function ChatInput({
     // bottom-of-shell separator. Extra bottom padding lifts the input
     // away from the footer's LOCAL line.
     <div className="px-3 pt-3 pb-8">
-      <div
-        className={cn(
-          "mx-auto flex items-end gap-2 transition-[max-width] duration-300 ease-out",
-          // Default row is contained at ``max-w-3xl`` so reading
-          // remains comfortable. When the chibi puffs up we *widen*
-          // the row instead of shrinking it — the textarea visibly
-          // gains room (rather than the chibi crowding the
-          // composer). The row stays bounded by the parent chat
-          // column on either side.
-          mascotLarge ? "max-w-none" : "max-w-3xl",
-        )}
-      >
+      {/* Composer row stays bounded at ``max-w-3xl`` regardless of the
+          chibi state — total composer width is constant. The chibi
+          grows from 80 → 160 px inside this fixed row, the flex
+          ``flex-1`` textarea naturally shrinks to absorb the
+          difference. Controls + send buttons keep their 44 px tile. */}
+      <div className="mx-auto flex max-w-3xl items-end gap-2">
         <ChatMascot />
         {onOpenControls && (
           <button

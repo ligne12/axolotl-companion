@@ -88,7 +88,12 @@ export function AppShell({ children }: { children: React.ReactNode }) {
         <motion.aside
           className={cn(
             !desktop && "fixed inset-y-0 left-0 z-40",
-            "h-dvh shrink-0 overflow-hidden",
+            // ``border-r-2`` lives on the motion wrapper so the
+            // separator stays visible in both width states — placing
+            // it on the inner ``<AppSidebar>`` (which is always 256
+            // px wide) would clip the border off-screen whenever the
+            // wrapper collapsed to 56.
+            "border-border bg-background h-dvh shrink-0 overflow-hidden border-r-2",
           )}
           animate={{ width: sidebarWidth, x: sidebarX }}
           initial={false}

@@ -253,7 +253,11 @@ export function AppSidebar({ collapsed = false }: { collapsed?: boolean }) {
   });
 
   return (
-    <aside className="border-border bg-background flex h-dvh w-64 flex-col overflow-hidden border-r-2">
+    // No ``border-r-2`` here — that's now on the ``<motion.aside>``
+    // wrapper in ``AppShell`` so it stays anchored to the visible
+    // edge of the sidebar regardless of the collapsed / expanded
+    // width animation.
+    <aside className="bg-background flex h-dvh w-64 flex-col overflow-hidden">
       <Link
         href="/home"
         className="border-border hover:bg-card flex items-center gap-2 border-b-2 px-4 py-3 transition"
@@ -300,34 +304,44 @@ export function AppSidebar({ collapsed = false }: { collapsed?: boolean }) {
         </button>
       </div>
 
-      {/* Filter input — hidden when collapsed. ``overflow-hidden`` on
-          the outer ``<aside>`` plus a ``max-h: 0`` here lets the
-          rest of the layout collapse cleanly without leaving a
-          ghost gap. */}
-      <div
-        className={cn(
-          "overflow-hidden px-3 transition-[max-height,opacity,padding] duration-200",
-          collapsed ? "max-h-0 pb-0 opacity-0" : "max-h-16 pb-2 opacity-100",
-        )}
-      >
-        <div className="relative">
-          <Search className="text-muted-foreground pointer-events-none absolute top-1/2 left-2 size-3.5 -translate-y-1/2" />
-          <input
-            ref={filterRef}
-            value={filter}
-            onChange={(e) => setFilter(e.target.value)}
-            placeholder={t("filterPlaceholder")}
-            className="border-border bg-card placeholder:text-muted-foreground h-8 w-full border-2 pr-8 pl-7 text-[13px] transition-[box-shadow] duration-100 outline-none focus:shadow-[3px_3px_0_0_var(--lime)]"
+      {/* Filter input (expanded) → search icon button (collapsed).
+          Clicking the collapsed icon dispatches ``sidebar:toggle``
+          which expands the sidebar; the filter input then takes
+          focus on the next render via the existing ``/`` shortcut
+          path if the user keeps typing. */}
+      {collapsed ? (
+        <div className="flex justify-center px-3 pb-2">
+          <button
+            type="button"
+            onClick={() => window.dispatchEvent(new CustomEvent("sidebar:toggle"))}
             aria-label={t("filterLabel")}
-          />
-          <span
-            aria-hidden
-            className="border-border/40 bg-background font-pixel text-muted-foreground pointer-events-none absolute top-1/2 right-1.5 -translate-y-1/2 border px-1 py-0.5 text-[9px] tracking-widest uppercase"
+            title={t("filterLabel")}
+            className="border-border bg-card text-muted-foreground hover:text-foreground inline-flex size-9 shrink-0 items-center justify-center border-2 transition-colors"
           >
-            /
-          </span>
+            <Search className="size-4" />
+          </button>
         </div>
-      </div>
+      ) : (
+        <div className="px-3 pb-2">
+          <div className="relative">
+            <Search className="text-muted-foreground pointer-events-none absolute top-1/2 left-2 size-3.5 -translate-y-1/2" />
+            <input
+              ref={filterRef}
+              value={filter}
+              onChange={(e) => setFilter(e.target.value)}
+              placeholder={t("filterPlaceholder")}
+              className="border-border bg-card placeholder:text-muted-foreground h-8 w-full border-2 pr-8 pl-7 text-[13px] transition-[box-shadow] duration-100 outline-none focus:shadow-[3px_3px_0_0_var(--lime)]"
+              aria-label={t("filterLabel")}
+            />
+            <span
+              aria-hidden
+              className="border-border/40 bg-background font-pixel text-muted-foreground pointer-events-none absolute top-1/2 right-1.5 -translate-y-1/2 border px-1 py-0.5 text-[9px] tracking-widest uppercase"
+            >
+              /
+            </span>
+          </div>
+        </div>
+      )}
 
       <div
         className={cn(
@@ -382,14 +396,24 @@ export function AppSidebar({ collapsed = false }: { collapsed?: boolean }) {
         })()}
       </div>
 
-      <div className="border-border space-y-1 border-t-2 p-3">
+      <div
+        className={cn(
+          "border-border space-y-1 border-t-2 p-3",
+          collapsed && "flex flex-col items-center",
+        )}
+      >
         <Link
           href="/home"
+          aria-label={t("home")}
+          title={collapsed ? t("home") : undefined}
           className={cn(
-            "flex items-center gap-2 rounded-md border-2 px-2 py-1.5 text-sm transition-colors",
+            "flex items-center border-2 transition-colors",
+            collapsed ? "size-9 justify-center" : "w-full gap-2 rounded-md px-2 py-1.5 text-sm",
             pathname === "/home"
               ? "border-border bg-card shadow-[2px_2px_0_0_var(--lime)]"
-              : "hover:border-border/40 hover:bg-card/60 border-transparent",
+              : collapsed
+                ? "border-border bg-card hover:bg-card/60"
+                : "hover:border-border/40 hover:bg-card/60 border-transparent",
           )}
         >
           <Home className="size-4 shrink-0" />
@@ -397,45 +421,57 @@ export function AppSidebar({ collapsed = false }: { collapsed?: boolean }) {
         </Link>
         <Link
           href="/settings"
+          aria-label={t("settings")}
+          title={collapsed ? t("settings") : undefined}
           className={cn(
-            "flex items-center gap-2 rounded-md border-2 px-2 py-1.5 text-sm transition-colors",
+            "flex items-center border-2 transition-colors",
+            collapsed ? "size-9 justify-center" : "w-full gap-2 rounded-md px-2 py-1.5 text-sm",
             pathname.startsWith("/settings")
               ? "border-border bg-card shadow-[2px_2px_0_0_var(--lime)]"
-              : "hover:border-border/40 hover:bg-card/60 border-transparent",
+              : collapsed
+                ? "border-border bg-card hover:bg-card/60"
+                : "hover:border-border/40 hover:bg-card/60 border-transparent",
           )}
         >
           <Settings className="size-4 shrink-0" />
           <span className={cn("whitespace-nowrap", collapsed && "hidden")}>{t("settings")}</span>
         </Link>
         {collapsed ? (
-          <div className="flex flex-col items-start gap-1 px-1 py-1.5">
+          <>
             <ThemeToggle compact />
             <LocaleSwitcher compact />
-          </div>
+          </>
         ) : (
           <div className="flex items-center justify-between gap-2 px-2 py-1.5 text-sm">
             <ThemeToggle />
             <LocaleSwitcher />
           </div>
         )}
-        <div className="flex items-center justify-between gap-2 px-2 py-1.5 text-sm">
-          <span
-            className={cn(
-              "text-muted-foreground truncate whitespace-nowrap",
-              collapsed && "hidden",
-            )}
-          >
-            {user?.user?.name}
-          </span>
+        {collapsed ? (
           <button
             type="button"
             onClick={() => signOut({ callbackUrl: "/login" })}
-            className="text-muted-foreground hover:text-foreground shrink-0 transition"
             aria-label={t("signOut")}
+            title={t("signOut")}
+            className="border-border bg-card text-muted-foreground hover:text-foreground inline-flex size-9 items-center justify-center border-2 transition-colors"
           >
             <LogOut className="size-4" />
           </button>
-        </div>
+        ) : (
+          <div className="flex items-center justify-between gap-2 px-2 py-1.5 text-sm">
+            <span className="text-muted-foreground truncate whitespace-nowrap">
+              {user?.user?.name}
+            </span>
+            <button
+              type="button"
+              onClick={() => signOut({ callbackUrl: "/login" })}
+              className="text-muted-foreground hover:text-foreground shrink-0 transition"
+              aria-label={t("signOut")}
+            >
+              <LogOut className="size-4" />
+            </button>
+          </div>
+        )}
       </div>
     </aside>
   );
